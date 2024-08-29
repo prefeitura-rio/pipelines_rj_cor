@@ -20,11 +20,14 @@ class constants(Enum):
 
     RJ_COR_AGENT_LABEL = "rj-cor"
 
-
     ######################################
     # Other constants
     ######################################
-    # EXAMPLE_CONSTANT = "example_constant"
+    # Prefect
+    PREFECT_DEFAULT_PROJECT = "main"
+    # Prefect tasks retry policy
+    TASK_MAX_RETRIES = 5
+    TASK_RETRY_DELAY = 10  # seconds
 
     ######################################
     # Discord code owners constants

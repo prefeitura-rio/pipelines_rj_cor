@@ -14,6 +14,7 @@ python-telegram-bot = "^21.4"
 basedosdados = "2.0.0b14"
 hvac = "^2.3.0"
 redis-pal = "^1.0.0"
+bs4 = "^0.0.2"
 
 
 [tool.poetry.group.dev]
