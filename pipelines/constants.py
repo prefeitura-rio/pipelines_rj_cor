@@ -18,7 +18,15 @@ class constants(Enum):
     ######################################
     # EXAMPLE_AGENT_LABEL = "example_agent"
 
+    RJ_COR_AGENT_LABEL = "rj-cor"
+
+
     ######################################
     # Other constants
     ######################################
     # EXAMPLE_CONSTANT = "example_constant"
+
+    ######################################
+    # Discord code owners constants
+    ######################################
+    EMD_DISCORD_WEBHOOK_SECRET_PATH = "prefect-discord-webhook"
