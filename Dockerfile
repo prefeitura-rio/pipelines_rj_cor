@@ -6,7 +6,7 @@ FROM python:${PYTHON_VERSION}
 
 # Install git
 RUN apt-get update && \
-    apt-get install -y git && \
+    apt-get install -y --no-install-recommends git=1:2.34.1-1ubuntu1.11 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
