@@ -4,6 +4,7 @@ ARG PYTHON_VERSION=3.10-slim
 # Start Python image
 FROM python:${PYTHON_VERSION}
 
+FROM curlimages/curl:7.81.0 as curl-step
 ARG GDAL_WHEELS_URL=https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
 RUN curl -sSLo /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl $GDAL_WHEELS_URL
 
