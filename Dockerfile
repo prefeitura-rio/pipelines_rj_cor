@@ -4,6 +4,9 @@ ARG PYTHON_VERSION=3.10-slim
 # Start Python image
 FROM python:${PYTHON_VERSION}
 
+ARG GDAL_WHEELS_URL=https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+RUN curl -sSLo /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl $GDAL_WHEELS_URL
+
 # Install git
 # hadolint ignore=DL3008
 RUN apt-get update && \
@@ -24,4 +27,7 @@ RUN python3 -m pip install --no-cache-dir -U "pip>=21.2.4" "prefect==$PREFECT_VE
 # Install requirements
 WORKDIR /app
 COPY . .
-RUN python3 -m pip install --prefer-binary --no-cache-dir -U .
+COPY --from=curl-step /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+RUN python3 -m pip install --prefer-binary --no-cache-dir -U . && \
+python3 -m pip install --no-cache-dir /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl && \
+rm /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
