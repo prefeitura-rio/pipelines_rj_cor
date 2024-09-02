@@ -2,14 +2,16 @@
 ARG PYTHON_VERSION=3.10-slim
 
 # Start Python image
-FROM python:${PYTHON_VERSION}
+FROM python:${PYTHON_VERSION} AS base
 
+# Curl image for downloading GDAL wheel
 FROM curlimages/curl:7.81.0 as curl-step
 ARG GDAL_WHEELS_URL=https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
 RUN curl -sSLo /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl $GDAL_WHEELS_URL
 
-# Install git
-# hadolint ignore=DL3008
+# Install git and other dependencies
+FROM base
+# Install additional dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl git ffmpeg libsm6 libxext6 && \
     apt-get clean && \
@@ -30,5 +32,5 @@ WORKDIR /app
 COPY . .
 COPY --from=curl-step /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
 RUN python3 -m pip install --prefer-binary --no-cache-dir -U . && \
-python3 -m pip install --no-cache-dir /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl && \
-rm /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+    python3 -m pip install --no-cache-dir /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl && \
+    rm /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
