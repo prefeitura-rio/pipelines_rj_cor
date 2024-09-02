@@ -142,8 +142,8 @@ def extract_julian_day_and_hour_from_filename(filename: str):
     julian_day (int): 290 (20222901900203)
     hour_utc (str): 1900 (20222901900203)
     """
-    # Search for the Scan start in the file name
-    start = filename[filename.find("_s") + 2: filename.find("_e")]
+    # Search for the Scan start in the file name  # noqa: E203
+    start = filename[filename.find("_s") + 2: filename.find("_e")]  # noqa: E203
     # Get year
     year = int(start[0:4])
     # Get julian day
@@ -219,9 +219,9 @@ def choose_file_to_download(
     already trated and saved on redis and keep only the first one from this partition
     """
     # keep only ref_filename if it exists
-    if ref_filename is not None:
-        # extract this part of the name s_20222911230206_e20222911239514
-        ref_date = ref_filename[ref_filename.find("_s") + 1: ref_filename.find("_e")]
+    if ref_filename is not None:  # noqa: E203
+        # extract this part of the name s_20222911230206_e20222911239514  # noqa: E203
+        ref_date = ref_filename[ref_filename.find("_s") + 1: ref_filename.find("_e")]  # noqa: E203
         log(f"\n\n[DEBUG]: ref_date: {ref_date}")
         match_text = re.compile(f".*{ref_date}")
         storage_files_path = list(filter(match_text.match, storage_files_path))
@@ -273,7 +273,7 @@ def get_info(path: str) -> dict:
         procura_m = path.find("-M3")
     if procura_m == -1:
         procura_m = path.find("-M4")
-    product = path[path.find("L2-") + 3: procura_m]
+    product = path[path.find("L2-") + 3: procura_m]  # noqa: E203
 
     # Nem todos os produtos foram adicionados no dicionário de características
     # dos produtos. Olhar arquivo original caso o produto não estaja aqui

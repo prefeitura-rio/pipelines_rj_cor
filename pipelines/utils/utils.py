@@ -405,9 +405,9 @@ def smart_split(
         )
 
     return [
-        text[:separator_index],
+        text[:separator_index],  # noqa: E203
         *smart_split(
-            text[separator_index + len(separator):],
+            text[separator_index + len(separator):],  # noqa: E203
             max_length,
             separator,
         ),
