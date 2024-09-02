@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=too-many-locals, R0913, R1732
-# no-qa: E203
+# noqa: E203
 """
 Funções úteis no tratamento de dados de satélite
 """
