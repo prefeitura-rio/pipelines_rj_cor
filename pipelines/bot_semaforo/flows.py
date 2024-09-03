@@ -42,3 +42,6 @@ cet_telegram_flow.run_config = KubernetesRun(
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
 cet_telegram_flow.schedule = bot_schedule
+
+
+x = 2
