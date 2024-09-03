@@ -40,10 +40,10 @@ def get_filenames_storage(
     """Esc"""
     log("Starting geting filenames from storage")
     volumes = [
-        "mendanha/odimhdf5/vol_a",
-        "mendanha/odimhdf5/vol_b",
-        "mendanha/odimhdf5/vol_c",
-        "mendanha/odimhdf5/vol_d",
+        "mendanha/odimhdf5/vol_a/",
+        "mendanha/odimhdf5/vol_b/",
+        "mendanha/odimhdf5/vol_c/",
+        "mendanha/odimhdf5/vol_d/",
     ]
 
     vol_a = volumes[0]
@@ -53,6 +53,14 @@ def get_filenames_storage(
 
     client: storage.Client = get_gcs_client()
     bucket = client.bucket(bucket_name)
+
+    blobs = bucket.list_blobs(delimiter="/")
+    directories = set()
+
+    for page in blobs.pages:
+        directories.update(page.prefixes)
+
+    log(f"Directories inside bucket {sorted(directories)}")
 
     # Listar e ordenar arquivos de cada volume
     volume_files = {}
