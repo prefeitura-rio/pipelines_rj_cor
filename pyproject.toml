@@ -20,20 +20,11 @@ s3fs = "^2024.6.1"
 xarray = "^2024.7.0"
 matplotlib = "^3.9.2"
 cartopy = "^0.23.0"
-gdal = "^3.6.3"
+gdal = "3.6.3"
 prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "40c691212ed302c8e595d1932118dfbb8df439f2", branch = "feat/reimplement-templates", extras = [
     "pipelines",
     "pipelines-templates",
 ] }
-
-[[package]]
-name = "basedosdados"
-version = "2.0.0-beta.21"
-description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
-optional = false
-python-versions = ">=3.8.1,<4"
-files = []
-develop = false
 
 [tool.poetry.group.dev]
 optional = true
@@ -64,6 +55,15 @@ profile = "black"
 
 [tool.taskipy.tasks]
 lint = "black . && isort . && flake8 ."
+
+[[package]]
+name = "basedosdados"
+version = "2.0.0-beta.21"
+description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
+optional = false
+python-versions = ">=3.8.1,<4"
+files = []
+develop = false
 
 [build-system]
 requires = ["poetry-core"]
