@@ -27,7 +27,7 @@ RUN python3 -m pip install --no-cache-dir -U "pip>=21.2.4" "prefect==$PREFECT_VE
 
 # Get gdal wheel
 FROM curlimages/curl:7.81.0 as curl-step
-ARG GDAL_WHEELS_URL=path_to_gdal
+ARG GDAL_WHEELS_URL=https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
 RUN curl -sSLo /tmp/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl $GDAL_WHEELS_URL
 
 # Install requirements
