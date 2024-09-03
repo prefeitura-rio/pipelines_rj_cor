@@ -29,6 +29,7 @@ from pipelines.meteorologia.radar.mendanha.utils import (
 )
 
 from pipelines.utils.utils import log  # , to_partitions
+from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 
 
 @task()
@@ -48,7 +49,9 @@ def get_filenames_storage(
     vol_a = volumes[0]
 
     # client = storage.Client()
-    client = storage.Client(project="rj-escritorio")
+    # client = storage.Client(project="rj-escritorio")
+
+    client: storage.Client = get_gcs_client()
     bucket = client.bucket(bucket_name)
 
     # Listar e ordenar arquivos de cada volume

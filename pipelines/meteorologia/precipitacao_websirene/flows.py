@@ -36,12 +36,8 @@ with Flow(
     DUMP_MODE = "append"
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
 
     dataframe = download_dados()

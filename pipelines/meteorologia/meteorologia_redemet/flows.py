@@ -40,9 +40,7 @@ with Flow(
     ],
 ) as cor_meteorologia_meteorologia_redemet:
     DUMP_MODE = Parameter("dump_mode", default="append", required=True)
-    DATASET_ID = Parameter(
-        "dataset_id", default="clima_estacao_meteorologica", required=True
-    )
+    DATASET_ID = Parameter("dataset_id", default="clima_estacao_meteorologica", required=True)
     TABLE_ID = Parameter("table_id", default="meteorologia_redemet", required=True)
 
     # first_date and last_date must be strings as "YYYY-MM-DD"
@@ -50,12 +48,8 @@ with Flow(
     last_date = Parameter("last_date", default=None, required=False)
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=True, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=True, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -156,18 +150,12 @@ with Flow(
     ],
 ) as cor_meteorologia_meteorologia_redemet_estacoes:
     DUMP_MODE = Parameter("dump_mode", default="overwrite", required=True)
-    DATASET_ID = Parameter(
-        "dataset_id", default="clima_estacao_meteorologica", required=True
-    )
+    DATASET_ID = Parameter("dataset_id", default="clima_estacao_meteorologica", required=True)
     TABLE_ID = Parameter("table_id", default="estacoes_redemet", required=True)
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -252,9 +240,7 @@ with Flow(
     check_for_new_stations(dataframe, wait=UPLOAD_TABLE)
 
 # para rodar na cloud
-cor_meteorologia_meteorologia_redemet_estacoes.storage = GCS(
-    constants.GCS_FLOWS_BUCKET.value
-)
+cor_meteorologia_meteorologia_redemet_estacoes.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
 cor_meteorologia_meteorologia_redemet_estacoes.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],

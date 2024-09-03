@@ -75,9 +75,7 @@ def tratar_dados(
     date_format = "%Y-%m-%d %H:%M:%S"
     dfr["data_medicao_utc"] = pd.to_datetime(dfr["data_medicao_utc"])
     dfr["data_medicao"] = (
-        dfr["data_medicao_utc"]
-        .dt.tz_convert("America/Sao_Paulo")
-        .dt.strftime(date_format)
+        dfr["data_medicao_utc"].dt.tz_convert("America/Sao_Paulo").dt.strftime(date_format)
     )
     dfr["data_medicao"] = pd.to_datetime(dfr["data_medicao"])
 

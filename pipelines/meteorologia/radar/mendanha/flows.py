@@ -7,6 +7,10 @@ Flows for setting rain dashboard using radar data.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
+from prefeitura_rio.pipelines_utils.custom import Flow
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
+
+# from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
@@ -26,16 +30,15 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
 #     get_on_redis,
 #     save_on_redis,
 # )
-from pipelines.utils.decorators import Flow
 
 # from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
 
 with Flow(
     name="COR: Meteorologia - Mapa de Refletividade Radar do Mendanha",
-    code_owners=[
-        "paty",
-    ],
+    state_handlers=[handler_inject_bd_credentials],
+    skip_if_running=False,
+    parallelism=100,
     # skip_if_running=True,
 ) as cor_meteorologia_refletividade_radar_flow:
     # Prefect Parameters

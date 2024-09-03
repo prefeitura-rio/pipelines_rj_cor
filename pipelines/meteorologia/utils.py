@@ -41,9 +41,7 @@ def save_updated_rows_on_redis(
     log(f">>> data saved in redis: {updates}")
 
     # dfr and updates need to have the same index, in our case unique_id
-    missing_in_dfr = [
-        i for i in updates[unique_id].unique() if i not in dfr[unique_id].unique()
-    ]
+    missing_in_dfr = [i for i in updates[unique_id].unique() if i not in dfr[unique_id].unique()]
     missing_in_updates = [
         i for i in dfr[unique_id].unique() if i not in updates[unique_id].unique()
     ]
@@ -65,9 +63,7 @@ def save_updated_rows_on_redis(
 
     # Keep on dfr only the stations that has a time after the one that is saved on redis
     dfr[date_column] = dfr[date_column].apply(pd.to_datetime, format=date_format)
-    dfr["last_update"] = dfr["last_update"].apply(
-        pd.to_datetime, format="%Y-%m-%d %H:%M:%S"
-    )
+    dfr["last_update"] = dfr["last_update"].apply(pd.to_datetime, format="%Y-%m-%d %H:%M:%S")
     dfr = dfr[dfr[date_column] > dfr["last_update"]].dropna(subset=[unique_id])
 
     # Keep only the last date for each unique_id

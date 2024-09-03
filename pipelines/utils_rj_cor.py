@@ -62,9 +62,7 @@ def compare_actual_df_with_redis_df(
         .query('_merge == "left_only"')
         .drop("_merge", axis=1)
     )
-    log(
-        f"\nDf resulted from the difference between dft_redis and dfr: \n{dfr_diff.head()}"
-    )
+    log(f"\nDf resulted from the difference between dft_redis and dfr: \n{dfr_diff.head()}")
 
     updated_dfr_redis = pd.concat([dfr_redis, dfr_diff[columns]])
 

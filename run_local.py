@@ -13,7 +13,10 @@ from pipelines.meteorologia.radar.mendanha.flows import (
 
 
 # Adiciona o diretório `/algum/diretorio/` ao sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../prefeitura-rio')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../prefeitura-rio")))
+# sys.path.insert(0, '/home/patricia/Documentos/escritorio_dados/prefeitura-rio')
+print("sys.path:", sys.path)
+
 from prefeitura_rio.pipelines_utils.custom import Flow  # noqa
 
 

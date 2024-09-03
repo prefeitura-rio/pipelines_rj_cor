@@ -40,9 +40,7 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
-wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(
-    timeout=timedelta(minutes=5)
-)
+wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
 
 with Flow(
     name="COR: Meteorologia - Precipitacao e Meteorologia ALERTARIO",
@@ -53,9 +51,7 @@ with Flow(
 ) as cor_meteorologia_precipitacao_alertario:
     DATASET_ID_PLUVIOMETRIC = alertario_constants.DATASET_ID_PLUVIOMETRIC.value
     TABLE_ID_PLUVIOMETRIC = alertario_constants.TABLE_ID_PLUVIOMETRIC.value
-    TABLE_ID_PLUVIOMETRIC_OLD_API = (
-        alertario_constants.TABLE_ID_PLUVIOMETRIC_OLD_API.value
-    )
+    TABLE_ID_PLUVIOMETRIC_OLD_API = alertario_constants.TABLE_ID_PLUVIOMETRIC_OLD_API.value
     DATASET_ID_METEOROLOGICAL = alertario_constants.DATASET_ID_METEOROLOGICAL.value
     TABLE_ID_METEOROLOGICAL = alertario_constants.TABLE_ID_METEOROLOGICAL.value
     DUMP_MODE = "append"
@@ -67,12 +63,8 @@ with Flow(
     MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
         "materialize_to_datario_old_api", default=False, required=False
     )
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
@@ -88,19 +80,13 @@ with Flow(
     )
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (
-        dfr_pluviometric,
-        empty_data_pluviometric,
-    ) = treat_pluviometer_and_meteorological_data(
+    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (
-        dfr_meteorological,
-        empty_data_meteorological,
-    ) = treat_pluviometer_and_meteorological_data(
+    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -293,9 +279,7 @@ with Flow(
         )
 
         # Treat data to save on old table
-        dfr_pluviometric_old_api = treat_old_pluviometer(
-            dfr_pluviometric, wait=UPLOAD_TABLE
-        )
+        dfr_pluviometric_old_api = treat_old_pluviometer(dfr_pluviometric, wait=UPLOAD_TABLE)
 
         path_pluviometric_old_api = save_data_old(
             dfr_pluviometric_old_api,

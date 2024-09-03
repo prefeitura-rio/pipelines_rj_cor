@@ -32,9 +32,7 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
-wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(
-    timeout=timedelta(minutes=2)
-)
+wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=2))
 
 with Flow(
     name="COR: Meteorologia - Precipitacao e Fluviometria INEA",
@@ -58,12 +56,8 @@ with Flow(
     )
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=True, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=True, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -87,9 +81,7 @@ with Flow(
     )
 
     with case(new_pluviometric_data, True):
-        path_pluviometric = save_data(
-            dataframe=dfr_pluviometric, folder_name="pluviometer"
-        )
+        path_pluviometric = save_data(dataframe=dfr_pluviometric, folder_name="pluviometer")
 
         # Create pluviometric table in BigQuery
         UPLOAD_TABLE_PLUVIOMETRIC = create_table_and_upload_to_gcs(
@@ -159,9 +151,7 @@ with Flow(
     status = wait_task()
     status.set_upstream(UPLOAD_TABLE_PLUVIOMETRIC)
     with case(new_fluviometric_data, True):
-        path_fluviometric = save_data(
-            dataframe=dfr_fluviometric, folder_name="fluviometer"
-        )
+        path_fluviometric = save_data(dataframe=dfr_fluviometric, folder_name="fluviometer")
         path_fluviometric.set_upstream(status)
 
         # Create fluviometric table in BigQuery

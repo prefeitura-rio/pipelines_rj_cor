@@ -18,7 +18,7 @@ class constants(Enum):
     ######################################
     # EXAMPLE_AGENT_LABEL = "example_agent"
 
-    RJ_COR_AGENT_LABEL = "rj-cor"
+    RJ_COR_AGENT_LABEL = "cor"
 
     ######################################
     # Other constants

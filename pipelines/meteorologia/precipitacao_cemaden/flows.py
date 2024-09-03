@@ -36,9 +36,7 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
-wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(
-    timeout=timedelta(minutes=2)
-)
+wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=2))
 
 with Flow(
     name="COR: Meteorologia - Precipitacao CEMADEN",
@@ -51,12 +49,8 @@ with Flow(
     DATASET_ID = Parameter("dataset_id", default="clima_pluviometro", required=True)
     TABLE_ID = Parameter("table_id", default="taxa_precipitacao_cemaden", required=True)
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=True, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=True, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False

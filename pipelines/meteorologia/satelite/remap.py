@@ -91,9 +91,7 @@ def remap(
 
     # Load the data
     data = img.ReadAsArray(0, 0, img.RasterXSize, img.RasterYSize).astype(float)
-    data_dqf = dqf.ReadAsArray(0, 0, dqf.RasterXSize, dqf.RasterYSize).astype(
-        float
-    )  # adicionado
+    data_dqf = dqf.ReadAsArray(0, 0, dqf.RasterXSize, dqf.RasterYSize).astype(float)  # adicionado
 
     # Remove undef
     data[data == undef] = np.nan  # adicionado
@@ -138,9 +136,7 @@ def remap(
     )
 
     # Write the reprojected file on disk
-    remap_filename = (
-        f"{path.split('/')[-1].split('.nc')[0]}_variable-{variable.lower()}.nc"
-    )
+    remap_filename = f"{path.split('/')[-1].split('.nc')[0]}_variable-{variable.lower()}.nc"
 
     gdal.Warp(remap_path + remap_filename, raw, options=options)
     print(f"\nRemap saved as {remap_filename} on {remap_path}")

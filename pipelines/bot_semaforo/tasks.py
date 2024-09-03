@@ -157,9 +157,7 @@ def format_message(dataframe: pd.DataFrame) -> pd.Series:
     thumbs_up_emoji = "\U0001F44D"
     current_minus_1h, current = current_date_time()
 
-    mask = (dataframe["initial_ts"] > current_minus_1h) & (
-        dataframe["initial_ts"] <= current
-    )
+    mask = (dataframe["initial_ts"] > current_minus_1h) & (dataframe["initial_ts"] <= current)
     filered_alerts = dataframe[mask]
     if len(filered_alerts) > 0:
         filered_alerts["url"] = map_link(filered_alerts)

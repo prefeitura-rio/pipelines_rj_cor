@@ -83,9 +83,7 @@ def treat_data(
     dataframe.replace({"Dado Nulo": np.nan}, inplace=True)
 
     # Eliminate where the id_estacao is the same keeping the smallest one
-    dataframe.sort_values(
-        ["id_estacao", "data_medicao"] + list(rename_cols.values()), inplace=True
-    )
+    dataframe.sort_values(["id_estacao", "data_medicao"] + list(rename_cols.values()), inplace=True)
     dataframe.drop_duplicates(subset=["id_estacao", "data_medicao"], keep="first")
 
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -131,9 +129,7 @@ def treat_data(
     ].copy()
 
     # Replace all values bigger than 10000 on "altura_agua" to nan
-    dfr_fluviometric.loc[
-        dfr_fluviometric["altura_agua"] > 10000, "altura_agua"
-    ] = np.nan
+    dfr_fluviometric.loc[dfr_fluviometric["altura_agua"] > 10000, "altura_agua"] = np.nan
 
     fluviometric_cols_order = [
         "id_estacao",
@@ -226,9 +222,7 @@ def check_for_new_stations(
         "4",
         "5",
     ]
-    new_stations = [
-        i for i in dataframe.id_estacao.unique() if str(i) not in stations_before
-    ]
+    new_stations = [i for i in dataframe.id_estacao.unique() if str(i) not in stations_before]
     if len(new_stations) != 0:
         message = f"New station identified. You need to update INEA\
               estacoes_inea adding station(s) {new_stations}: \

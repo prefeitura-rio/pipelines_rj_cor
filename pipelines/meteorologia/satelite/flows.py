@@ -52,12 +52,8 @@ with Flow(
     ],
 ) as cor_meteorologia_goes16:
     # Materialization parameters
-    materialize_after_dump = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    materialize_to_datario = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
+    materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
     materialization_mode = Parameter("mode", default="dev", required=False)
 
     # Other parameters
