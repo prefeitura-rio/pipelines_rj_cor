@@ -11,6 +11,10 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Install GDAL dependencies
+RUN apt-get update \
+    && apt-get install -y binutils libproj-dev gdal-bin
+    
 # Setting environment with prefect version
 ARG PREFECT_VERSION=1.4.1
 ENV PREFECT_VERSION $PREFECT_VERSION
