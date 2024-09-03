@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103, C0302
-# noqa: E203
+# flake8: noqa: E303
 """
 General utilities for all pipelines.
 """
