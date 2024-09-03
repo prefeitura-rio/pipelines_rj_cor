@@ -54,13 +54,13 @@ def get_filenames_storage(
     client: storage.Client = get_gcs_client()
     bucket = client.bucket(bucket_name)
 
-    blobs = bucket.list_blobs(delimiter="/")
+    blobs = bucket.list_blobs(delimiter='/')
     directories = set()
 
     for page in blobs.pages:
         directories.update(page.prefixes)
-
-    log(f"Directories inside bucket {sorted(directories)}")
+    sorted(directories)
+    log(f"Directories inside bucket {directories}")
 
     # Listar e ordenar arquivos de cada volume
     volume_files = {}
