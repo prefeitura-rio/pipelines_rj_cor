@@ -35,7 +35,7 @@ from prefect.utilities.graphql import (
 )
 from redis_pal import RedisPal
 import requests
-import telegram
+# import telegram
 
 from pipelines.constants import constants
 
