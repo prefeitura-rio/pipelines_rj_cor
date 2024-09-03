@@ -5,8 +5,9 @@ ARG PYTHON_VERSION=3.10-slim
 FROM python:${PYTHON_VERSION}
 
 # Install git
+# hadolint ignore=DL3008
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git=1:2.34.1-1ubuntu1.11 && \
+    apt-get install -y --no-install-recommends git ffmpeg libsm6 libxext6 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
