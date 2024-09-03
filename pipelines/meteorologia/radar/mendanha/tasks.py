@@ -40,10 +40,10 @@ def get_filenames_storage(
     """Esc"""
     log("Starting geting filenames from storage")
     volumes = [
-        "rj-escritorio-scp/mendanha/odimhdf5/vol_a",
-        "rj-escritorio-scp/mendanha/odimhdf5/vol_b",
-        "rj-escritorio-scp/mendanha/odimhdf5/vol_c",
-        "rj-escritorio-scp/mendanha/odimhdf5/vol_d",
+        "mendanha/odimhdf5/vol_a",
+        "mendanha/odimhdf5/vol_b",
+        "mendanha/odimhdf5/vol_c",
+        "mendanha/odimhdf5/vol_d",
     ]
 
     vol_a = volumes[0]
