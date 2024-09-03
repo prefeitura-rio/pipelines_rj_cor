@@ -1,15 +1,22 @@
 import base64
 from os import getenv
+import sys
+import os
 from pathlib import Path
 
-from pipelines.mapa_realizacoes.infopref.flows import (
-    rj_escritorio__mapa_realizacoes__infopref__flow as flow, # TODO: import your flow here
+from dotenv import load_dotenv
+from pipelines.meteorologia.radar.mendanha.flows import (
+    cor_meteorologia_refletividade_radar_flow as flow, # TODO: import your flow here
 )
 
+
+# Adiciona o diretório `/algum/diretorio/` ao sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../prefeitura-rio')))
 from prefeitura_rio.pipelines_utils.custom import Flow
 
 
 def run_local(flow: Flow):
+    load_dotenv()
     envs = [
         "INFISICAL_TOKEN",
         "INFISICAL_ADDRESS",
@@ -32,8 +39,11 @@ def run_local(flow: Flow):
     flow.schedule = None
     flow.state_handlers = []
 
-    flow.run(parameters={"force_pass": True}) # TODO: add your parameters here
-    # flow.run()
+    # flow.run(parameters={
+    #     "mode": "prod",
+    #     "radar_name": "men"
+    # }) # TODO: add your parameters here
+    flow.run()
 
 
 run_local(flow)
