@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Prefect flows for cor project
 """
