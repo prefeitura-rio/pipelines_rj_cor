@@ -39,7 +39,6 @@ import requests
 
 from pipelines.constants import constants
 
-
 def log(msg: Any, level: str = "info") -> None:
     """
     Logs a message to prefect's logger.

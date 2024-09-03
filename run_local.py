@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# flake8: noqa: 402
 import base64
 from os import getenv
 import sys
@@ -6,13 +8,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from pipelines.meteorologia.radar.mendanha.flows import (
-    cor_meteorologia_refletividade_radar_flow as flow, # TODO: import your flow here
+    cor_meteorologia_refletividade_radar_flow as flow,  # TODO: import your flow here
 )
 
 
 # Adiciona o diretório `/algum/diretorio/` ao sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../prefeitura-rio')))
-from prefeitura_rio.pipelines_utils.custom import Flow
+from prefeitura_rio.pipelines_utils.custom import Flow  # noqa
 
 
 def run_local(flow: Flow):
