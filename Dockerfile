@@ -21,6 +21,10 @@ RUN apt-get update && \
 ARG PREFECT_VERSION=1.4.1
 ENV PREFECT_VERSION $PREFECT_VERSION
 
+# Update C env vars so compiler can find gdal
+ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
+ENV C_INCLUDE_PATH=/usr/include/gdal
+
 # Setup virtual environment and prefect
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
