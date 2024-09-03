@@ -28,7 +28,7 @@ from pipelines.meteorologia.radar.mendanha.utils import (
     list_files_storage,
 )
 
-from pipelines.utils.utils import log  # , to_partitions
+from prefeitura_rio.pipelines_utils.logging import log
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 
 
@@ -57,7 +57,8 @@ def get_filenames_storage(
     # Listar e ordenar arquivos de cada volume
     volume_files = {}
 
-    sorted_files = list_files_storage(bucket, prefix="vol")
+    sorted_files = list_files_storage(bucket, prefix=vol_a)
+    log(f"{len(sorted_files)} files found in vol_a")
     volume_files[vol_a] = sorted_files
 
     # Identificar o último arquivo em vol_a
@@ -69,7 +70,7 @@ def get_filenames_storage(
     # data_partição e assim ter que ler menos nomes de arquivos
 
     for vol in volumes[1:]:
-        sorted_files = list_files_storage(bucket, prefix="vol")
+        sorted_files = list_files_storage(bucket, prefix=vol)
         volume_files[vol] = sorted_files
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
