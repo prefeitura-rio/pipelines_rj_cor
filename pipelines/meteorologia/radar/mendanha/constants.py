@@ -12,4 +12,4 @@ class constants(Enum):  # pylint: disable=c0103
     """
 
     DATASET_ID = "clima_radar"
-    TABLE_ID = "refletividade_mendanha"
+    TABLE_ID = "refletividade_horizontal_mendanha"

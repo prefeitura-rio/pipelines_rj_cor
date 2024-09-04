@@ -7,6 +7,13 @@ Flows for setting rain dashboard using radar data.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
+
+# # Adiciona o diretório `/algum/diretorio/` ao sys.path
+# import os, sys  # noqa
+
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../prefeitura-rio")))
+# # sys.path.insert(0, '/home/patricia/Documentos/escritorio_dados/prefeitura-rio/prefeitura-rio')
+# print("sys.path:", sys.path)
 from prefeitura_rio.pipelines_utils.custom import Flow
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
@@ -21,10 +28,24 @@ from pipelines.meteorologia.radar.mendanha.constants import (
     constants as radar_constants,
 )
 from pipelines.meteorologia.radar.mendanha.tasks import (
+    access_api,
+    base64_to_bytes,
+    combine_radar_files,
+    compress_images_to_zip,
+    create_visualization_no_background,
     download_files_storage,
+    get_and_format_time,
+    get_colorbar_title,
     get_filenames_storage,
+    get_radar_parameters,
+    img_to_base64,
+    remap_data,
+    rename_keys_redis,
+    send_zip_images_api,
+    save_images_to_local,
     # save_data,
 )
+from pipelines.utils_rj_cor import build_redis_key, save_str_on_redis
 
 # from pipelines.tasks import (
 #     get_on_redis,
@@ -44,24 +65,51 @@ with Flow(
     # Prefect Parameters
     MODE = Parameter("mode", default="prod")
     RADAR_NAME = Parameter("radar_name", default="men")
+    RADAR_PRODUCT_LIST = Parameter("radar_products_list", default=["reflectivity_horizontal"])
 
-    # Other Parameters
-    DATASET_ID = radar_constants.DATASET_ID.value
-    TABLE_ID = radar_constants.TABLE_ID.value
-    DUMP_MODE = "append"
+    DATASET_ID = Parameter("dataset_id", default=radar_constants.DATASET_ID.value)
+    TABLE_ID = Parameter("table_id", default=radar_constants.TABLE_ID.value)
+    DUMP_MODE = Parameter("dump_mode", default="append")
     # BASE_PATH = "pipelines/rj_cor/meteorologia/radar/precipitacao/"
-
-    # Tasks
     BUCKET_NAME = "rj-escritorio-scp"
+
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
     files_on_storage_list = get_filenames_storage(BUCKET_NAME, files_saved_redis=[])
 
-    download_files_task = download_files_storage(
+    radar_files = download_files_storage(
         bucket_name=BUCKET_NAME,
         files_to_download=files_on_storage_list,
         # destination_path=f"{BASE_PATH}radar_data/",
         destination_path="temp/",
     )
+    combined_radar = combine_radar_files(radar_files)
+    grid_shape, grid_limits = get_radar_parameters(combined_radar)
+
+    radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+
+    formatted_time = get_and_format_time(radar_files)
+
+    cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
+    fig = create_visualization_no_background(
+        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, time=formatted_time
+    )
+    redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
+
+    img_base64 = img_to_base64(fig)
+    img_bytes = base64_to_bytes(img_base64)
+
+    # update the name of images that are already on redis and save them as png
+    img_base64_dict = rename_keys_redis(redis_hash, img_bytes)
+    # img_base64_dict['radar_020.png'] = img_bytes
+    save_images_to_local(img_base64_dict)
+
+    save_str_on_redis(
+        redis_hash, "radar_020.png", img_bytes
+    )  # esperar baixar imagens que já estão no redis
+    # save_str_on_redis.set_upstream(save_image_to_local)
+    compress_images_to_zip("images.zip", "images")
+    api = access_api()
+    send_zip_images_api(api, "uploadfile", "images.zip")
     # change_json_task = change_predict_rain_specs(
     #     files_to_model=files_on_storage_list,
     #     destination_path=f"{BASE_PATH}radar_data/",

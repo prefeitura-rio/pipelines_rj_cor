@@ -29,6 +29,10 @@ class constants(Enum):
     TASK_MAX_RETRIES = 5
     TASK_RETRY_DELAY = 10  # seconds
 
+    INFISICAL_URL = "URL"
+    INFISICAL_USERNAME = "USERNAME"
+    INFISICAL_PASSWORD = "PASSWORD"
+
     ######################################
     # Discord code owners constants
     ######################################
