@@ -24,15 +24,8 @@ prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git",
     "pipelines",
     "pipelines-templates",
 ] }
-
-[[package]]
-name = "basedosdados"
-version = "2.0.0-beta.21"
-description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
-optional = false
-python-versions = ">=3.8.1,<4"
-files = []
-develop = false
+pandas = "^2.2.2"
+arm-pyart = "^1.19.0"
 
 [tool.poetry.group.dev]
 optional = true
@@ -63,6 +56,15 @@ profile = "black"
 
 [tool.taskipy.tasks]
 lint = "black . && isort . && flake8 ."
+
+[[package]]
+name = "basedosdados"
+version = "2.0.0-beta.21"
+description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
+optional = false
+python-versions = ">=3.8.1,<4"
+files = []
+develop = false
 
 [build-system]
 requires = ["poetry-core"]
