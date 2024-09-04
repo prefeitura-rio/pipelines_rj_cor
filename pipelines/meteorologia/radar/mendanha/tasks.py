@@ -109,9 +109,11 @@ def get_filenames_storage(
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
     for vol in volumes[1:]:
+        log(f"Last 5 files found on {vol}: {volume_files[vol][-5:]}")
         next_files = [
             file for file in volume_files[vol] if extract_timestamp(file) > last_timestamp_vol_a
         ]
+        log(f"Next files found on {vol}: {next_files}")
         if next_files:
             selected_files.append(next_files[0])
 
