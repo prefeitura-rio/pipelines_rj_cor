@@ -155,7 +155,7 @@ def get_and_format_time(radar_files: list) -> str:
     return formatted_time
 
 
-@task
+@task(nout=2)
 def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     """
     Get radar information
@@ -219,7 +219,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 @task
 def create_visualization_no_background(
     radar_2d, radar_product: str, cbar_title: str, time: str
-) -> Path:
+):
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
