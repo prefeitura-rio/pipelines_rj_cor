@@ -14,7 +14,7 @@ from os.path import join
 from pathlib import Path
 import re
 import textwrap
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import basedosdados as bd
@@ -38,7 +38,7 @@ import requests
 
 # import telegram
 
-# from pipelines.constants import constants
+from pipelines.constants import constants
 
 
 def log(msg: Any, level: str = "info") -> None:
@@ -152,45 +152,45 @@ def get_username_and_password_from_secret(
     )
 
 
-# def notify_discord_on_failure(
-#     flow: prefect.Flow,
-#     state: State,
-#     secret_path: str,
-#     code_owners: Optional[List[str]] = None,
-# ):
-#     """
-#     Notifies a Discord channel when a flow fails.
-#     """
-#     url = get_vault_secret(secret_path)["data"]["url"]
-#     flow_run_id = prefect.context.get("flow_run_id")
-#     code_owners = code_owners or constants.DEFAULT_CODE_OWNERS.value
-#     code_owner_dict = constants.OWNERS_DISCORD_MENTIONS.value
-#     at_code_owners = []
-#     for code_owner in code_owners:
-#         code_owner_id = code_owner_dict[code_owner]["user_id"]
-#         code_owner_type = code_owner_dict[code_owner]["type"]
+def notify_discord_on_failure(
+    flow: prefect.Flow,
+    state: State,
+    secret_path: str,
+    code_owners: Optional[List[str]] = None,
+):
+    """
+    Notifies a Discord channel when a flow fails.
+    """
+    url = get_vault_secret(secret_path)["data"]["url"]
+    flow_run_id = prefect.context.get("flow_run_id")
+    code_owners = code_owners or constants.DEFAULT_CODE_OWNERS.value
+    code_owner_dict = constants.OWNERS_DISCORD_MENTIONS.value
+    at_code_owners = []
+    for code_owner in code_owners:
+        code_owner_id = code_owner_dict[code_owner]["user_id"]
+        code_owner_type = code_owner_dict[code_owner]["type"]
 
-#         if code_owner_type == "user":
-#             at_code_owners.append(f"    - <@{code_owner_id}>\n")
-#         elif code_owner_type == "user_nickname":
-#             at_code_owners.append(f"    - <@!{code_owner_id}>\n")
-#         elif code_owner_type == "channel":
-#             at_code_owners.append(f"    - <#{code_owner_id}>\n")
-#         elif code_owner_type == "role":
-#             at_code_owners.append(f"    - <@&{code_owner_id}>\n")
+        if code_owner_type == "user":
+            at_code_owners.append(f"    - <@{code_owner_id}>\n")
+        elif code_owner_type == "user_nickname":
+            at_code_owners.append(f"    - <@!{code_owner_id}>\n")
+        elif code_owner_type == "channel":
+            at_code_owners.append(f"    - <#{code_owner_id}>\n")
+        elif code_owner_type == "role":
+            at_code_owners.append(f"    - <@&{code_owner_id}>\n")
 
-#     message = (
-#         f":man_facepalming: Flow **{flow.name}** has failed."
-#         + f'\n  - State message: *"{state.message}"*'
-#         + "\n  - Link to the failed flow: "
-#         + f"https://prefect.dados.rio/flow-run/{flow_run_id}"
-#         + "\n  - Extra attention:\n"
-#         + "".join(at_code_owners)
-#     )
-#     send_discord_message(
-#         message=message,
-#         webhook_url=url,
-#     )
+    message = (
+        f":man_facepalming: Flow **{flow.name}** has failed."
+        + f'\n  - State message: *"{state.message}"*'
+        + "\n  - Link to the failed flow: "
+        + f"https://prefect.dados.rio/flow-run/{flow_run_id}"
+        + "\n  - Extra attention:\n"
+        + "".join(at_code_owners)
+    )
+    send_discord_message(
+        message=message,
+        webhook_url=url,
+    )
 
 
 # pylint: disable=unused-argument
