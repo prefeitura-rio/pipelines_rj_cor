@@ -23,7 +23,7 @@ def extract_timestamp(filename):
 def list_files_storage(bucket, prefix: str) -> list:
     """List files from bucket"""
     blobs = list(bucket.list_blobs(prefix=prefix))
-    files = [blob.name for blob in blobs if blob.name.endswith(".hdf")]
+    files = [blob.name for blob in blobs if blob.name.endswith(".h5")]
     sorted_files = sorted(files, key=extract_timestamp)
     return sorted_files
 

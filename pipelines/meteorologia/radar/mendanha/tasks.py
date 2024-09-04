@@ -134,6 +134,7 @@ def download_files_storage(
         source_blob_name, destination_file_name = file, file.split("/")[-1]
         destination_file_name = Path(destination_path, destination_file_name)
         download_blob(bucket_name, source_blob_name, destination_file_name)
+    log("Finished Download Files")
 
 
 # @task
