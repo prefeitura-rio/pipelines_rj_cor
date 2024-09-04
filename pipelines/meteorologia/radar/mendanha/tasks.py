@@ -32,6 +32,24 @@ from prefeitura_rio.pipelines_utils.logging import log
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 
 
+def list_all_directories(bucket_name, prefix=""):
+    """List all directories in a Google Cloud Storage bucket recursively."""
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+
+    directories = set()
+    blobs = bucket.list_blobs(prefix=prefix, delimiter="/")
+
+    for blob in blobs:
+        pass  # Os blobs são arquivos, não diretórios, então ignoramos.
+
+    directories.update(blobs.prefixes)
+
+    for sub_prefix in blobs.prefixes:
+        directories.update(list_all_directories(bucket_name, sub_prefix))
+    return sorted(directories)
+
+
 @task()
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
@@ -54,14 +72,20 @@ def get_filenames_storage(
     client: storage.Client = get_gcs_client()
     bucket = client.bucket(bucket_name)
 
-    blobs = bucket.list_blobs(delimiter='/')
-    directories = set()
+    directories = list_all_directories(bucket_name)
 
-    for page in blobs.pages:
-        directories.update(page.prefixes)
-    sorted(directories)
+    # Listando todos os diretórios encontrados
+    for directory in directories:
+        log(f"{directory}")
+
     log(f"Directories inside bucket {directories}")
 
+    client = storage.Client(project="rj-escritorio")
+    directories = list_all_directories(bucket_name)
+
+    # Listando todos os diretórios encontrados
+    for directory in directories:
+        log(f"{directory}")
     # Listar e ordenar arquivos de cada volume
     volume_files = {}
 
