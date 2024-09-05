@@ -120,13 +120,16 @@ def download_files_storage(
     """
 
     os.makedirs(destination_path, exist_ok=True)
-
+    files_path = []
     for file in files_to_download:
         log(f"Downloading file {file}")
         source_blob_name, destination_file_name = file, file.split("/")[-1]
         destination_file_name = Path(destination_path, destination_file_name)
         download_blob(bucket_name, source_blob_name, destination_file_name)
-    log("Finished Download Files")
+        files_path.append(destination_file_name)
+        log(f"File saved on {destination_file_name}")
+    log("Finished Downloading all files")
+    return files_path
 
 
 @task
@@ -134,9 +137,11 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     Combine files from same radar but with different angles sweeps
     """
-    print("Start combining radar files")
+    log("Start combining radar files")
+    log("Opening file from vol_a")
     combined_radar = pyart.aux_io.read_odim_h5(f"data/mendanha/{radar_files[0]}")
     for i in radar_files[1:]:
+        log(f"Opening file from {i}")
         radar_file_ = pyart.aux_io.read_odim_h5(f"data/mendanha/{i}")
         combined_radar = pyart.util.join_radar(combined_radar, radar_file_)
     return combined_radar
@@ -153,7 +158,7 @@ def get_and_format_time(radar_files: list) -> str:
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
 
-    print(f"Time of first file in São Paulo timezone: {formatted_time}")
+    log(f"Time of first file in São Paulo timezone: {formatted_time}")
     return formatted_time
 
 
