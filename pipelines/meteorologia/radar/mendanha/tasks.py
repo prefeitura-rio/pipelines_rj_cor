@@ -129,6 +129,7 @@ def download_files_storage(
         files_path.append(destination_file_name)
         log(f"File saved on {destination_file_name}")
     log("Finished Downloading all files")
+    log(files_path)
     return files_path
 
 
@@ -137,7 +138,7 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     Combine files from same radar but with different angles sweeps
     """
-    log("Start combining radar files")
+    log(f"Start combining radar files {radar_files}")
     log("Opening file from vol_a")
     combined_radar = pyart.aux_io.read_odim_h5(radar_files[0])
     for i in radar_files[1:]:
