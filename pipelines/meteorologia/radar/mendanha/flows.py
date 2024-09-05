@@ -96,6 +96,7 @@ with Flow(
     combined_radar = combine_radar_files(radar_files)
     grid_shape, grid_limits = get_radar_parameters(combined_radar)
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+    download_files_storage.set_upstream(files_on_storage_list)
     combine_radar_files.set_upstream(radar_files)
     get_radar_parameters.set_upstream(combined_radar)
     remap_data.set_upstream(grid_shape)
