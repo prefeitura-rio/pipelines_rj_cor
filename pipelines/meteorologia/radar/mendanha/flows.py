@@ -124,17 +124,18 @@ with Flow(
     add_new_image.set_upstream(img_base64_dict)
     save_images_to_local.set_upstream(all_img_base64_dict)
 
-    save_img_on_redis(
+    saved_images = save_img_on_redis(
         redis_hash, "radar_020.png", img_bytes
     )  # esperar baixar imagens que já estão no redis
     # save_str_on_redis.set_upstream(save_image_to_local)
 
-    compress_images_to_zip("images.zip", "images")
-    compress_images_to_zip.set_upstream(save_images_to_local)
+    generated_zip = compress_images_to_zip("images.zip", "images")
+    compress_images_to_zip.set_upstream(saved_images)
 
     api = access_api()
     send_zip_images_api(api, "uploadfile", "images.zip")
-    send_zip_images_api.set_upstream(compress_images_to_zip)
+    send_zip_images_api.set_upstream(generated_zip)
+    send_zip_images_api.set_upstream(api)
 
     # change_json_task = change_predict_rain_specs(
     #     files_to_model=files_on_sgit stattorage_list,

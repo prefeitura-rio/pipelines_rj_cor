@@ -407,6 +407,7 @@ def compress_images_to_zip(zip_filename="images.zip", folder="images"):
                     zipf.write(file_path, os.path.relpath(file_path, folder))
 
     print(f"Todas as imagens foram comprimidas em {zip_filename}")
+    return True
 
 
 @task
@@ -419,6 +420,7 @@ def save_img_on_redis(
     Function to save a string on redis
     """
     save_str_on_redis(redis_hash, key, value)
+    return True
 
 
 @task
