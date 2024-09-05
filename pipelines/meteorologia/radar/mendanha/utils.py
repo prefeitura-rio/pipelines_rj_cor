@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 import matplotlib.colors as mcolors
 import numpy as np
+import pyart
 
 
 def extract_timestamp(filename):
@@ -22,6 +23,20 @@ def extract_timestamp(filename):
     return datetime.strptime(
         match.group(), "%Y%m%dT%H%M%SZ" if "T" in match.group() else "%y%m%d%H%M%S"
     )
+
+
+def open_radar_file(file):
+    """
+    Print file size if it has problem opening it
+    """
+    try:
+        opened_file = pyart.aux_io.read_odim_h5(file)
+        return opened_file
+    except OSError as e:
+        print(f"Erro ao abrir o arquivo: {e}")
+        file_size = os.path.getsize(file)
+        print(f"Tamanho do arquivo: {file_size} bytes")
+        return None
 
 
 def create_colormap():

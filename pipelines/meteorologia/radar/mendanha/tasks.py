@@ -35,6 +35,7 @@ from pipelines.meteorologia.radar.mendanha.utils import (
     create_colormap,
     extract_timestamp,
     # list_all_directories,
+    open_radar_file,
     save_image_to_local,
 )
 from pipelines.utils_rj_cor import (
@@ -140,11 +141,14 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     log(f"Start combining radar files {radar_files}")
     log("Opening file from vol_a")
-    combined_radar = pyart.aux_io.read_odim_h5(radar_files[0])
+
+    combined_radar = open_radar_file(radar_files[0])
+
     for i in radar_files[1:]:
         log(f"Opening file from {i}")
-        radar_file_ = pyart.aux_io.read_odim_h5(i)
-        combined_radar = pyart.util.join_radar(combined_radar, radar_file_)
+        radar_file_ = open_radar_file(i)
+        if radar_file_:
+            combined_radar = pyart.util.join_radar(combined_radar, radar_file_)
     return combined_radar
 
 
@@ -153,7 +157,7 @@ def get_and_format_time(radar_files: list) -> str:
     """
     Get time from first file and convert it to São Paulo timezone
     """
-    radar = pyart.aux_io.read_odim_h5(f"data/mendanha/{radar_files[0]}")
+    radar = pyart.aux_io.read_odim_h5(radar_files[0])
     utc_time_str = radar.time["units"].split(" ")[-1]
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")

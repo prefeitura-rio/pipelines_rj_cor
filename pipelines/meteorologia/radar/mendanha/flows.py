@@ -93,11 +93,10 @@ with Flow(
     )
     combined_radar = combine_radar_files(radar_files)
     grid_shape, grid_limits = get_radar_parameters(combined_radar)
-
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
+    # Create visualizations
     formatted_time = get_and_format_time(radar_files)
-
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, time=formatted_time
@@ -116,9 +115,14 @@ with Flow(
         redis_hash, "radar_020.png", img_bytes
     )  # esperar baixar imagens que já estão no redis
     # save_str_on_redis.set_upstream(save_image_to_local)
+
     compress_images_to_zip("images.zip", "images")
+    compress_images_to_zip.set_upstream(save_images_to_local)
+
     api = access_api()
     send_zip_images_api(api, "uploadfile", "images.zip")
+    send_zip_images_api.set_upstream(compress_images_to_zip)
+
     # change_json_task = change_predict_rain_specs(
     #     files_to_model=files_on_sgit stattorage_list,
     #     destination_path=f"{BASE_PATH}radar_data/",
