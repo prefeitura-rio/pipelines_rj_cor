@@ -29,6 +29,7 @@ from pipelines.meteorologia.radar.mendanha.constants import (
 )
 from pipelines.meteorologia.radar.mendanha.tasks import (
     access_api,
+    add_new_image,
     base64_to_bytes,
     combine_radar_files,
     compress_images_to_zip,
@@ -108,8 +109,10 @@ with Flow(
 
     # update the name of images that are already on redis and save them as png
     img_base64_dict = rename_keys_redis(redis_hash, img_bytes)
-    # img_base64_dict['radar_020.png'] = img_bytes
-    save_images_to_local(img_base64_dict)
+    all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
+    save_images_to_local(all_img_base64_dict)
+    add_new_image.set_upstream(img_base64_dict)
+    save_images_to_local.set_upstream(all_img_base64_dict)
 
     save_img_on_redis(
         redis_hash, "radar_020.png", img_bytes

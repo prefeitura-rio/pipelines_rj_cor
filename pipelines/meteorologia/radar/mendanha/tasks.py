@@ -315,6 +315,15 @@ def base64_to_bytes(img_base64):
 
 
 @task
+def add_new_image(image_dict: dict, img_bytes) -> Dict:
+    """
+    Adding new image to dictionary after changing the name of the old ones on redis
+    """
+    image_dict["radar_020.png"] = img_bytes
+    return image_dict
+
+
+@task
 def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     """
     Renaming redis keys so image_003
@@ -374,7 +383,7 @@ def save_images_to_local(img_base64_dict: dict):
     """
     Save images in a PNG file
     """
-    print("Saving redis images to local path")
+    print(f"Saving image(s): {img_base64_dict.keys()} to local path")
 
     for key, value in img_base64_dict.items():
         save_image_to_local(key, img=value)

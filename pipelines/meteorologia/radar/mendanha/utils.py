@@ -13,7 +13,7 @@ import numpy as np
 import pyart
 
 
-def extract_timestamp(filename):
+def extract_timestamp(filename) -> datetime:
     """
     Get timestamp from filename
     """
@@ -25,7 +25,7 @@ def extract_timestamp(filename):
     )
 
 
-def open_radar_file(file):
+def open_radar_file(file) -> pyart.core.Radar:
     """
     Print file size if it has problem opening it
     """
@@ -68,7 +68,7 @@ def create_colormap():
     return cmap, norm, ordered_values
 
 
-def save_image_to_local(filename: str, img):
+def save_image_to_local(filename: str, img) -> None:
     """
     Save image in a PNG file
     """
