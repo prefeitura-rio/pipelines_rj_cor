@@ -33,11 +33,11 @@ from prefect.run_configs import KubernetesRun
 from prefect.utilities.graphql import (
     with_args,
 )
-from redis_pal import RedisPal
+# from redis_pal import RedisPal
 import requests
 
 # import telegram
-
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 from pipelines.constants import constants
 
 
@@ -103,21 +103,21 @@ def determine_whether_to_execute_or_not(
 ###############
 
 
-def get_redis_client(
-    host: str = "redis.redis.svc.cluster.local",
-    port: int = 6379,
-    db: int = 0,  # pylint: disable=C0103
-    password: str = None,
-) -> RedisPal:
-    """
-    Returns a Redis client.
-    """
-    return RedisPal(
-        host=host,
-        port=port,
-        db=db,
-        password=password,
-    )
+# def get_redis_client(
+#     host: str = constants.REDIS_HOST,
+#     port: int = constants.REDIS_PORT,
+#     db: int = constants.REDIS_DB,
+#     password: str = constants.REDIS_PASSWORD,
+# ) -> RedisPal:
+#     """
+#     Returns a Redis client.
+#     """
+#     return RedisPal(
+#         host=host,
+#         port=port,
+#         db=db,
+#         password=password,
+#     )
 
 
 def get_vault_client() -> hvac.Client:

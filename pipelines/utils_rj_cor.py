@@ -3,18 +3,21 @@
 Utils for rj-cor
 """
 import json
+from os import getenv
 from time import sleep
-from typing import Dict
+from typing import Callable, Dict
+from loguru import logger
 import basedosdados as bd
 from google.cloud import storage
 import pandas as pd
 import pendulum
-from redis_pal import RedisPal
+# from redis_pal import RedisPal
+# import pipelines.constants
+from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 from pipelines.utils.utils import (
     log,
 )
-
-
 ###############
 #
 # Redis
@@ -22,20 +25,76 @@ from pipelines.utils.utils import (
 ###############
 
 
-def get_redis_client(
-    host: str = "redis.redis.svc.cluster.local",
-    port: int = 6379,
-    db: int = 0,  # pylint: disable=C0103
-    password: str = None,
-) -> RedisPal:
+def getenv_or_action(key: str, action: Callable[[str], None], default: str = None) -> str:
+    value = getenv(key)
+    if value is None:
+        value = action(key)
+    if value is None:
+        value = default
+    return value
+
+
+def ignore(key: str) -> None:
+    pass
+
+
+def warn(key: str) -> None:
+    logger.warning(f"WARNING: Environment variable {key} is not set.")
+
+
+def raise_error(key: str) -> None:
+    raise ValueError(f"Environment variable {key} is not set.")
+
+
+# def get_redis_client(
+#     host: str = "redis.redis.svc.cluster.local",
+#     port: int = 6379,
+#     db: int = 0,  # pylint: disable=C0103
+#     password: str = None,
+# ) -> RedisPal:
+#     """
+#     Returns a Redis client.
+#     """
+#     return RedisPal(
+#         host=host,
+#         port=port,
+#         db=db,
+#         password=password,
+#     )
+
+
+def get_redis_client_from_infisical(
+    infisical_host_env: str = "REDIS_HOST",
+    infisical_port_env: str = "REDIS_PORT",
+    infisical_db_env: str = "REDIS_DB",
+    infisical_password_env: str = "REDIS_PASSWORD",
+    infisical_secrets_path: str = "/",
+):
     """
-    Returns a Redis client.
+    Gets a Redis client.
+
+    Args:
+        infisical_host_env: The environment variable for the Redis host.
+        infisical_port_env: The environment variable for the Redis port.
+        infisical_db_env: The environment variable for the Redis database.
+        infisical_password_env: The environment variable for the Redis password.
+
+    Returns:
+        The Redis client.
     """
-    return RedisPal(
-        host=host,
-        port=port,
-        db=db,
-        password=password,
+    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
+    redis_port = int(
+        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
+    )
+    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
+    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
+        infisical_password_env
+    ]
+    return get_redis_client(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db,
+        password=redis_password,
     )
 
 
@@ -60,7 +119,7 @@ def save_str_on_redis(
     Function to save a string on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     redis_client.hset(redis_hash, key, value)
 
 
@@ -116,7 +175,7 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914, R0913
     updated unique_id as a DataFrame and save new dates on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
 
     key = dataset_id + "." + table_id
     if mode == "dev":
@@ -200,7 +259,7 @@ def get_redis_output(redis_hash, key: str = None, treat_output: bool = True, is_
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
     """
     # TODO: validar mudanças em outras pipes
-    redis_client = get_redis_client()  # (host="127.0.0.1")
+    redis_client = get_redis_client_from_infisical()  # (host="127.0.0.1")
 
     if is_df:
         json_data = redis_client.get(redis_hash)

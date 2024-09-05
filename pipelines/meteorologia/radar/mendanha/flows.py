@@ -23,6 +23,7 @@ from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_cred
 
 from pipelines.constants import constants
 
+# from pipelines.tasks import task_get_redis_client
 # from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.constants import (
     constants as radar_constants,
@@ -102,14 +103,15 @@ with Flow(
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, time=formatted_time
     )
-    redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
 
     img_base64 = img_to_base64(fig)
     img_bytes = base64_to_bytes(img_base64)
 
     # update the name of images that are already on redis and save them as png
+    redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
     img_base64_dict = rename_keys_redis(redis_hash, img_bytes)
     all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
+
     save_images_to_local(all_img_base64_dict)
     add_new_image.set_upstream(img_base64_dict)
     save_images_to_local.set_upstream(all_img_base64_dict)
