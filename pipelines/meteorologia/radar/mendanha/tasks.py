@@ -18,11 +18,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pendulum
 import pyart
+
 # import wradlib as wrl
 import xarray as xr
 
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
+
 # from pyart.map import grid_from_radars
 
 # from prefect.engine.signals import ENDRUN
@@ -39,7 +41,7 @@ from pipelines.utils_rj_cor import (
     download_blob,
     get_redis_output,
     list_files_storage,
-    save_str_on_redis
+    save_str_on_redis,
 )
 from pipelines.utils_api import Api
 from prefeitura_rio.pipelines_utils.logging import log
@@ -217,9 +219,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 
 @task
-def create_visualization_no_background(
-    radar_2d, radar_product: str, cbar_title: str, time: str
-):
+def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, time: str):
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
@@ -229,7 +229,9 @@ def create_visualization_no_background(
 
     proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={"projection": proj})  # pylint: disable=C0103
+    fig, ax = plt.subplots(
+        figsize=(10, 10), subplot_kw={"projection": proj}
+    )  # pylint: disable=C0103
     ax.set_aspect("auto")
 
     # Extract data and coordinates from Xarray
@@ -386,6 +388,18 @@ def compress_images_to_zip(zip_filename="images.zip", folder="images"):
                     zipf.write(file_path, os.path.relpath(file_path, folder))
 
     print(f"Todas as imagens foram comprimidas em {zip_filename}")
+
+
+@task
+def save_img_on_redis(
+    redis_hash: str,
+    key: str,
+    value: str,
+):
+    """
+    Function to save a string on redis
+    """
+    save_str_on_redis(redis_hash, key, value)
 
 
 @task

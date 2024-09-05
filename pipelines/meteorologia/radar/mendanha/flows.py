@@ -43,9 +43,10 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     rename_keys_redis,
     send_zip_images_api,
     save_images_to_local,
+    save_img_on_redis,
     # save_data,
 )
-from pipelines.utils_rj_cor import build_redis_key, save_str_on_redis
+from pipelines.utils_rj_cor import build_redis_key
 
 # from pipelines.tasks import (
 #     get_on_redis,
@@ -72,6 +73,14 @@ with Flow(
     DUMP_MODE = Parameter("dump_mode", default="append")
     # BASE_PATH = "pipelines/rj_cor/meteorologia/radar/precipitacao/"
     BUCKET_NAME = "rj-escritorio-scp"
+
+    # redis_data_key = Parameter("redis_data_key", default="data_last_15min_rain")
+    # redis_update_key = Parameter(
+    #     "redis_update_key", default="data_last_15min_rain_update"
+    # )
+    # redis_host = Parameter("redis_host", default="redis.redis.svc.cluster.local")
+    # redis_port = Parameter("redis_port", default=6379)
+    # redis_db = Parameter("redis_db", default=1)
 
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
     files_on_storage_list = get_filenames_storage(BUCKET_NAME, files_saved_redis=[])
@@ -103,7 +112,7 @@ with Flow(
     # img_base64_dict['radar_020.png'] = img_bytes
     save_images_to_local(img_base64_dict)
 
-    save_str_on_redis(
+    save_img_on_redis(
         redis_hash, "radar_020.png", img_bytes
     )  # esperar baixar imagens que já estão no redis
     # save_str_on_redis.set_upstream(save_image_to_local)
@@ -111,7 +120,7 @@ with Flow(
     api = access_api()
     send_zip_images_api(api, "uploadfile", "images.zip")
     # change_json_task = change_predict_rain_specs(
-    #     files_to_model=files_on_storage_list,
+    #     files_to_model=files_on_sgit stattorage_list,
     #     destination_path=f"{BASE_PATH}radar_data/",
     # )
     # download_files_task.set_upstream(change_json_task)
