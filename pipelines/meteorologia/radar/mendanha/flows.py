@@ -96,6 +96,9 @@ with Flow(
     combined_radar = combine_radar_files(radar_files)
     grid_shape, grid_limits = get_radar_parameters(combined_radar)
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+    combine_radar_files.set_upstream(radar_files)
+    get_radar_parameters.set_upstream(combined_radar)
+    remap_data.set_upstream(grid_shape)
 
     # Create visualizations
     formatted_time = get_and_format_time(radar_files)
@@ -103,9 +106,12 @@ with Flow(
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, time=formatted_time
     )
+    create_visualization_no_background.set_upstream(radar_2d)
 
     img_base64 = img_to_base64(fig)
     img_bytes = base64_to_bytes(img_base64)
+    img_to_base64.set_upstream(fig)
+    base64_to_bytes.set_upstream(img_base64)
 
     # update the name of images that are already on redis and save them as png
     redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
@@ -113,6 +119,7 @@ with Flow(
     all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
 
     save_images_to_local(all_img_base64_dict)
+    rename_keys_redis.set_upstream(img_bytes)
     add_new_image.set_upstream(img_base64_dict)
     save_images_to_local.set_upstream(all_img_base64_dict)
 
