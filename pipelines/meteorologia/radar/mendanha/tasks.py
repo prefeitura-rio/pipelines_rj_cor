@@ -139,10 +139,10 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     log("Start combining radar files")
     log("Opening file from vol_a")
-    combined_radar = pyart.aux_io.read_odim_h5(f"data/mendanha/{radar_files[0]}")
+    combined_radar = pyart.aux_io.read_odim_h5(radar_files[0])
     for i in radar_files[1:]:
         log(f"Opening file from {i}")
-        radar_file_ = pyart.aux_io.read_odim_h5(f"data/mendanha/{i}")
+        radar_file_ = pyart.aux_io.read_odim_h5(i)
         combined_radar = pyart.util.join_radar(combined_radar, radar_file_)
     return combined_radar
 
