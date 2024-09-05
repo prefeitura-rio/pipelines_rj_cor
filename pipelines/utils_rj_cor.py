@@ -68,7 +68,7 @@ def get_redis_client_from_infisical(
     infisical_port_env: str = "REDIS_PORT",
     infisical_db_env: str = "REDIS_DB",
     infisical_password_env: str = "REDIS_PASSWORD",
-    infisical_secrets_path: str = "/",
+    infisical_secrets_path: str = "/redis",
 ):
     """
     Gets a Redis client.
