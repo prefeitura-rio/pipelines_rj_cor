@@ -379,27 +379,28 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
 
 
 @task
-def save_images_to_local(img_base64_dict: dict) -> str:
+def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     Save images in a PNG file
     """
     print(f"Saving image(s): {img_base64_dict.keys()} to local path")
-    path = "images"
+
     for key, value in img_base64_dict.items():
-        save_image_to_local(key, img=value, path=path)
+        save_image_to_local(key, img=value, path=folder)
         # print("antes decode", type(v))
         # img_data = base64.b64decode(v)
         # print("depois decode", type(img_data))
         # with open(k, 'wb') as img_file:
         #     img_file.write(img_data)
-    return path
+    return folder
 
 
 @task
-def compress_images_to_zip(zip_filename: str = "images.zip", folder: str = "images"):
+def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
     """
     Compress all images to a zip file
     """
+    log(f"Start compressing files that are inside folder {folder}")
     with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, _, files in os.walk(folder):
             for file in files:
