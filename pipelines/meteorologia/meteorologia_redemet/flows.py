@@ -5,26 +5,27 @@ Flows for meteorologia_redemet
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.meteorologia.meteorologia_redemet.tasks import (
-    check_for_new_stations,
-    get_dates,
-    download_data,
-    download_stations_data,
-    treat_data,
-    treat_stations_data,
-    save_data,
-)
 from pipelines.meteorologia.meteorologia_redemet.schedules import (
     hour_schedule,
     month_schedule,
 )
+from pipelines.meteorologia.meteorologia_redemet.tasks import (
+    check_for_new_stations,
+    download_data,
+    download_stations_data,
+    get_dates,
+    save_data,
+    treat_data,
+    treat_stations_data,
+)
+from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
@@ -35,14 +36,10 @@ from pipelines.utils.tasks import (
 
 with Flow(
     name="COR: Meteorologia - Meteorologia REDEMET",
-    code_owners=[
-        "paty",
-    ],
+    state_handlers=[handler_inject_bd_credentials],
 ) as cor_meteorologia_meteorologia_redemet:
     DUMP_MODE = Parameter("dump_mode", default="append", required=True)
-    DATASET_ID = Parameter(
-        "dataset_id", default="clima_estacao_meteorologica", required=True
-    )
+    DATASET_ID = Parameter("dataset_id", default="clima_estacao_meteorologica", required=True)
     TABLE_ID = Parameter("table_id", default="meteorologia_redemet", required=True)
 
     # first_date and last_date must be strings as "YYYY-MM-DD"
@@ -50,12 +47,8 @@ with Flow(
     last_date = Parameter("last_date", default=None, required=False)
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=True, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=True, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -156,18 +149,12 @@ with Flow(
     ],
 ) as cor_meteorologia_meteorologia_redemet_estacoes:
     DUMP_MODE = Parameter("dump_mode", default="overwrite", required=True)
-    DATASET_ID = Parameter(
-        "dataset_id", default="clima_estacao_meteorologica", required=True
-    )
+    DATASET_ID = Parameter("dataset_id", default="clima_estacao_meteorologica", required=True)
     TABLE_ID = Parameter("table_id", default="estacoes_redemet", required=True)
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -252,9 +239,7 @@ with Flow(
     check_for_new_stations(dataframe, wait=UPLOAD_TABLE)
 
 # para rodar na cloud
-cor_meteorologia_meteorologia_redemet_estacoes.storage = GCS(
-    constants.GCS_FLOWS_BUCKET.value
-)
+cor_meteorologia_meteorologia_redemet_estacoes.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
 cor_meteorologia_meteorologia_redemet_estacoes.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],

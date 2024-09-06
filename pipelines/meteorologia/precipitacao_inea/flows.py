@@ -5,25 +5,24 @@ Flows for precipitacao_inea.
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.utils.custom import wait_for_flow_run_with_timeout
+from pipelines.meteorologia.precipitacao_inea.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_inea.tasks import (
     check_for_new_stations,
     check_new_data,
     download_data,
-    treat_data,
     save_data,
+    treat_data,
     wait_task,
 )
-from pipelines.meteorologia.precipitacao_inea.schedules import (
-    minute_schedule,
-)
+from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
@@ -32,15 +31,11 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
-wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(
-    timeout=timedelta(minutes=2)
-)
+wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=2))
 
 with Flow(
     name="COR: Meteorologia - Precipitacao e Fluviometria INEA",
-    code_owners=[
-        "paty",
-    ],
+    state_handlers=[handler_inject_bd_credentials],
     # skip_if_running=True,
 ) as cor_meteorologia_precipitacao_inea:
     DUMP_MODE = Parameter("dump_mode", default="append", required=True)
@@ -58,12 +53,8 @@ with Flow(
     )
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=True, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=True, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
@@ -87,9 +78,7 @@ with Flow(
     )
 
     with case(new_pluviometric_data, True):
-        path_pluviometric = save_data(
-            dataframe=dfr_pluviometric, folder_name="pluviometer"
-        )
+        path_pluviometric = save_data(dataframe=dfr_pluviometric, folder_name="pluviometer")
 
         # Create pluviometric table in BigQuery
         UPLOAD_TABLE_PLUVIOMETRIC = create_table_and_upload_to_gcs(
@@ -159,9 +148,7 @@ with Flow(
     status = wait_task()
     status.set_upstream(UPLOAD_TABLE_PLUVIOMETRIC)
     with case(new_fluviometric_data, True):
-        path_fluviometric = save_data(
-            dataframe=dfr_fluviometric, folder_name="fluviometer"
-        )
+        path_fluviometric = save_data(dataframe=dfr_fluviometric, folder_name="fluviometer")
         path_fluviometric.set_upstream(status)
 
         # Create fluviometric table in BigQuery

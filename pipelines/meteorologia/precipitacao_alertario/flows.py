@@ -5,33 +5,32 @@ Flows for precipitacao_alertario.
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.executors import LocalDaskExecutor
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.meteorologia.precipitacao_alertario.constants import (
     constants as alertario_constants,
 )
+from pipelines.meteorologia.precipitacao_alertario.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
     download_data,
-    treat_old_pluviometer,
-    treat_pluviometer_and_meteorological_data,
     save_data,
     save_data_old,
     save_last_dbt_update,
-)
-from pipelines.meteorologia.precipitacao_alertario.schedules import (
-    minute_schedule,
+    treat_old_pluviometer,
+    treat_pluviometer_and_meteorological_data,
 )
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )
+from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
@@ -40,22 +39,15 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
-wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(
-    timeout=timedelta(minutes=5)
-)
+wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
 
 with Flow(
     name="COR: Meteorologia - Precipitacao e Meteorologia ALERTARIO",
-    code_owners=[
-        "paty",
-    ],
-    # skip_if_running=True,
+    state_handlers=[handler_inject_bd_credentials],
 ) as cor_meteorologia_precipitacao_alertario:
     DATASET_ID_PLUVIOMETRIC = alertario_constants.DATASET_ID_PLUVIOMETRIC.value
     TABLE_ID_PLUVIOMETRIC = alertario_constants.TABLE_ID_PLUVIOMETRIC.value
-    TABLE_ID_PLUVIOMETRIC_OLD_API = (
-        alertario_constants.TABLE_ID_PLUVIOMETRIC_OLD_API.value
-    )
+    TABLE_ID_PLUVIOMETRIC_OLD_API = alertario_constants.TABLE_ID_PLUVIOMETRIC_OLD_API.value
     DATASET_ID_METEOROLOGICAL = alertario_constants.DATASET_ID_METEOROLOGICAL.value
     TABLE_ID_METEOROLOGICAL = alertario_constants.TABLE_ID_METEOROLOGICAL.value
     DUMP_MODE = "append"
@@ -67,12 +59,8 @@ with Flow(
     MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
         "materialize_to_datario_old_api", default=False, required=False
     )
-    MATERIALIZE_AFTER_DUMP = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
@@ -88,19 +76,13 @@ with Flow(
     )
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (
-        dfr_pluviometric,
-        empty_data_pluviometric,
-    ) = treat_pluviometer_and_meteorological_data(
+    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (
-        dfr_meteorological,
-        empty_data_meteorological,
-    ) = treat_pluviometer_and_meteorological_data(
+    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -293,9 +275,7 @@ with Flow(
         )
 
         # Treat data to save on old table
-        dfr_pluviometric_old_api = treat_old_pluviometer(
-            dfr_pluviometric, wait=UPLOAD_TABLE
-        )
+        dfr_pluviometric_old_api = treat_old_pluviometer(dfr_pluviometric, wait=UPLOAD_TABLE)
 
         path_pluviometric_old_api = save_data_old(
             dfr_pluviometric_old_api,

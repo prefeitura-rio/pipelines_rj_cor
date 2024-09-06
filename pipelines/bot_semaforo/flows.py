@@ -6,19 +6,21 @@ Flows for cor
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
-from pipelines.constants import constants
 from pipelines.bot_semaforo.schedules import bot_schedule
 from pipelines.bot_semaforo.tasks import (
-    get_token_and_group_id,
-    get_data,
     format_message,
+    get_data,
+    get_token_and_group_id,
     send_messages,
 )
+from pipelines.constants import constants
 from pipelines.utils.decorators import Flow
 
 with Flow(
     name="COR: CET semáforos - Telegram Bot",
+    state_handlers=[handler_inject_bd_credentials],
 ) as cet_telegram_flow:
     secret_path = Parameter("secret_path")
 
