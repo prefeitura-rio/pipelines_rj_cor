@@ -392,6 +392,7 @@ def save_images_to_local(img_base64_dict: dict):
         # print("depois decode", type(img_data))
         # with open(k, 'wb') as img_file:
         #     img_file.write(img_data)
+    return True
 
 
 @task
