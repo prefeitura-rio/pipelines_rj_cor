@@ -379,24 +379,24 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
 
 
 @task
-def save_images_to_local(img_base64_dict: dict):
+def save_images_to_local(img_base64_dict: dict) -> str:
     """
     Save images in a PNG file
     """
     print(f"Saving image(s): {img_base64_dict.keys()} to local path")
-
+    path = "images"
     for key, value in img_base64_dict.items():
-        save_image_to_local(key, img=value)
+        save_image_to_local(key, img=value, path=path)
         # print("antes decode", type(v))
         # img_data = base64.b64decode(v)
         # print("depois decode", type(img_data))
         # with open(k, 'wb') as img_file:
         #     img_file.write(img_data)
-    return True
+    return path
 
 
 @task
-def compress_images_to_zip(zip_filename="images.zip", folder="images"):
+def compress_images_to_zip(zip_filename: str = "images.zip", folder: str = "images"):
     """
     Compress all images to a zip file
     """
@@ -408,7 +408,7 @@ def compress_images_to_zip(zip_filename="images.zip", folder="images"):
                     zipf.write(file_path, os.path.relpath(file_path, folder))
 
     print(f"Todas as imagens foram comprimidas em {zip_filename}")
-    return True
+    return zip_filename
 
 
 @task
@@ -425,13 +425,13 @@ def save_img_on_redis(
 
 
 @task
-def send_zip_images_api(api, path, zip_file_path) -> dict:
+def send_zip_images_api(api, api_route, zip_file_path) -> dict:
     """
     Send zip images to COR API
     """
     with open(zip_file_path, "rb") as file:
         files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
-        response = api.post(path, files=files)
+        response = api.post(api_route, files=files)
         print(response.json())
     return response
 

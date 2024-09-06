@@ -68,7 +68,7 @@ def create_colormap():
     return cmap, norm, ordered_values
 
 
-def save_image_to_local(filename: str, img) -> None:
+def save_image_to_local(filename: str, img, path="temp") -> None:
     """
     Save image in a PNG file
     """
@@ -82,7 +82,7 @@ def save_image_to_local(filename: str, img) -> None:
         img_data = img
 
     # Salvar a imagem em um arquivo PNG
-    if not os.path.exists("images"):
-        os.makedirs("images")
-    with open(f"images/{filename}", "wb") as img_file:
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(f"{path}/{filename}", "wb") as img_file:
         img_file.write(img_data)
