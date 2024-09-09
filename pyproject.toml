@@ -26,6 +26,7 @@ prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git",
 ] }
 pandas = "^2.2.2"
 arm-pyart = "^1.19.0"
+contextily = "^1.6.2"
 
 [tool.poetry.group.dev]
 optional = true
