@@ -84,7 +84,8 @@ def get_filenames_storage(
 
     sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
     log(f"{len(sorted_files)} files found in vol_a")
-    volume_files[vol_a] = sorted_files
+    log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
+    # volume_files[vol_a] = sorted_files
 
     # Identificar o último arquivo em vol_a
     last_file_vol_a = volume_files[vol_a][-1]
@@ -94,34 +95,51 @@ def get_filenames_storage(
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
 
-    for vol in volumes[1:]:
-        sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-        start_time = time()
-        elapsed_time = 0
-        while len(sorted_files) == 0 and elapsed_time <= 5 * 60:
-            sleep(30)
-            sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-            end_time = time()
-            elapsed_time = end_time - start_time
+    # for vol in volumes[1:]:
+    #     sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+    #     start_time = time()
+    #     elapsed_time = 0
+    #     while len(sorted_files) == 0 and elapsed_time <= 5 * 60:
+    #         sleep(30)
+    #         sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+    #         end_time = time()
+    #         elapsed_time = end_time - start_time
 
-        if len(sorted_files) == 0 and elapsed_time <= 5 * 60:
-            message = f"It was not possible to find {vol}. Ending run"
-            log(message)
-            raise ENDRUN(state=Failed(message))
+    #     if len(sorted_files) == 0 and elapsed_time <= 5 * 60:
+    #         message = f"It was not possible to find {vol}. Ending run"
+    #         log(message)
+    #         raise ENDRUN(state=Failed(message))
 
-        volume_files[vol] = sorted_files
+    #     volume_files[vol] = sorted_files
 
-    log(f"Last 5 files found on {vol_a}: {volume_files[vol_a][-5:]}")
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
     for vol in volumes[1:]:
-        log(f"Last 5 files found on {vol}: {volume_files[vol][-5:]}")
-        next_files = [
-            file for file in volume_files[vol] if extract_timestamp(file) > last_timestamp_vol_a
-        ]
-        log(f"Next files found on {vol}: {next_files}")
+        # sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+        # log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
+        # next_files = [
+        #     file for file in sorted_files if extract_timestamp(file) > last_timestamp_vol_a
+        # ]
+        start_time = time()
+        elapsed_time = 0
+        next_files = []
+        while len(next_files) == 0 and elapsed_time <= 1 * 60:  # TO DO: change to 5 or 10
+            sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+            log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
+            next_files = [
+                file for file in sorted_files if extract_timestamp(file) > last_timestamp_vol_a
+            ]
+            if not next_files:
+                end_time = time()
+                elapsed_time = end_time - start_time
+                sleep(30)
+
         if next_files:
             selected_files.append(next_files[0])
+        else:
+            message = f"It was not possible to find {vol}. Ending run"
+            log(message)
+            raise ENDRUN(state=Failed(message))
 
     log(f"Selected files on scp: {selected_files}")
     return selected_files
