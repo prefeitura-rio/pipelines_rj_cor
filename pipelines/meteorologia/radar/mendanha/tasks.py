@@ -91,31 +91,9 @@ def get_filenames_storage(
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
 
-    # for vol in volumes[1:]:
-    #     sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-    #     start_time = time()
-    #     elapsed_time = 0
-    #     while len(sorted_files) == 0 and elapsed_time <= 5 * 60:
-    #         sleep(30)
-    #         sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-    #         end_time = time()
-    #         elapsed_time = end_time - start_time
-
-    #     if len(sorted_files) == 0 and elapsed_time <= 5 * 60:
-    #         message = f"It was not possible to find {vol}. Ending run"
-    #         log(message)
-    #         raise ENDRUN(state=Failed(message))
-
-    #     volume_files[vol] = sorted_files
-
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
     for vol in volumes[1:]:
-        # sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-        # log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
-        # next_files = [
-        #     file for file in sorted_files if extract_timestamp(file) > last_timestamp_vol_a
-        # ]
         start_time = time()
         elapsed_time = 0
         next_files = []
@@ -202,7 +180,7 @@ def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     Get radar information
     https://github.com/syedhamidali/CAPPI-NETCDF/blob/main/simple_cappi.ipynb
     """
-    print("Start getting radar parameters")
+    log("Start getting radar parameters")
 
     # Max radar distance (meters)
     max_range = radar.range["data"][-1]
@@ -232,8 +210,8 @@ def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     # Define grid_shape
     grid_shape = (z_levels, y_points, x_points)
 
-    print(f"grid_limits: {grid_limits}")
-    print(f"grid_shape: {grid_shape}")
+    log(f"grid_limits: {grid_limits}")
+    log(f"grid_shape: {grid_shape}")
 
     return grid_shape, grid_limits
 
@@ -243,7 +221,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
     """
     Interpolate radar products data to obtain a 2D map and convert it to an xarray type
     """
-    print("Start interpolating data to a 2D grid from radars")
+    log("Start interpolating data to a 2D grid from radars")
     grid = pyart.map.grid_from_radars(
         radar,
         grid_shape=grid_shape,
@@ -252,7 +230,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
         fields=radar_products,
     )
 
-    print("Start convert grid to an array")
+    log("Start convert grid to an array")
     radar_2d = grid.to_xarray()
     return radar_2d
 
@@ -263,7 +241,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
     """
-    print(f"Start creating {radar_product} visualization")
+    log(f"Start creating {radar_product} visualization")
     cmap, norm, ordered_values = create_colormap()
 
     proj = ccrs.PlateCarree()
@@ -314,7 +292,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
     fig.patch.set_alpha(0.0)  # Fundo da figura
     ax.patch.set_alpha(0.0)  # Fundo dos eixos
     # image_path = Path('radar_020.png')
-    # print(f"Saving image to {image_path}")
+    # log(f"Saving image to {image_path}")
     # plt.savefig(image_path, transparent=True, bbox_inches='tight', pad_inches=0.1)
     # plt.savefig(image_path,  bbox_inches='tight', pad_inches=0.1)
 
@@ -325,7 +303,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
 @task
 def img_to_base64(img):
     """Convert matplotlib fig to base64 to sent it to API"""
-    print("Start converting fig to base64")
+    log("Start converting fig to base64")
     img_base64 = io.BytesIO()
     img.savefig(img_base64, format="png", bbox_inches="tight", pad_inches=0.1)
     img_base64.seek(0)
@@ -337,7 +315,7 @@ def img_to_base64(img):
 @task
 def base64_to_bytes(img_base64):
     """Convert base64 to to bytes save it on redis"""
-    print("Start converting base64 to bytes")
+    log("Start converting base64 to bytes")
     img_base64.seek(0)  # Move o cursor para o início do BytesIO
     img_bytes = img_base64.getvalue()  # Obtém o conteúdo em bytes
     return img_bytes
@@ -360,11 +338,11 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     on pipelines/utils_rj_cor.py on all flows
     """
 
-    print("Start renaming images on redis")
+    log("Start renaming images on redis")
     redis_images = get_redis_output(redis_hash)
 
     redis_images_list = list(redis_images.keys())
-    print(f"Images names that are already on redis {redis_images_list}")
+    log(f"Images names that are already on redis {redis_images_list}")
 
     list_len = len(redis_images_list)
     # TO DO: if list_len == 0 skip task
@@ -400,7 +378,7 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
         key_name = redis_images_list[i]
         value = redis_images[redis_images_list[i + 1]]
         img_base64_dict[key_name] = value
-        print(f"Renaming image to {key_name}")
+        log(f"Renaming image to {key_name}")
         save_str_on_redis(redis_hash, key_name, value)
 
     img_base64_dict["radar_020.png"] = new_image
@@ -412,13 +390,13 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     Save images in a PNG file
     """
-    print(f"Saving image(s): {img_base64_dict.keys()} to local path")
+    log(f"Saving image(s): {img_base64_dict.keys()} to local path")
 
     for key, value in img_base64_dict.items():
         save_image_to_local(key, img=value, path=folder)
-        # print("antes decode", type(v))
+        # log("antes decode", type(v))
         # img_data = base64.b64decode(v)
-        # print("depois decode", type(img_data))
+        # log("depois decode", type(img_data))
         # with open(k, 'wb') as img_file:
         #     img_file.write(img_data)
     return folder
@@ -437,7 +415,7 @@ def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
                     file_path = os.path.join(root, file)
                     zipf.write(file_path, os.path.relpath(file_path, folder))
 
-    print(f"Todas as imagens foram comprimidas em {zip_filename}")
+    log(f"Todas as imagens foram comprimidas em {zip_filename}")
     return zip_filename
 
 
@@ -462,7 +440,7 @@ def send_zip_images_api(api, api_route, zip_file_path) -> dict:
     with open(zip_file_path, "rb") as file:
         files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
         response = api.post(api_route, files=files)
-        print(response.json())
+        log(response.json())
     return response
 
 
