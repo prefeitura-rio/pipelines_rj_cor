@@ -9,6 +9,7 @@ Tasks for setting rain dashboard using radar data.
 import io
 import os
 from pathlib import Path
+from time import time, sleep
 from typing import Dict, List, Union, Tuple
 import zipfile
 
@@ -27,8 +28,8 @@ from prefect import task
 
 # from pyart.map import grid_from_radars
 
-# from prefect.engine.signals import ENDRUN
-# from prefect.engine.state import Skipped
+from prefect.engine.signals import ENDRUN
+from prefect.engine.state import Failed  # Skipped
 
 from pipelines.constants import constants
 from pipelines.meteorologia.radar.mendanha.utils import (
@@ -55,7 +56,10 @@ def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
     files_saved_redis: list = [],
 ) -> List:
-    """Esc"""
+    """Esc
+    Volumes vol_c and vol_d need's almost 3 minutes to be generated after vol_a.
+    We will wait 5 minutes to continue pipeline or stop flow
+    """
     log("Starting geting filenames from storage")
     volumes = [
         "mendanha/odimhdf5/vol_a/",
@@ -92,12 +96,23 @@ def get_filenames_storage(
 
     for vol in volumes[1:]:
         sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+        start_time = time()
+        elapsed_time = 0
+        while len(sorted_files) == 0 and elapsed_time <= 5 * 60:
+            sleep(30)
+            sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
+            end_time = time()
+            elapsed_time = end_time - start_time
+
+        if len(sorted_files) == 0 and elapsed_time <= 5 * 60:
+            message = f"It was not possible to find {vol}. Ending run"
+            log(message)
+            raise ENDRUN(state=Failed(message))
+
         volume_files[vol] = sorted_files
 
     log(f"Last 5 files found on {vol_a}: {volume_files[vol_a][-5:]}")
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
-    # TODO: pegar o último arquivo de vol_b, vol_c e vol_d que tenha aparecido
-    # até 5 min antes do último arquivo de vol_a
     selected_files = [last_file_vol_a]
     for vol in volumes[1:]:
         log(f"Last 5 files found on {vol}: {volume_files[vol][-5:]}")
