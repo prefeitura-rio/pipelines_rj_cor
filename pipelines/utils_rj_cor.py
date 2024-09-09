@@ -9,7 +9,6 @@ from pipelines.utils.utils import (
     log,
     treat_redis_output,
 )
-from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 
 def build_redis_key(dataset_id: str, table_id: str, name: str, mode: str = "prod"):
@@ -72,36 +71,3 @@ def compare_actual_df_with_redis_df(
     return dfr_diff, updated_dfr_redis
 
 
-def get_redis_client_from_infisical(
-    infisical_host_env: str = "REDIS_HOST",
-    infisical_port_env: str = "REDIS_PORT",
-    infisical_db_env: str = "REDIS_DB",
-    infisical_password_env: str = "REDIS_PASSWORD",
-    infisical_secrets_path: str = "/new_redis_cor",
-):
-    """
-    Gets a Redis client.
-
-    Args:
-        infisical_host_env: The environment variable for the Redis host.
-        infisical_port_env: The environment variable for the Redis port.
-        infisical_db_env: The environment variable for the Redis database.
-        infisical_password_env: The environment variable for the Redis password.
-
-    Returns:
-        The Redis client.
-    """
-    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
-    redis_port = int(
-        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
-    )
-    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
-    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
-        infisical_password_env
-    ]
-    return get_redis_client(
-        host=redis_host,
-        port=redis_port,
-        db=redis_db,
-        password=redis_password,
-    )

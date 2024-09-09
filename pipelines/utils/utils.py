@@ -38,7 +38,7 @@ import requests
 import telegram
 
 from pipelines.constants import constants
-from pipelines.utils_rj_cor import get_redis_client_from_infisical
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 
 def log(msg: Any, level: str = "info") -> None:
@@ -1110,3 +1110,38 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914
     [redis_client.hset(key, k, v) for k, v in new_updates.items()]
 
     return dataframe.reset_index()
+
+
+def get_redis_client_from_infisical(
+    infisical_host_env: str = "REDIS_HOST",
+    infisical_port_env: str = "REDIS_PORT",
+    infisical_db_env: str = "REDIS_DB",
+    infisical_password_env: str = "REDIS_PASSWORD",
+    infisical_secrets_path: str = "/new_redis_cor",
+):
+    """
+    Gets a Redis client.
+
+    Args:
+        infisical_host_env: The environment variable for the Redis host.
+        infisical_port_env: The environment variable for the Redis port.
+        infisical_db_env: The environment variable for the Redis database.
+        infisical_password_env: The environment variable for the Redis password.
+
+    Returns:
+        The Redis client.
+    """
+    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
+    redis_port = int(
+        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
+    )
+    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
+    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
+        infisical_password_env
+    ]
+    return get_redis_client(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db,
+        password=redis_password,
+    )
