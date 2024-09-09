@@ -38,6 +38,7 @@ import requests
 import telegram
 
 from pipelines.constants import constants
+from pipelines.utils_rj_cor import get_redis_client_from_infisical
 
 
 def log(msg: Any, level: str = "info") -> None:
@@ -1025,7 +1026,7 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914
     updated unique_id as a DataFrame and save new dates on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
 
     key = dataset_id + "." + table_id
     if mode == "dev":
