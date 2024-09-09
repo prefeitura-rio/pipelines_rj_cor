@@ -79,16 +79,12 @@ def get_filenames_storage(
     # directories = list_all_directories(bucket, bucket_name)
     # log(f"Directories inside bucket {directories}")
 
-    # Listar e ordenar arquivos de cada volume
-    volume_files = {}
-
     sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
     log(f"{len(sorted_files)} files found in vol_a")
     log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
-    # volume_files[vol_a] = sorted_files
 
     # Identificar o último arquivo em vol_a
-    last_file_vol_a = volume_files[vol_a][-1]
+    last_file_vol_a = sorted_files[-1]
     last_timestamp_vol_a = extract_timestamp(last_file_vol_a)
     log(f"Last file on vol_a {last_file_vol_a}")
 
