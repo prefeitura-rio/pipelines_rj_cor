@@ -153,7 +153,7 @@ with Flow(
         destination_blob_name=f"cor-clima/radar/mendanha/{formatted_time}.png",
         source_file_name=f"{saved_with_background_img_path}/{formatted_time}.png",
     )
-
+    upload_file_to_storage.set_upstream(saved_with_background_img_path)
     # save_data_path = save_data(dfr)
     # upload_table = create_table_and_upload_to_gcs(
     #     data_path=save_data_path,
