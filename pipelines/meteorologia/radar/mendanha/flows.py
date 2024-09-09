@@ -151,7 +151,7 @@ with Flow(
     upload_file_to_storage(
         bucket_name="datario-public",
         destination_blob_name=f"cor-clima/radar/mendanha/{formatted_time}.png",
-        source_file_name=f"saved_with_background_img_path/{formatted_time}.png",
+        source_file_name=f"{saved_with_background_img_path}/{formatted_time}.png",
     )
 
     # save_data_path = save_data(dfr)
