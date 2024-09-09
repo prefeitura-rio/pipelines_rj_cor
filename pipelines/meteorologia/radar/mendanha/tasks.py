@@ -14,6 +14,7 @@ from typing import Dict, List, Union, Tuple
 import zipfile
 
 import cartopy.crs as ccrs
+import contextily as ctx
 from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
@@ -236,12 +237,12 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 
 @task
-def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, time: str):
+def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
     """
-    log(f"Start creating {radar_product} visualization")
+    log(f"Start creating {radar_product} visualization without background")
     cmap, norm, ordered_values = create_colormap()
 
     proj = ccrs.PlateCarree()
@@ -263,7 +264,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
 
     # Configure axes
     ax.set_title(
-        time, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
     )  # , fontweight='bold', loc="left"
 
     ax.set_xlabel("")
@@ -392,8 +393,9 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     log(f"Saving image(s): {img_base64_dict.keys()} to local path")
 
+    os.makedirs(folder, exist_ok=True)
     for key, value in img_base64_dict.items():
-        save_image_to_local(key, img=value, path=folder)
+        save_image_to_local(filename=key, img=value, path=folder)
         # log("antes decode", type(v))
         # img_data = base64.b64decode(v)
         # log("depois decode", type(img_data))
@@ -470,6 +472,80 @@ def get_colorbar_title(radar_product: str):
     """
     colorbar_title = {"reflectivity_horizontal": "REFLECTIVITY\n(dBZ)"}
     return colorbar_title[radar_product]
+
+
+@task
+def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):
+    """
+    Plot radar 2D data over Rio de Janeiro's map using the same
+    color as they used before on colorbar
+    """
+    log(f"Start creating {radar_product} visualization with background")
+    cmap, norm, ordered_values = create_colormap()
+
+    proj = ccrs.PlateCarree()
+
+    fig, ax = plt.subplots(
+        figsize=(10, 10), subplot_kw={"projection": proj}
+    )  # pylint: disable=C0103
+    ax.set_aspect("auto")
+
+    # Extract data and coordinates from Xarray
+    data = radar_2d[radar_product][0].max(axis=0).values
+    lon = radar_2d["lon"].values
+    lat = radar_2d["lat"].values
+
+    # Plot data over base map
+    contour = ax.contourf(
+        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
+    )
+
+    # Adicionar o mapa de base usando contextily
+    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+
+    # Configure axes
+    ax.set_title(
+        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+    )  # , fontweight='bold', loc="left"
+
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.axis("off")
+    ax.grid(True, linestyle="--", alpha=0.5)
+    ax.set_xlim(lon.min(), lon.max())
+    ax.set_ylim(lat.min(), lat.max())
+
+    # Customize colorbar to show only the specified values on the center of each box
+    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+    cbar = plt.colorbar(
+        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+        ax=ax,
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+    cbar.set_ticklabels([str(value) for value in ordered_values])
+    cbar.ax.tick_params(size=0)
+    cbar.ax.set_title(
+        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+    )  # left, height
+
+    # plt.show()
+    return fig
+
+
+@task
+def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_file_name: str):
+    """
+    Upload files to GCS
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    # Cria um blob (o arquivo dentro do bucket)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
+    log(f"File {source_file_name} sent to {destination_blob_name} on bucket {bucket_name}.")
 
 
 # @task

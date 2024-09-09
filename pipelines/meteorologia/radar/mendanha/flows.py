@@ -35,6 +35,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
+    create_visualization_with_background,
     download_files_storage,
     get_and_format_time,
     get_colorbar_title,
@@ -46,6 +47,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     send_zip_images_api,
     save_images_to_local,
     save_img_on_redis,
+    upload_file_to_storage,
     # save_data,
 )
 from pipelines.utils_rj_cor import build_redis_key
@@ -105,7 +107,7 @@ with Flow(
     formatted_time = get_and_format_time(radar_files)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
-        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, time=formatted_time
+        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
     )
     # create_visualization_no_background.set_upstream(radar_2d)
 
@@ -138,14 +140,20 @@ with Flow(
     # send_zip_images_api.set_upstream(zip_filename)
     # send_zip_images_api.set_upstream(api)
 
-    # change_json_task = change_predict_rain_specs(
-    #     files_to_model=files_on_sgit stattorage_list,
-    #     destination_path=f"{BASE_PATH}radar_data/",
-    # )
-    # download_files_task.set_upstream(change_json_task)
-    # dfr = run_model(wait=download_files_task)
-    # # dfr.set_upstream(download_files_task)
-    # # run_model_task.set_upstream(change_json_task)
+    fig_with_backgroud = create_visualization_with_background(
+        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
+    )
+    img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
+    img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
+    saved_with_background_img_path = save_images_to_local(
+        {formatted_time: img_bytes_with_backgroud}
+    )
+    upload_file_to_storage(
+        bucket_name="datario-public",
+        destination_blob_name=f"cor-clima/radar/mendanha/{formatted_time}.png",
+        source_file_name=f"saved_with_background_img_path/{formatted_time}.png",
+    )
+
     # save_data_path = save_data(dfr)
     # upload_table = create_table_and_upload_to_gcs(
     #     data_path=save_data_path,
