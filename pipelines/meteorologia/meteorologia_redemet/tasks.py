@@ -95,6 +95,9 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
     # converte para dataframe
     dataframe = pd.DataFrame(raw)
 
+    # Log dataframe size
+    log(f"Daframe shape: {dataframe.shape}")
+
     return dataframe
 
 
