@@ -171,8 +171,8 @@ def get_and_format_time(radar_files: list) -> str:
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
 
-    log(f"Time of first file in São Paulo timezone: {formatted_time}")
-    return formatted_time
+    log(f"Time of first file in São Paulo timezone: {formatted_time} {type(formatted_time)}")
+    return str(formatted_time)
 
 
 @task(nout=2)

@@ -150,7 +150,7 @@ with Flow(
     saved_with_background_img_path = save_images_to_local(
         {f"{formatted_time}.png": img_bytes_with_backgroud}
     )
-
+    save_images_to_local.set_upstream(formatted_time)
     destination_blob_name, source_file_name = get_storage_destination(
         formatted_time, saved_with_background_img_path
     )
@@ -159,7 +159,7 @@ with Flow(
         destination_blob_name=destination_blob_name,
         source_file_name=source_file_name,
     )
-    # upload_file_to_storage.set_upstream(saved_with_background_img_path)
+    upload_file_to_storage.set_upstream(destination_blob_name)
     # save_data_path = save_data(dfr)
     # upload_table = create_table_and_upload_to_gcs(
     #     data_path=save_data_path,
