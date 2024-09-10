@@ -559,7 +559,7 @@ def get_storage_destination(filename: str, path: str):
     """
     get storage
     """
-    destination_blob_name = f"cor-clima/radar/mendanha/{filename}.png"
+    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
     source_file_name = f"{path}/{filename}.png"
     log(f"File destination_blob_name {destination_blob_name}")
     log(f"File source_file_name {source_file_name}")
