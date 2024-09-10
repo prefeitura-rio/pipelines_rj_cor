@@ -155,6 +155,7 @@ with Flow(
         formatted_time, saved_with_background_img_path
     )
     upload_file_to_storage(
+        project="datario",
         bucket_name="datario-public",
         destination_blob_name=destination_blob_name,
         source_file_name=source_file_name,

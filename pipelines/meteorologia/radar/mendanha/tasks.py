@@ -539,11 +539,13 @@ def create_visualization_with_background(radar_2d, radar_product: str, cbar_titl
 
 
 @task
-def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_file_name: str):
+def upload_file_to_storage(
+    project: str, bucket_name: str, destination_blob_name: str, source_file_name: str
+):
     """
     Upload files to GCS
     """
-    storage_client = storage.Client(project="datario-public")
+    storage_client = storage.Client(project=project)
     bucket = storage_client.bucket(bucket_name)
     # Cria um blob (o arquivo dentro do bucket)
     blob = bucket.blob(destination_blob_name)
