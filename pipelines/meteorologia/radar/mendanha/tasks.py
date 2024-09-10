@@ -401,6 +401,7 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
         # log("depois decode", type(img_data))
         # with open(k, 'wb') as img_file:
         #     img_file.write(img_data)
+        log(f"Files inside {folder}: {os.listdir(folder)}")
     return folder
 
 
@@ -555,7 +556,8 @@ def get_storage_destination(filename: str, path: str):
     """
     destination_blob_name = f"cor-clima/radar/mendanha/{filename}.png"
     source_file_name = f"{path}/{filename}.png"
-    log(f"destination_blob_name, source_file_name: {destination_blob_name}, {source_file_name}")
+    log(f"File destination_blob_name {destination_blob_name}")
+    log(f"File source_file_name {source_file_name}")
     return destination_blob_name, source_file_name
 
 

@@ -148,7 +148,7 @@ with Flow(
     img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
     img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
     saved_with_background_img_path = save_images_to_local(
-        {formatted_time: img_bytes_with_backgroud}
+        {f"{formatted_time}.png": img_bytes_with_backgroud}
     )
 
     destination_blob_name, source_file_name = get_storage_destination(
@@ -159,7 +159,7 @@ with Flow(
         destination_blob_name=destination_blob_name,
         source_file_name=source_file_name,
     )
-    upload_file_to_storage.set_upstream(saved_with_background_img_path)
+    # upload_file_to_storage.set_upstream(saved_with_background_img_path)
     # save_data_path = save_data(dfr)
     # upload_table = create_table_and_upload_to_gcs(
     #     data_path=save_data_path,
