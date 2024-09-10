@@ -548,6 +548,17 @@ def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_
     log(f"File {source_file_name} sent to {destination_blob_name} on bucket {bucket_name}.")
 
 
+@task
+def get_storage_destination(filename: str, path: str):
+    """
+    get storage
+    """
+    destination_blob_name = f"cor-clima/radar/mendanha/{filename}.png"
+    source_file_name = f"{path}/{filename}.png"
+    log(f"destination_blob_name, source_file_name: {destination_blob_name}, {source_file_name}")
+    return destination_blob_name, source_file_name
+
+
 # @task
 # def save_data(dfr: pd.DataFrame) -> Union[str, Path]:
 #     """
@@ -571,3 +582,84 @@ def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_
 #     )
 #     log(f"[DEBUG] Files saved on {prepath}")
 #     return prepath
+
+
+def list_soft_deleted_objects_with_prefix(bucket_name, prefix):
+    """List soft-deleted objects with a specific prefix in a bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+
+    # Listando objetos da pasta .zombie com o prefixo fornecido
+    blobs = bucket.list_blobs(prefix=f".zombie/{prefix}")
+
+    soft_deleted_files = []
+    for blob in blobs:
+        soft_deleted_files.append(blob.name)
+        print(f"Soft-deleted object found: {blob.name}")
+
+    return soft_deleted_files
+
+
+def restore_object(bucket_name, soft_deleted_object_name):
+    """Restores a soft-deleted object by moving it back to its original path."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+
+    # Pegando o objeto soft-deleted
+    blob = bucket.blob(soft_deleted_object_name)
+
+    # Definindo o nome original do objeto removendo a parte ".zombie/"
+    restore_to_name = soft_deleted_object_name.replace(".zombie/", "")
+
+    # Criando o novo blob no local de restauração (local original)
+    restored_blob = bucket.blob(restore_to_name)
+
+    # Copiando o arquivo para o local original
+    restored_blob.rewrite(blob)
+
+    # Deletando o arquivo da pasta .zombie para concluir a restauração
+    blob.delete()
+
+    print(f"Object {soft_deleted_object_name} restored to {restore_to_name}")
+
+
+def restore_files_with_prefix(bucket_name, prefix):
+    """Restore all soft-deleted files starting with a specific prefix to their original path."""
+    # Listar todos os arquivos soft-deleted que começam com o prefixo
+    soft_deleted_files = list_soft_deleted_objects_with_prefix(bucket_name, prefix)
+
+    for soft_deleted_file in soft_deleted_files:
+        # Restaurar o arquivo para seu caminho original
+        restore_object(bucket_name, soft_deleted_file)
+
+
+@task
+def prefix_to_restore():
+    """escolher prefix"""
+    # Exemplo de uso:
+    bucket_name = "rj-escritorio-scp"
+    prefix = "mendanha/odimhdf5/vol_d"  # Caminho para onde os arquivos serão restaurados
+    lista = []
+    for i in range(3, 8):
+        lista.append(f"{prefix}/MDN240{i}")
+    name = []
+    for i in range(1, 32):
+        name.append(f"{prefix}/MDN2408{str(i).zfill(2)}")
+
+    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
+    print(name)
+    lista = lista + name
+    lista.append(f"{prefix}/MDN2409")
+    for i in range(3, 8):
+        lista.append(f"{prefix}/MDN.20240{i}")
+    name = []
+    for i in range(1, 32):
+        name.append(f"{prefix}/MDN.202408{str(i).zfill(2)}")
+
+    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
+
+    lista = lista + name
+    lista.append(f"{prefix}/MDN.202409")
+    for prefix_ in lista:
+        # Restaurar todos os arquivos que começam com MDN
+        restore_files_with_prefix(bucket_name, prefix_)

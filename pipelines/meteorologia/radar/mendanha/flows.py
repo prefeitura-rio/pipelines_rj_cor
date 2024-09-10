@@ -41,6 +41,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     get_colorbar_title,
     get_filenames_storage,
     get_radar_parameters,
+    get_storage_destination,
     img_to_base64,
     remap_data,
     rename_keys_redis,
@@ -48,6 +49,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     save_images_to_local,
     save_img_on_redis,
     upload_file_to_storage,
+    # prefix_to_restore,
     # save_data,
 )
 from pipelines.utils_rj_cor import build_redis_key
@@ -148,10 +150,14 @@ with Flow(
     saved_with_background_img_path = save_images_to_local(
         {formatted_time: img_bytes_with_backgroud}
     )
+
+    destination_blob_name, source_file_name = get_storage_destination(
+        formatted_time, saved_with_background_img_path
+    )
     upload_file_to_storage(
         bucket_name="datario-public",
-        destination_blob_name=f"cor-clima/radar/mendanha/{formatted_time}.png",
-        source_file_name=f"{saved_with_background_img_path}/{formatted_time}.png",
+        destination_blob_name=destination_blob_name,
+        source_file_name=source_file_name,
     )
     upload_file_to_storage.set_upstream(saved_with_background_img_path)
     # save_data_path = save_data(dfr)
