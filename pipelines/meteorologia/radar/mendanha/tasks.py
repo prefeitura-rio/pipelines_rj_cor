@@ -548,7 +548,7 @@ def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_
     log(f"File {source_file_name} sent to {destination_blob_name} on bucket {bucket_name}.")
 
 
-@task
+@task(nout=2)
 def get_storage_destination(filename: str, path: str):
     """
     get storage
