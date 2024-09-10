@@ -43,7 +43,7 @@ def download_data() -> pd.DataFrame:
     Request data from API and return each data in a different dataframe.
     """
 
-    dicionario = get_secret("ALERTARIO_API")
+    url = get_secret("ALERTARIO_API")
 
     try:
         response = requests.get(url)
