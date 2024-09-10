@@ -17,11 +17,13 @@ import requests
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
-    get_vault_secret,
+
     log,
     to_partitions,
     parse_date_columns,
 )
+
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 
 @task(nout=3)
@@ -62,7 +64,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
         "SBSC",
     ]
 
-    redemet_token = get_vault_secret("redemet-token")
+    redemet_token = get_secret("redemet-token")
     redemet_token = redemet_token["data"]["token"]
 
     # Converte datas em int para cálculo de faixas.
@@ -207,7 +209,7 @@ def download_stations_data() -> pd.DataFrame:
     Download station information
     """
 
-    redemet_token = get_vault_secret("redemet-token")
+    redemet_token = get_secret("redemet-token")
     redemet_token = redemet_token["data"]["token"]
     base_url = (
         f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
