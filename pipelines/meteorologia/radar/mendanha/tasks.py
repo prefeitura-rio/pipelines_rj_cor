@@ -391,6 +391,9 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     Save images in a PNG file
     """
+    img_base64_dict = {
+        f"{k}.png" if not k.endswith("png") else k: v for k, v in img_base64_dict.items()
+    }
     log(f"Saving image(s): {img_base64_dict.keys()} to local path")
 
     os.makedirs(folder, exist_ok=True)

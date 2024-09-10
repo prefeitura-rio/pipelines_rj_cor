@@ -148,7 +148,7 @@ with Flow(
     img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
     img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
     saved_with_background_img_path = save_images_to_local(
-        {f"{formatted_time}.png": img_bytes_with_backgroud}
+        {formatted_time: img_bytes_with_backgroud}
     )
     save_images_to_local.set_upstream(formatted_time)
     destination_blob_name, source_file_name = get_storage_destination(
