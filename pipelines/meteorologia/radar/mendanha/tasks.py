@@ -543,7 +543,7 @@ def upload_file_to_storage(bucket_name: str, destination_blob_name: str, source_
     """
     Upload files to GCS
     """
-    storage_client = storage.Client()
+    storage_client = storage.Client(project="datario-public")
     bucket = storage_client.bucket(bucket_name)
     # Cria um blob (o arquivo dentro do bucket)
     blob = bucket.blob(destination_blob_name)
