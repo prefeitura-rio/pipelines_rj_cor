@@ -23,13 +23,14 @@ from pipelines.utils.utils import (
     build_redis_key,
     compare_dates_between_tables_redis,
     get_redis_output,
-    get_vault_secret,
     log,
     to_partitions,
     parse_date_columns,
     save_str_on_redis,
     save_updated_rows_on_redis,
 )
+
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 
 @task(
@@ -42,8 +43,7 @@ def download_data() -> pd.DataFrame:
     Request data from API and return each data in a different dataframe.
     """
 
-    dicionario = get_vault_secret("alertario_api")
-    url = dicionario["data"]["url"]
+    dicionario = get_secret("ALERTARIO_API")
 
     try:
         response = requests.get(url)
