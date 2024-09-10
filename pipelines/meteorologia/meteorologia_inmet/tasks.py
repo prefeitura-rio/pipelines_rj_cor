@@ -13,7 +13,7 @@ from prefect import task
 import requests
 
 from pipelines.constants import constants
-from pipelines.utils.utils import get_vault_secret, log, to_partitions
+from pipelines.utils.utils import log, to_partitions
 from pipelines.meteorologia.precipitacao_alertario.utils import (
     parse_date_columns,
 )
@@ -83,7 +83,7 @@ def download(data_inicio: str, data_fim: str) -> pd.DataFrame:
     # no UTC, visto que ele só traria dados do novo dia e substituiria
     # no arquivo da partição do dia atual no nosso timezone
 
-    dicionario = get_secret("INMET_API")["INMET_API"]
+    dicionario = get_secret("INMET_API")
     token = dicionario["data"]["token"]
 
     raw = []
