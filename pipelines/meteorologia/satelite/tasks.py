@@ -8,7 +8,8 @@ import datetime as dt
 import os
 import re
 from pathlib import Path
-from typing import Union
+from typing import List, Union
+import requests
 
 import pandas as pd
 import pendulum
@@ -24,11 +25,13 @@ from pipelines.meteorologia.satelite.satellite_utils import (
     get_files_from_aws,
     get_files_from_gcp,
     get_info,
+    get_point_value,
     get_variable_values,
     remap_g16,
     save_data_in_file,
+    # upload_image_to_api,
 )
-from pipelines.utils.utils import log
+from pipelines.utils.utils import log, get_vault_secret
 
 
 @task()
@@ -212,27 +215,33 @@ def save_data(info: dict, mode_redis: str = "prod") -> Union[str, Path]:
     return output_path, output_filepath
 
 
-@task
-def create_image_and_upload_to_api(info: dict, output_filepath: Path):
+@task(nout=2)
+def generate_point_value_and_image(info: dict, output_filepath: Path) -> List:
     """
-    Create image from dataframe and send it to API
+    Create image from dataframe, get the value of a point on the image and send these to API.
     """
 
     dfr = pd.read_csv(output_filepath)
 
     dfr = dfr.sort_values(by=["latitude", "longitude"], ascending=[False, True])
 
+    point_values = pd.DataFrame(columns=["variable", "timestamp", "value"])
+    save_images_path = []
     for var in info["variable"]:
         log(f"\nStart creating image for variable {var}\n")
 
         var = var.lower()
         data_array = get_variable_values(dfr, var)
+        point_value = get_point_value(data_array)
+        new_row = [var, timestamp, point_value]
 
-        # Get the pixel values
+         # Get the pixel values
         data = data_array.data[:]
-        log(f"\n[DEBUG] data {data}")
-        save_image_path = create_and_save_image(data, info, var)
-        log(f"\nStart uploading image for variable {var} on API\n")
-        # upload_image_to_api(info, save_image_path)
-        log(save_image_path)
-        log(f"\nEnd uploading image for variable {var} on API\n")
+        log(f"\n[DEBUG] {var} data \n{data}")
+        log(f"\nmax value: {data.max()} min value: {data.min()}")
+        save_images_path.append(create_and_save_image(data, info, var))
+
+    log(f"\nEnd saving images {save_images_path}\n")
+        # var = "cp" if var == "cape" else var
+
+    return save_images_path

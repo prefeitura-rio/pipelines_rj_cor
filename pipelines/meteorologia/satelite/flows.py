@@ -11,12 +11,9 @@ from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
-from pipelines.meteorologia.satelite.constants import (
-    constants as satelite_constants,
-)
 from pipelines.utils.constants import constants as utils_constants
 from pipelines.meteorologia.satelite.tasks import (
-    create_image_and_upload_to_api,
+    create_image,
     get_dates,
     slice_data,
     download,
@@ -25,7 +22,9 @@ from pipelines.meteorologia.satelite.tasks import (
 )
 from pipelines.tasks import (
     get_on_redis,
+    get_storage_destination,
     save_on_redis,
+    upload_files_to_storage,
 )
 from pipelines.meteorologia.satelite.schedules import (
     cmip,
@@ -38,18 +37,31 @@ from pipelines.meteorologia.satelite.schedules import (
     aod,
 )
 
-from pipelines.utils.decorators import Flow
+from prefeitura_rio.pipelines_utils.custom import Flow
+from prefeitura_rio.pipelines_utils.state_handlers import (
+    handler_initialize_sentry,
+    handler_inject_bd_credentials,
+)
 
-from pipelines.utils.tasks import (
+# from pipelines.utils.tasks import (
+#     create_table_and_upload_to_gcs,
+#     get_current_flow_labels,
+# )
+from prefeitura_rio.pipelines_utils.tasks import (
+    rename_current_flow_run_dataset_table,
     create_table_and_upload_to_gcs,
     get_current_flow_labels,
+    task_run_dbt_model_task,
 )
 
 with Flow(
     name="COR: Meteorologia - Satelite GOES 16",
-    code_owners=[
-        "paty",
+    state_handlers=[
+        handler_initialize_sentry,
+        handler_inject_bd_credentials,
     ],
+    parallelism=10,
+    skip_if_running=False,
 ) as cor_meteorologia_goes16:
     # Materialization parameters
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
@@ -57,7 +69,7 @@ with Flow(
     materialization_mode = Parameter("mode", default="dev", required=False)
 
     # Other parameters
-    dataset_id = satelite_constants.DATASET_ID.value
+    dataset_id = mode_redis = Parameter("dataset_id", default="clima_satelite", required=False)
     band = Parameter("band", default=None, required=False)()
     product = Parameter("product", default=None, required=False)()
     table_id = Parameter("table_id", default=None, required=False)()
@@ -92,12 +104,13 @@ with Flow(
     path, output_filepath = save_data(info=info, mode_redis=mode_redis)
 
     # Create table in BigQuery
-    upload_table = create_table_and_upload_to_gcs(
+    create_table = create_table_and_upload_to_gcs(
         data_path=path,
         dataset_id=dataset_id,
         table_id=table_id,
         dump_mode=dump_mode,
-        wait=path,
+        biglake_table=False,
+        # wait=path,
     )
 
     # Save new filenames on redis
@@ -111,32 +124,48 @@ with Flow(
 
     with case(create_image, True):
         create_image_and_upload_to_api(info, output_filepath)
+        destination_blob_name, source_file_name = get_storage_destination(
+            filename=formatted_time, path=saved_with_background_img_path
+        )
+        upload_files_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_blob_name=destination_blob_name,
+            source_file_name=source_file_name,
+        )
 
     # Trigger DBT flow run
     with case(materialize_after_dump, True):
-        current_flow_labels = get_current_flow_labels()
-
-        materialization_flow = create_flow_run(
-            flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-            project_name=constants.PREFECT_DEFAULT_PROJECT.value,
-            parameters={
-                "dataset_id": dataset_id,
-                "table_id": table_id,
-                "mode": materialization_mode,
-                "materialize_to_datario": materialize_to_datario,
-            },
-            labels=current_flow_labels,
-            run_name=f"Materialize {dataset_id}.{table_id}",
+        run_dbt = task_run_dbt_model_task(
+            dataset_id=dataset_id,
+            table_id=table_id,
+            mode=materialization_mode,
+            materialize_to_datario=materialize_to_datario,
         )
+        run_dbt.set_upstream(create_table)
+        # current_flow_labels = get_current_flow_labels()
 
-        materialization_flow.set_upstream(upload_table)
+        # materialization_flow = create_flow_run(
+        #     flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
+        #     project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+        #     parameters={
+        #         "dataset_id": dataset_id,
+        #         "table_id": table_id,
+        #         "mode": materialization_mode,
+        #         "materialize_to_datario": materialize_to_datario,
+        #     },
+        #     labels=current_flow_labels,
+        #     run_name=f"Materialize {dataset_id}.{table_id}",
+        # )
 
-        wait_for_materialization = wait_for_flow_run(
-            materialization_flow,
-            stream_states=True,
-            stream_logs=True,
-            raise_final_state=True,
-        )
+        # materialization_flow.set_upstream(upload_table)
+
+        # wait_for_materialization = wait_for_flow_run(
+        #     materialization_flow,
+        #     stream_states=True,
+        #     stream_logs=True,
+        #     raise_final_state=True,
+        # )
 
 
 # para rodar na cloud
