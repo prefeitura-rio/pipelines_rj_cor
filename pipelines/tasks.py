@@ -4,11 +4,17 @@
 Common  Tasks for rj-cor
 """
 
+from pathlib import Path
+from typing import Dict, List, Union
+from google.cloud import storage
+import pandas as pd
+import pendulum
 from prefect import task
 from prefect.triggers import all_successful
 
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
+from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.utils_rj_cor import build_redis_key
 
@@ -90,3 +96,67 @@ def save_on_redis(
     files.sort()
     files = files[-keep_last:]
     redis_client.set(key, files)
+
+
+@task(nout=2)
+def get_storage_destination(filename: str, path: str):
+    """
+    Get storage blob destinationa and the name of the source file
+    """
+    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
+    source_file_name = f"{path}/{filename}.png"
+    log(f"File destination_blob_name {destination_blob_name}")
+    log(f"File source_file_name {source_file_name}")
+    return destination_blob_name, source_file_name
+
+
+@task
+def upload_files_to_storage(
+    project: str, bucket_name: str, destination_blob_name: str, source_file_name: List[str]
+) -> None:
+    """
+    Upload files to GCS
+
+    project="datario"
+    bucket_name="datario-public"
+    destination_blob_name=f"cor-clima-imagens/radar/mendanha/{filename}.png"
+    source_file_name=f"{path}/{filename}.png"
+    """
+    storage_client = storage.Client(project=project)
+    bucket = storage_client.bucket(bucket_name)
+    # Cria um blob (o arquivo dentro do bucket)
+    blob = bucket.blob(destination_blob_name)
+    for i in source_file_name:
+        blob.upload_from_filename(source_file_name)
+        log(f"File {source_file_name} sent to {destination_blob_name} on bucket {bucket_name}.")
+
+
+@task
+def save_dataframe(
+    dfr: pd.DataFrame,
+    partition_column: str,
+    suffix: str = "current_timestamp", 
+    path: str = "temp",
+    wait=None,  # pylint: disable=unused-argument
+) -> Union[str, Path]:
+    """
+    Salvar dfr tratados em csv para conseguir subir pro GCP
+    """
+
+    prepath = Path(path)
+    prepath.mkdir(parents=True, exist_ok=True)
+
+    partition_column = "data_medicao"
+    dataframe, partitions = parse_date_columns(dfr, partition_column)
+    if suffix == "current_timestamp":
+        suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
+
+    to_partitions(
+        data=dataframe,
+        partition_columns=partitions,
+        savepath=prepath,
+        data_type="csv",
+        suffix=suffix,
+    )
+    log(f"Data saved on {prepath}")
+    return prepath

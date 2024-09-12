@@ -8,13 +8,17 @@ from copy import deepcopy
 from prefect import case, Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
-from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+
+# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
+
+# from pipelines.utils.constants import constants as utils_constants
 from pipelines.meteorologia.satelite.tasks import (
-    create_image,
+    # create_image,
+    create_partitions,
     get_dates,
+    generate_point_value,
     slice_data,
     download,
     tratar_dados,
@@ -22,9 +26,7 @@ from pipelines.meteorologia.satelite.tasks import (
 )
 from pipelines.tasks import (
     get_on_redis,
-    get_storage_destination,
     save_on_redis,
-    upload_files_to_storage,
 )
 from pipelines.meteorologia.satelite.schedules import (
     cmip,
@@ -37,7 +39,7 @@ from pipelines.meteorologia.satelite.schedules import (
     aod,
 )
 
-from prefeitura_rio.pipelines_utils.custom import Flow
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
     handler_inject_bd_credentials,
@@ -48,9 +50,10 @@ from prefeitura_rio.pipelines_utils.state_handlers import (
 #     get_current_flow_labels,
 # )
 from prefeitura_rio.pipelines_utils.tasks import (
-    rename_current_flow_run_dataset_table,
+    # rename_current_flow_run_dataset_table,
     create_table_and_upload_to_gcs,
-    get_current_flow_labels,
+    # get_current_flow_labels,
+    get_now_datetime,
     task_run_dbt_model_task,
 )
 
@@ -77,7 +80,8 @@ with Flow(
     mode_redis = Parameter("mode_redis", default="prod", required=False)
     ref_filename = Parameter("ref_filename", default=None, required=False)
     current_time = Parameter("current_time", default=None, required=False)
-    create_image = Parameter("create_image", default=False, required=False)
+    # create_image = Parameter("create_image", default=False, required=False)
+    create_point_value = Parameter("create_point_value", default=False, required=False)
 
     # Starting tasks
     current_time = get_dates(current_time, product)
@@ -110,7 +114,6 @@ with Flow(
         table_id=table_id,
         dump_mode=dump_mode,
         biglake_table=False,
-        # wait=path,
     )
 
     # Save new filenames on redis
@@ -122,16 +125,24 @@ with Flow(
         wait=path,
     )
 
-    with case(create_image, True):
-        create_image_and_upload_to_api(info, output_filepath)
-        destination_blob_name, source_file_name = get_storage_destination(
-            filename=formatted_time, path=saved_with_background_img_path
-        )
-        upload_files_to_storage(
-            project="datario",
-            bucket_name="datario-public",
-            destination_blob_name=destination_blob_name,
-            source_file_name=source_file_name,
+    # with case(create_image, True):
+    #     create_image_and_upload_to_api(info, output_filepath)
+
+    with case(create_point_value, True):
+        now_datetime = get_now_datetime()
+        df_point_values = generate_point_value(info, output_filepath)
+        point_values_path = create_partitions(
+            df_point_values,
+            partition_columns=["data_medicao"],
+            savepath="metricas_geoespaciais_goes16",
+            suffix=now_datetime,
+        )[0]
+        create_table_point_value = create_table_and_upload_to_gcs(
+            data_path=point_values_path,
+            dataset_id=dataset_id,
+            table_id="metricas_geoespaciais_goes16",
+            dump_mode=dump_mode,
+            biglake_table=False,
         )
 
     # Trigger DBT flow run
@@ -143,6 +154,15 @@ with Flow(
             materialize_to_datario=materialize_to_datario,
         )
         run_dbt.set_upstream(create_table)
+
+        run_dbt_point_value = task_run_dbt_model_task(
+            dataset_id=dataset_id,
+            table_id="metricas_geoespaciais_goes16",
+            mode=materialization_mode,
+            materialize_to_datario=materialize_to_datario,
+        )
+        run_dbt_point_value.set_upstream(create_table_point_value)
+
         # current_flow_labels = get_current_flow_labels()
 
         # materialization_flow = create_flow_run(

@@ -53,9 +53,7 @@ import os
 import shutil
 from pathlib import Path
 import re
-from typing import Union
-import requests
-
+from typing import Tuple, Union
 
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
@@ -69,12 +67,10 @@ import s3fs
 import xarray as xr
 
 from pipelines.meteorologia.satelite.remap import remap
-from pipelines.utils.utils import (
-    get_credentials_from_env,
-    get_vault_secret,
-    list_blobs_with_prefix,
-    log,
-)
+from refeitura_rio.pipelines_templates.dump_url import get_credentials_from_env  # pylint: disable=E0401
+from refeitura_rio.pipelines_utils.bd import list_blobs_with_prefix  # pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.logging import log
+
 
 def get_blob_with_prefix(bucket_name: str, prefix: str, mode: str = "prod") -> str:
     """
@@ -193,7 +189,6 @@ def get_files_from_aws(partition_path):
     storage_files_path = np.sort(
         np.array(
             s3_fs.find(f"noaa-goes16/{partition_path}")
-            # s3_fs.find(f"noaa-goes16/ABI-L2-CMIPF/2022/270/10/OR_ABI-L2-CMIPF-M6C13_G16_s20222701010208_e20222701019528_c20222701020005.nc")
         )
     )
     storage_origin = "aws"
@@ -255,6 +250,12 @@ def get_info(path: str) -> dict:
     """
     # Getting Information From the File Name  (Time, Date,
     # Product Type, Variable and Defining the CMAP)
+
+    Return:
+    {'variable': ['TPW'], 'vmin': 0, 'vmax': 60, 'cmap': 'jet', 'product': 'TPWF',
+    'filename': '/app/temp/input/prod/TPW/OR_ABI-L2-TPWF-M6_G16_s20242552000205_e20242552009513_c20242552011240.nc',  # noqa  # pylint: disable=line-too-long
+    'datetime_save': '20240911 170020', 'band': nan}
+
     """
     year, julian_day, hour_utc = extract_julian_day_and_hour_from_filename(path)
 
@@ -367,7 +368,6 @@ def get_info(path: str) -> dict:
     product_caracteristics["DSIF"] = {
         "variable": ["LI", "CAPE", "TT", "SI", "KI"],
         # "vmin": 0,
-        "vmax": 1000,
         # "vmax": 1000,
         "vmin": {"LI": -20, "CAPE": 0, "TT": 10, "SI": -20, "KI": 0},
         "vmax": {"LI": 20, "CAPE": 8000, "TT": 70, "SI": 20, "KI": 60},
@@ -607,23 +607,24 @@ def get_variable_values(dfr: pd.DataFrame, variable: str) -> xr.DataArray:
 # pylint: disable=dangerous-default-value
 def get_point_value(
     data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546]
-) -> float:
+) -> Tuple[float, tuple]:
     """
-    Find the nearest point on data_array from the selected_point and return its value
+    Find the nearest point on data_array from the selected_point and return its value,
+    and the exact latitude and longitude of the nearest point.
     """
 
     # Find the nearest index of latitude and longitude from selected_point
     lat_idx = (data_array["lat"] - selected_point[0]).argmin().values
     lon_idx = (data_array["lon"] - selected_point[1]).argmin().values
 
-    # Get the correspondent value of this point
+    # Get the value at the nearest point
     point_value = data_array.isel(lat=lat_idx, lon=lon_idx).values
-    log(
-        f"\nThe value of the selected point is {point_value}. It will be replace by 0 if is nan.\n"
-    )
-    point_value = 0 if np.isnan(point_value) else float(point_value)
 
-    return point_value
+    # Get the exact latitude and longitude at the nearest indices
+    lat_value = data_array["lat"].isel(lat=lat_idx).values
+    lon_value = data_array["lon"].isel(lon=lon_idx).values
+
+    return point_value, (lat_value, lon_value)
 
 
 # pylint: disable=unused-variable
@@ -733,34 +734,32 @@ def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
     return save_image_path
 
 
-def upload_image_to_api(var: str, save_image_path: Path, point_value: float):
-    """
-    Upload image and point value to API.
-    """
-    # We need to change this variable so it can be posted on API
-    var = "cp" if var == "cape" else var
+# def upload_image_to_api(var: str, save_image_path: Path, point_value: float):
+#     """
+#     Upload image and point value to API.
+#     """
+#     # We need to change this variable so it can be posted on API
+#     var = "cp" if var == "cape" else var
 
-    log("Getting API url")
-    url_secret = get_vault_secret("rionowcast")["data"]
-    log(f"urlsecret1 {url_secret}")
-    url_secret = url_secret["url_api_satellite_products"]
-    log(f"urlsecret2 {url_secret}")
-    api_url = f"{url_secret}/{var.lower()}"
-    log(
-        f"\n Sending image {save_image_path} to API: {api_url} with value {point_value}\n"
-    )
+#     log("Getting API url")
+#     url_secret = get_vault_secret("rionowcast")["data"]
+#     log(f"urlsecret1 {url_secret}")
+#     url_secret = url_secret["url_api_satellite_products"]
+#     log(f"urlsecret2 {url_secret}")
+#     api_url = f"{url_secret}/{var.lower()}"
+#     log(f"\n Sending image {save_image_path} to API: {api_url} with value {point_value}\n")
 
-    payload = {"value": point_value}
+#     payload = {"value": point_value}
 
-    # Convert from Path to string
-    save_image_path = str(save_image_path)
+#     # Convert from Path to string
+#     save_image_path = str(save_image_path)
 
-    with open(save_image_path, "rb") as image_file:
-        files = {"image": (save_image_path, image_file, "image/jpeg")}
-        response = requests.post(api_url, data=payload, files=files)
+#     with open(save_image_path, "rb") as image_file:
+#         files = {"image": (save_image_path, image_file, "image/jpeg")}
+#         response = requests.post(api_url, data=payload, files=files)
 
-    if response.status_code == 200:
-        log("Finished the request successful!")
-        log(response.json())
-    else:
-        log(f"Error: {response.status_code}, {response.text}")
+#     if response.status_code == 200:
+#         log("Finished the request successful!")
+#         log(response.json())
+#     else:
+#         log(f"Error: {response.status_code}, {response.text}")
