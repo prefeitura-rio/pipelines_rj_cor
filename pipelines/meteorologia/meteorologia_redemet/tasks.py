@@ -79,6 +79,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
                 res = requests.get(url)
                 if res.status_code != 200:
                     log(f"Problema no id: {id_estacao}, {res.status_code}")
+                    log(f"Data: {data}, Hora: {hora}")
                     continue
                 res_data = json.loads(res.text)
                 if res_data["status"] is not True:
@@ -88,6 +89,8 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
                     # Sem dataframe para esse horario
                     continue
                 raw.append(res_data)
+
+    log(f"Raw data size: {len(raw)}")
 
     # Extrai objetos de dataframe
     raw = [res_data["data"] for res_data in raw]
@@ -212,7 +215,6 @@ def download_stations_data() -> pd.DataFrame:
     """
 
     redemet_token = get_secret("REDEMET-TOKEN")
-    
     base_url = (
         f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
     )
@@ -288,3 +290,5 @@ def check_for_new_stations(
               flow and add station(s) {new_stations}"
         log(message)
         raise ENDRUN(state=Failed(message))
+
+
