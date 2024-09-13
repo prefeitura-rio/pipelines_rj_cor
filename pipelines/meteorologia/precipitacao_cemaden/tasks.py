@@ -5,14 +5,15 @@ Tasks for precipitacao_cemaden
 """
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pendulum
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Skipped, Failed
+from prefect.engine.state import Failed, Skipped
+
 from pipelines.constants import constants
 from pipelines.utils.utils import (
     log,

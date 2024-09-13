@@ -26,6 +26,7 @@ import pendulum
 import prefect
 
 # from redis_pal import RedisPal
+# from redis_pal import RedisPal
 import requests
 from google.cloud import storage
 from google.cloud.storage.blob import Blob
@@ -33,12 +34,7 @@ from google.oauth2 import service_account
 from prefect.client import Client
 from prefect.engine.state import Skipped, State
 from prefect.run_configs import KubernetesRun
-from prefect.utilities.graphql import (
-    with_args,
-)
-
-# from redis_pal import RedisPal
-import requests
+from prefect.utilities.graphql import with_args
 
 # import telegram
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client

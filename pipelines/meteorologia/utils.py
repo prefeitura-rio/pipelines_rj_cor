@@ -5,10 +5,7 @@ General utilities for meteorologia.
 """
 import pandas as pd
 
-from pipelines.utils.utils import (
-    get_redis_client,
-    log,
-)
+from pipelines.utils.utils import get_redis_client, log
 
 
 def save_updated_rows_on_redis(

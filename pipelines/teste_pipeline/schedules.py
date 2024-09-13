@@ -3,11 +3,11 @@
 Schedules for cor
 """
 
-from datetime import timedelta, datetime, time
+from datetime import datetime, time, timedelta
 
+import pytz
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
-import pytz
 
 from pipelines.constants import constants
 

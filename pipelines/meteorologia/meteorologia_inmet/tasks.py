@@ -2,21 +2,19 @@
 """
 Tasks for meteorologia_inmet
 """
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Tuple, Union
 
 import pandas as pd
 import pendulum
-from prefect import task
 import requests
+from prefect import task
 
 from pipelines.constants import constants
+from pipelines.meteorologia.precipitacao_alertario.utils import parse_date_columns
 from pipelines.utils.utils import get_vault_secret, log, to_partitions
-from pipelines.meteorologia.precipitacao_alertario.utils import (
-    parse_date_columns,
-)
 
 # from pipelines.rj_cor.meteorologia.meteorologia_inmet.meteorologia_utils import converte_timezone
 

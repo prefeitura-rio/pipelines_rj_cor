@@ -5,8 +5,8 @@ Common  Tasks for rj-cor
 """
 
 from pathlib import Path
-from typing import List, Union, Tuple
-from google.cloud import storage
+from typing import List, Tuple, Union
+
 import pandas as pd
 import pendulum
 from google.cloud import storage
@@ -18,7 +18,9 @@ from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0
     parse_date_columns,
     to_partitions,
 )
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611, E0401
+    get_redis_client,
+)
 
 from pipelines.utils_rj_cor import build_redis_key
 

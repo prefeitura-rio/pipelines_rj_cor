@@ -19,28 +19,23 @@ from pipelines.constants import constants
 # from pipelines.tasks import task_get_redis_client
 # from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
-from pipelines.meteorologia.radar.mendanha.tasks import (  # prefix_to_restore,; save_data,
+from pipelines.meteorologia.radar.mendanha.tasks import (  # prefix_to_restore,; save_data,; create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
     access_api,
     add_new_image,
     base64_to_bytes,
     combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
-    # create_visualization_with_background,
     download_files_storage,
     get_and_format_time,
     get_colorbar_title,
     get_filenames_storage,
     get_radar_parameters,
-    # get_storage_destination,
     img_to_base64,
     remap_data,
     rename_keys_redis,
     save_images_to_local,
     save_img_on_redis,
-    # upload_file_to_storage,
-    # prefix_to_restore,
-    # save_data,
 )
 from pipelines.utils_rj_cor import build_redis_key
 
@@ -51,7 +46,6 @@ from pipelines.utils_rj_cor import build_redis_key
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
 
 
 # from pipelines.tasks import (
