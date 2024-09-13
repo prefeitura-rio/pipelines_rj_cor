@@ -60,7 +60,8 @@ with Flow(
     ],
     parallelism=10,
     skip_if_running=False,
-) as cor_meteorologia_goes16_:
+) as cor_meteorologia_goes16:
+
     # Materialization parameters
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
     materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
@@ -189,7 +190,7 @@ with Flow(
 #     image=constants.DOCKER_IMAGE.value,
 #     labels=[constants.RJ_COR_AGENT_LABEL.value],
 # )
-cor_meteorologia_goes16_rrqpe = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_rrqpe = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_rrqpe.name = (
     "COR: Meteorologia - Satelite GOES 16 - RRQPE - Taxa de precipitação"
 )
@@ -200,7 +201,7 @@ cor_meteorologia_goes16_rrqpe.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_rrqpe.schedule = rrqpe
 
-cor_meteorologia_goes16_tpw = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_tpw = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_tpw.name = (
     "COR: Meteorologia - Satelite GOES 16 - TPW - Quantidade de água precipitável"
 )
@@ -211,7 +212,7 @@ cor_meteorologia_goes16_tpw.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_tpw.schedule = tpw
 
-cor_meteorologia_goes16_cmip = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_cmip = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_cmip.name = (
     "COR: Meteorologia - Satelite GOES 16 - CMIP - Infravermelho longo banda 13"
 )
@@ -222,7 +223,7 @@ cor_meteorologia_goes16_cmip.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_cmip.schedule = cmip
 
-cor_meteorologia_goes16_mcmip = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_mcmip = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_mcmip.name = (
     "COR: Meteorologia - Satelite GOES 16 - MCMIP - Nuvem e umidade"
 )
@@ -233,7 +234,7 @@ cor_meteorologia_goes16_mcmip.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_mcmip.schedule = mcmip
 
-cor_meteorologia_goes16_dsi = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_dsi = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_dsi.name = (
     "COR: Meteorologia - Satelite GOES 16 - DSI - Índices de estabilidade da atmosfera"
 )
@@ -244,7 +245,7 @@ cor_meteorologia_goes16_dsi.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_dsi.schedule = dsi
 
-cor_meteorologia_goes16_lst = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_lst = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_lst.name = (
     "COR: Meteorologia - Satelite GOES 16 - LST - Temperatura da superfície da terra"
 )
@@ -255,7 +256,7 @@ cor_meteorologia_goes16_lst.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_lst.schedule = lst
 
-cor_meteorologia_goes16_sst = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_sst = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_sst.name = (
     "COR: Meteorologia - Satelite GOES 16 - SST - Temperatura da superfície do oceano"
 )
@@ -266,7 +267,7 @@ cor_meteorologia_goes16_sst.run_config = KubernetesRun(
 )
 cor_meteorologia_goes16_sst.schedule = sst
 
-cor_meteorologia_goes16_aod = deepcopy(cor_meteorologia_goes16_)
+cor_meteorologia_goes16_aod = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_aod.name = (
     "COR: Meteorologia - Satelite GOES 16 - AOD - Profundidade óptica aerossol"
 )
