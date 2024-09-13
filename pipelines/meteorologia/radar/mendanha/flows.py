@@ -36,6 +36,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # prefix_to_restore,;
     rename_keys_redis,
     save_images_to_local,
     save_img_on_redis,
+    send_zip_images_api,
 )
 from pipelines.utils_rj_cor import build_redis_key
 
