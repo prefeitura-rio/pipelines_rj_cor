@@ -8,6 +8,7 @@ from time import sleep
 from typing import Callable, Dict
 
 import basedosdados as bd
+from google.cloud import storage
 import pandas as pd
 import pendulum
 
@@ -36,19 +37,19 @@ def getenv_or_action(key: str, action: Callable[[str], None], default: str = Non
     return value
 
 
-def ignore(key: str) -> None:
-    """Ignore"""
-    log(f"Ignore key {key}")
+# def ignore(key: str) -> None:
+#     """Ignore"""
+#     log(f"Ignore key {key}")
 
 
-def warn(key: str) -> None:
-    """Log a warn"""
-    logger.warning(f"WARNING: Environment variable {key} is not set.")
+# def warn(key: str) -> None:
+#     """Log a warn"""
+#     logger.warning(f"WARNING: Environment variable {key} is not set.")
 
 
-def raise_error(key: str) -> None:
-    """Raise error"""
-    raise ValueError(f"Environment variable {key} is not set.")
+# def raise_error(key: str) -> None:
+#     """Raise error"""
+#     raise ValueError(f"Environment variable {key} is not set.")
 
 
 # def get_redis_client(

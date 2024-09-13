@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=W0102, W0613, R0913, R0914, R0915
-# noqa: E501
+# flake8: noqa: E501
 """
 Tasks for emd
 """
