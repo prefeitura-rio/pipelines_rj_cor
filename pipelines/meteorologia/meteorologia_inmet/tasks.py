@@ -80,7 +80,7 @@ def download(data_inicio: str, data_fim: str) -> pd.DataFrame:
     # no UTC, visto que ele só traria dados do novo dia e substituiria
     # no arquivo da partição do dia atual no nosso timezone
 
-    token = get_secret("INMET_API")
+    token = get_secret("INMET_API")['INMET_API']
 
     raw = []
     for id_estacao in estacoes_unicas:
