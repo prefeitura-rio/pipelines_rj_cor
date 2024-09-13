@@ -5,13 +5,13 @@ Tasks for precipitacao_alertario
 """
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, Tuple
-import requests
+from typing import Tuple, Union
 
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import pendulum
+import requests
+from bs4 import BeautifulSoup
 from prefect import task
 
 from pipelines.constants import constants
@@ -25,10 +25,10 @@ from pipelines.utils.utils import (
     get_redis_output,
     get_vault_secret,
     log,
-    to_partitions,
     parse_date_columns,
     save_str_on_redis,
     save_updated_rows_on_redis,
+    to_partitions,
 )
 
 

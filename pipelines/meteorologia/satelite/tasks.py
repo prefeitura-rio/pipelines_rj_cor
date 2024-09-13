@@ -37,8 +37,6 @@ from pipelines.meteorologia.satelite.satellite_utils import (  # create_and_save
 # import requests
 
 
-
-
 @task()
 def get_dates(current_time, product) -> str:
     """

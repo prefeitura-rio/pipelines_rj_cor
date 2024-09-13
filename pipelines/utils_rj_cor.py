@@ -14,11 +14,14 @@ import pendulum
 
 # from redis_pal import RedisPal
 # import pipelines.constants
-from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
-from pipelines.utils.utils import (
-    log,
+from prefeitura_rio.pipelines_utils.infisical import (
+    get_secret,  # pylint: disable=E0611, E0401
 )
+from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611, E0401
+    get_redis_client,
+)
+
+from pipelines.utils.utils import log
 
 ###############
 #

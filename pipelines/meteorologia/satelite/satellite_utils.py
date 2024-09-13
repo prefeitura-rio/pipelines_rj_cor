@@ -74,11 +74,6 @@ from refeitura_rio.pipelines_utils.bd import (
 )
 
 from pipelines.meteorologia.satelite.remap import remap
-from refeitura_rio.pipelines_templates.dump_url import (
-    get_credentials_from_env,
-)  # pylint: disable=E0401
-from refeitura_rio.pipelines_utils.bd import list_blobs_with_prefix  # pylint: disable=E0401
-from prefeitura_rio.pipelines_utils.logging import log
 
 
 def get_blob_with_prefix(bucket_name: str, prefix: str, mode: str = "prod") -> str:

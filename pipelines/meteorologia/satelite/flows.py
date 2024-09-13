@@ -52,9 +52,6 @@ from pipelines.tasks import get_on_redis, save_on_redis
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 
-
-
-
 with Flow(
     name="COR: Meteorologia - Satelite GOES 16",
     state_handlers=[

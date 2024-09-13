@@ -5,25 +5,23 @@ Flows for precipitacao_inea.
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.utils.custom import wait_for_flow_run_with_timeout
+from pipelines.meteorologia.precipitacao_inea.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_inea.tasks import (
     check_for_new_stations,
     check_new_data,
     download_data,
-    treat_data,
     save_data,
+    treat_data,
     wait_task,
 )
-from pipelines.meteorologia.precipitacao_inea.schedules import (
-    minute_schedule,
-)
+from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants

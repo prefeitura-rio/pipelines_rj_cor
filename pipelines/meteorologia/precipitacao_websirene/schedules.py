@@ -3,9 +3,11 @@
 Schedules for precipitacao_alertario
 Rodar a cada 30 ou 15 minutos
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
+
 from pipelines.constants import constants
 
 MINUTE_SCHEDULE = Schedule(

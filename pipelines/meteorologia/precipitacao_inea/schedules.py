@@ -4,9 +4,11 @@
 Schedules for precipitacao_inea
 Rodar a cada 1 minuto
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
+
 from pipelines.constants import constants
 
 minute_schedule = Schedule(
