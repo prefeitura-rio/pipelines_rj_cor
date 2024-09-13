@@ -22,9 +22,8 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
     get_redis_client,
 )
 
-from pipelines.utils_rj_cor import build_redis_key
+from pipelines.utils_rj_cor import build_redis_key, get_redis_client_from_infisical
 
-# from pipelines.utils.utils import get_redis_client
 # from redis_pal import RedisPal
 
 
@@ -74,7 +73,7 @@ def get_on_redis(
     """
     Get filenames saved on Redis.
     """
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     key = build_redis_key(dataset_id, table_id, "files", mode)
     files_on_redis = redis_client.get(key)
     files_on_redis = [] if files_on_redis is None else files_on_redis
@@ -95,7 +94,7 @@ def save_on_redis(
     """
     Set the last updated time on Redis.
     """
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     key = build_redis_key(dataset_id, table_id, "files", mode)
     files = list(set(files))
     print(">>>> save on redis files ", files)
