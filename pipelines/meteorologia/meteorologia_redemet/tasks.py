@@ -58,7 +58,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
         "SBSC",
     ]
 
-    redemet_token = get_secret("REDEMET-TOKEN")['REDEMET-TOKEN']
+    redemet_token = get_secret("REDEMET-TOKEN")["REDEMET-TOKEN"]
 
     # Converte datas em int para cálculo de faixas.
     first_date_int = int(first_date.replace("-", ""))
@@ -206,7 +206,7 @@ def download_stations_data() -> pd.DataFrame:
     Download station information
     """
 
-    redemet_token = get_secret("REDEMET-TOKEN")['REDEMET-TOKEN']
+    redemet_token = get_secret("REDEMET-TOKEN")["REDEMET-TOKEN"]
     base_url = f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
     url = f"{base_url}&pais=Brasil"
     res = requests.get(url)
