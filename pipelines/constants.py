@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 
-from .utils import getenv_or_action, ignore, warn
-
 
 class constants(Enum):
     ######################################
@@ -114,12 +112,6 @@ class constants(Enum):
     INFISICAL_URL = "URL"
     INFISICAL_USERNAME = "USERNAME"
     INFISICAL_PASSWORD = "PASSWORD"
-
-    # Redis
-    REDIS_HOST = getenv_or_action("REDIS_HOST", warn, default="localhost")
-    REDIS_PORT = getenv_or_action("REDIS_PORT", ignore, default="6379")
-    REDIS_DB = getenv_or_action("REDIS_DB", ignore, default="0")
-    REDIS_PASSWORD = getenv_or_action("REDIS_PASSWORD", ignore, default="")
 
     ######################################
     # Discord code owners constants
