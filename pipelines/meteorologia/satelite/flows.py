@@ -64,8 +64,8 @@ with Flow(
 
     # Materialization parameters
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
-    materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
-    materialization_mode = Parameter("mode", default="dev", required=False)
+    # materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
+    # materialization_mode = Parameter("mode", default="dev", required=False)
 
     # Other parameters
     dataset_id = mode_redis = Parameter("dataset_id", default="clima_satelite", required=False)
@@ -146,16 +146,16 @@ with Flow(
         run_dbt = task_run_dbt_model_task(
             dataset_id=dataset_id,
             table_id=table_id,
-            mode=materialization_mode,
-            materialize_to_datario=materialize_to_datario,
+            # mode=materialization_mode,
+            # materialize_to_datario=materialize_to_datario,
         )
         run_dbt.set_upstream(create_table)
 
         run_dbt_point_value = task_run_dbt_model_task(
             dataset_id=dataset_id,
             table_id="metricas_geoespaciais_goes16",
-            mode=materialization_mode,
-            materialize_to_datario=materialize_to_datario,
+            # mode=materialization_mode,
+            # materialize_to_datario=materialize_to_datario,
         )
         run_dbt_point_value.set_upstream(create_table_point_value)
 
