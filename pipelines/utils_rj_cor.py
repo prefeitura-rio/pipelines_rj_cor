@@ -8,9 +8,9 @@ from time import sleep
 from typing import Callable, Dict
 
 import basedosdados as bd
-from google.cloud import storage
 import pandas as pd
 import pendulum
+from google.cloud import storage
 
 # from redis_pal import RedisPal
 # import pipelines.constants
