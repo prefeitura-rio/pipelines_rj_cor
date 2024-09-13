@@ -66,7 +66,7 @@ import s3fs
 import xarray as xr
 from google.cloud import storage
 from prefeitura_rio.pipelines_utils.logging import log
-from refeitura_rio.pipelines_templates.dump_url import (  # pylint: disable=E0401
+from prefeitura_rio.pipelines_templates.dump_url import (  # pylint: disable=E0401
     get_credentials_from_env,
 )
 from refeitura_rio.pipelines_utils.bd import (
