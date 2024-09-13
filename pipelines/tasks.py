@@ -7,8 +7,8 @@ Common  Tasks for rj-cor
 from prefect import task
 from prefect.triggers import all_successful
 
-from pipelines.utils_rj_cor import build_redis_key
 from pipelines.utils.utils import get_redis_client
+from pipelines.utils_rj_cor import build_redis_key
 
 
 @task

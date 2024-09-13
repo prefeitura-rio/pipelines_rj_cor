@@ -5,14 +5,15 @@ Tasks for precipitacao_alertario
 """
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, Tuple
-import requests
+from typing import Tuple, Union
 
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import pendulum
+import requests
+from bs4 import BeautifulSoup
 from prefect import task
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
@@ -24,13 +25,11 @@ from pipelines.utils.utils import (
     compare_dates_between_tables_redis,
     get_redis_output,
     log,
-    to_partitions,
     parse_date_columns,
     save_str_on_redis,
     save_updated_rows_on_redis,
+    to_partitions,
 )
-
-from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 
 @task(
@@ -55,16 +54,12 @@ def download_data() -> pd.DataFrame:
             tables = soup.find_all("table")
 
             # Data cames in Brazillian format and has some extra newline
-            tables = [
-                str(table).replace(",", ".").replace("\n", "") for table in tables
-            ]
+            tables = [str(table).replace(",", ".").replace("\n", "") for table in tables]
 
             # Convert HTML table to pandas dataframe
             dfr = pd.read_html(str(tables), decimal=",")
         else:
-            log(
-                f"Erro ao fazer a solicitação. Código de status: {response.status_code}"
-            )
+            log(f"Erro ao fazer a solicitação. Código de status: {response.status_code}")
 
     except requests.RequestException as e:
         log(f"Erro durante a solicitação: {e}")
@@ -140,9 +135,7 @@ def treat_pluviometer_and_meteorological_data(
     # dfr.sort_values(["id_estacao", "data_medicao"] + float_cols, inplace=True)
     dfr.drop_duplicates(subset=["id_estacao", "data_medicao"], keep="first")
 
-    dfr["data_medicao"] = pd.to_datetime(
-        dfr["data_medicao"], format="%d/%m/%Y - %H:%M:%S"
-    )
+    dfr["data_medicao"] = pd.to_datetime(dfr["data_medicao"], format="%d/%m/%Y - %H:%M:%S")
 
     log(f"Dataframe before comparing with last data saved on redis {dfr.head()}")
     log(f"Dataframe before comparing with last data saved on redis {dfr.iloc[0]}")
@@ -161,9 +154,7 @@ def treat_pluviometer_and_meteorological_data(
 
     if not empty_data:
         see_cols = ["id_estacao", "data_medicao", "last_update"]
-        log(
-            f"Dataframe after comparing with last data saved on redis {dfr[see_cols].head()}"
-        )
+        log(f"Dataframe after comparing with last data saved on redis {dfr[see_cols].head()}")
         log(f"Dataframe first row after comparing {dfr.iloc[0]}")
         dfr["data_medicao"] = dfr["data_medicao"].dt.strftime("%Y-%m-%d %H:%M:%S")
         log(f"Dataframe after converting to string {dfr[see_cols].head()}")
@@ -229,9 +220,7 @@ def save_last_dbt_update(
     """
     Save on dbt last timestamp where it was updated
     """
-    last_update_key = build_redis_key(
-        dataset_id, table_id, name="last_update", mode=mode
-    )
+    last_update_key = build_redis_key(dataset_id, table_id, name="last_update", mode=mode)
     last_update = get_redis_output(last_update_key)
     redis_key = build_redis_key(dataset_id, table_id, name="dbt_last_update", mode=mode)
     log(f"Saving {last_update} as last time dbt was updated")
@@ -248,9 +237,7 @@ def check_to_run_dbt(
     It will run even if its upstream tasks skip.
     """
 
-    key_table_1 = build_redis_key(
-        dataset_id, table_id, name="dbt_last_update", mode=mode
-    )
+    key_table_1 = build_redis_key(dataset_id, table_id, name="dbt_last_update", mode=mode)
     key_table_2 = build_redis_key(dataset_id, table_id, name="last_update", mode=mode)
 
     format_date_table_1 = "YYYY-MM-DD HH:mm:SS"

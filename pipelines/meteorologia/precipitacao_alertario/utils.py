@@ -24,32 +24,18 @@ def parse_date_columns_old_api(
             raise ValueError(f"Column {col} already exists, please review your model.")
 
     dataframe[partition_date_column] = dataframe[partition_date_column].astype(str)
-    dataframe[data_col] = pd.to_datetime(
-        dataframe[partition_date_column], errors="coerce"
-    )
+    dataframe[data_col] = pd.to_datetime(dataframe[partition_date_column], errors="coerce")
 
     dataframe[ano_col] = (
-        dataframe[data_col]
-        .dt.year.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.year.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     dataframe[mes_col] = (
-        dataframe[data_col]
-        .dt.month.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.month.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     dataframe[data_col] = (
-        dataframe[data_col]
-        .dt.day.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.day.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     return dataframe, [ano_col, mes_col, data_col]
@@ -71,32 +57,18 @@ def parse_date_columns(
             raise ValueError(f"Column {col} already exists, please review your model.")
 
     dataframe[partition_date_column] = dataframe[partition_date_column].astype(str)
-    dataframe[data_col] = pd.to_datetime(
-        dataframe[partition_date_column], errors="coerce"
-    )
+    dataframe[data_col] = pd.to_datetime(dataframe[partition_date_column], errors="coerce")
 
     dataframe[ano_col] = (
-        dataframe[data_col]
-        .dt.year.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.year.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     dataframe[mes_col] = (
-        dataframe[data_col]
-        .dt.month.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.month.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     dataframe[data_col] = (
-        dataframe[data_col]
-        .dt.day.fillna(-1)
-        .astype(int)
-        .astype(str)
-        .replace("-1", np.nan)
+        dataframe[data_col].dt.day.fillna(-1).astype(int).astype(str).replace("-1", np.nan)
     )
 
     return dataframe, [ano_col, mes_col, data_col]

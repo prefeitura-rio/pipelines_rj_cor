@@ -17,8 +17,8 @@ from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
 
 from pipelines.meteorologia.satelite.satellite_utils import (
-    create_and_save_image,
     choose_file_to_download,
+    create_and_save_image,
     download_blob,
     extract_julian_day_and_hour_from_filename,
     get_files_from_aws,
@@ -54,9 +54,7 @@ def slice_data(current_time: str, ref_filename: str = None) -> dict:
     slice data to separate in year, julian_day, month, day and hour in UTC
     """
     if ref_filename is not None:
-        year, julian_day, hour_utc = extract_julian_day_and_hour_from_filename(
-            ref_filename
-        )
+        year, julian_day, hour_utc = extract_julian_day_and_hour_from_filename(ref_filename)
         month = None
         day = None
     else:
@@ -64,9 +62,7 @@ def slice_data(current_time: str, ref_filename: str = None) -> dict:
         month = current_time[5:7]
         day = current_time[8:10]
         hour_utc = current_time[11:13]
-        julian_day = dt.datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S").strftime(
-            "%j"
-        )
+        julian_day = dt.datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S").strftime("%j")
 
     date_hour_info = {
         "year": str(year),
@@ -100,21 +96,15 @@ def download(
     partition_path = f"ABI-L2-{product}/{year}/{julian_day}/{hour_utc}/"
     log(f"Getting files from {partition_path}")
 
-    storage_files_path, storage_origin, storage_conection = get_files_from_aws(
-        partition_path
-    )
+    storage_files_path, storage_origin, storage_conection = get_files_from_aws(partition_path)
     log(storage_files_path)
     if len(storage_files_path) == 0:
-        storage_files_path, storage_origin, storage_conection = get_files_from_gcp(
-            partition_path
-        )
+        storage_files_path, storage_origin, storage_conection = get_files_from_gcp(partition_path)
 
     # Keep only files from specified band
     if product == "CMIPF":
         # para capturar banda 13
-        storage_files_path = [
-            f for f in storage_files_path if bool(re.search("C" + band, f))
-        ]
+        storage_files_path = [f for f in storage_files_path if bool(re.search("C" + band, f))]
 
     # Skip task if there is no file on API
     if len(storage_files_path) == 0:

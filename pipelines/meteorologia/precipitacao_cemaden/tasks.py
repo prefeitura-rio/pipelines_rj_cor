@@ -5,14 +5,15 @@ Tasks for precipitacao_cemaden
 """
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pendulum
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Skipped, Failed
+from prefect.engine.state import Failed, Skipped
+
 from pipelines.constants import constants
 from pipelines.utils.utils import (
     log,
@@ -83,9 +84,7 @@ def treat_data(
         dataframe["data_medicao_utc"], dayfirst=True
     ) + pd.DateOffset(hours=0)
     dataframe["data_medicao"] = (
-        dataframe["data_medicao_utc"]
-        .dt.tz_localize("UTC")
-        .dt.tz_convert("America/Sao_Paulo")
+        dataframe["data_medicao_utc"].dt.tz_localize("UTC").dt.tz_convert("America/Sao_Paulo")
     )
     see_cols = ["data_medicao_utc", "data_medicao", "id_estacao", "acumulado_chuva_1_h"]
     log(f"DEBUG: data utc -> GMT-3 {dataframe[see_cols]}")
@@ -110,9 +109,7 @@ def treat_data(
         "acumulado_chuva_72_h",
         "acumulado_chuva_96_h",
     ]
-    dataframe[float_cols] = np.where(
-        dataframe[float_cols] < 0, None, dataframe[float_cols]
-    )
+    dataframe[float_cols] = np.where(dataframe[float_cols] < 0, None, dataframe[float_cols])
 
     # Eliminate where the id_estacao is the same keeping the smallest one
     dataframe.sort_values(["id_estacao", "data_medicao"] + float_cols, inplace=True)
@@ -221,9 +218,7 @@ def check_for_new_stations(
         "7614",
         "7615",
     ]
-    new_stations = [
-        i for i in dataframe.id_estacao.unique() if str(i) not in stations_before
-    ]
+    new_stations = [i for i in dataframe.id_estacao.unique() if str(i) not in stations_before]
     if len(new_stations) != 0:
         message = f"New station identified. You need to update CEMADEN\
               estacoes_cemaden adding station(s) {new_stations}: \

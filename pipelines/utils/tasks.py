@@ -5,9 +5,8 @@ Helper tasks that could fit any pipeline.
 # pylint: disable=unused-argument, R0913
 
 from datetime import timedelta
-
 from pathlib import Path
-from typing import List, Union, Any
+from typing import Any, List, Union
 
 import basedosdados as bd
 import pendulum
@@ -18,9 +17,9 @@ from prefect.client import Client
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
+    dump_header_to_file,
     get_username_and_password_from_secret,
     log,
-    dump_header_to_file,
 )
 
 ##################
@@ -99,9 +98,7 @@ def rename_current_flow_run_now_time(prefix: str, now_time=None, wait=None) -> N
 
 
 @task
-def rename_current_flow_run_dataset_table(
-    prefix: str, dataset_id, table_id, wait=None
-) -> None:
+def rename_current_flow_run_dataset_table(prefix: str, dataset_id, table_id, wait=None) -> None:
     """
     Rename the current flow run.
     """
@@ -182,11 +179,7 @@ def create_table_and_upload_to_gcs(
     log("STARTING TABLE CREATION MANAGEMENT")
     if dump_mode == "append":
         if tb.table_exists(mode="staging"):
-            log(
-                f"MODE APPEND: Table ALREADY EXISTS:"
-                f"\n{table_staging}"
-                f"\n{storage_path_link}"
-            )
+            log(f"MODE APPEND: Table ALREADY EXISTS:" f"\n{table_staging}" f"\n{storage_path_link}")
         else:
             # the header is needed to create a table when dosen't exist
             log("MODE APPEND: Table DOSEN'T EXISTS\nStart to CREATE HEADER file")
@@ -207,9 +200,7 @@ def create_table_and_upload_to_gcs(
                 f"{storage_path_link}"
             )  # pylint: disable=C0301
 
-            st.delete_table(
-                mode="staging", bucket_name=st.bucket_name, not_found_ok=True
-            )
+            st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
             log(
                 "MODE APPEND: Sucessfully REMOVED HEADER DATA from Storage:\n"
                 f"{storage_path}\n"
@@ -222,9 +213,7 @@ def create_table_and_upload_to_gcs(
                 f"{storage_path}\n"
                 f"{storage_path_link}"
             )  # pylint: disable=C0301
-            st.delete_table(
-                mode="staging", bucket_name=st.bucket_name, not_found_ok=True
-            )
+            st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
             log(
                 "MODE OVERWRITE: Sucessfully DELETED OLD DATA from Storage:\n"
                 f"{storage_path}\n"

@@ -3,12 +3,10 @@
 Utils for rj-cor
 """
 import json
+
 import pandas as pd
-from pipelines.utils.utils import (
-    get_redis_client,
-    log,
-    treat_redis_output,
-)
+
+from pipelines.utils.utils import get_redis_client, log, treat_redis_output
 
 
 def build_redis_key(dataset_id: str, table_id: str, name: str, mode: str = "prod"):
@@ -62,12 +60,8 @@ def compare_actual_df_with_redis_df(
         .query('_merge == "left_only"')
         .drop("_merge", axis=1)
     )
-    log(
-        f"\nDf resulted from the difference between dft_redis and dfr: \n{dfr_diff.head()}"
-    )
+    log(f"\nDf resulted from the difference between dft_redis and dfr: \n{dfr_diff.head()}")
 
     updated_dfr_redis = pd.concat([dfr_redis, dfr_diff[columns]])
 
     return dfr_diff, updated_dfr_redis
-
-

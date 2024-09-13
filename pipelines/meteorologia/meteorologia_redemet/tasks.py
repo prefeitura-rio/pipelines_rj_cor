@@ -2,28 +2,22 @@
 """
 Tasks for meteorologia_redemet
 """
-from datetime import timedelta
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Tuple, Union
-from unidecode import unidecode
 
 import pandas as pd
 import pendulum
+import requests
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
-import requests
+from prefeitura_rio.pipelines_utils.infisical import get_secret
+from unidecode import unidecode
 
 from pipelines.constants import constants
-from pipelines.utils.utils import (
-
-    log,
-    to_partitions,
-    parse_date_columns,
-)
-
-from prefeitura_rio.pipelines_utils.infisical import get_secret
+from pipelines.utils.utils import log, parse_date_columns, to_partitions
 
 
 @task(nout=3)
@@ -72,7 +66,9 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
 
     raw = []
     for id_estacao in rj_stations:
-        base_url = f"https://api-redemet.decea.mil.br/aerodromos/info?api_key={redemet_token}"  # noqa
+        base_url = (
+            f"https://api-redemet.decea.mil.br/aerodromos/info?api_key={redemet_token}"  # noqa
+        )
         for data in range(first_date_int, last_date_int + 1):
             for hora in range(24):
                 url = f"{base_url}&localidade={id_estacao}&datahora={data:06}{hora:02}"
@@ -127,9 +123,7 @@ def treat_data(dataframe: pd.DataFrame, backfill: bool = 0) -> pd.DataFrame:
     # Convert UTC time to America/Sao Paulo
     formato = "DD/MM/YYYY HH:mm(z)"
     dataframe["data"] = dataframe["data"].apply(
-        lambda x: pendulum.from_format(x, formato)
-        .in_tz("America/Sao_Paulo")
-        .format(formato)
+        lambda x: pendulum.from_format(x, formato).in_tz("America/Sao_Paulo").format(formato)
     )
 
     # Order variables
@@ -185,9 +179,7 @@ def treat_data(dataframe: pd.DataFrame, backfill: bool = 0) -> pd.DataFrame:
 
 
 @task
-def save_data(
-    dataframe: pd.DataFrame, partition_column: str = "data_medicao"
-) -> Union[str, Path]:
+def save_data(dataframe: pd.DataFrame, partition_column: str = "data_medicao") -> Union[str, Path]:
     """
     Salve dataframe as a csv file
     """
@@ -215,9 +207,7 @@ def download_stations_data() -> pd.DataFrame:
     """
 
     redemet_token = get_secret("REDEMET-TOKEN")
-    base_url = (
-        f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
-    )
+    base_url = f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
     url = f"{base_url}&pais=Brasil"
     res = requests.get(url)
     if res.status_code != 200:
@@ -249,9 +239,7 @@ def treat_stations_data(dataframe: pd.DataFrame) -> pd.DataFrame:
     dataframe = dataframe[dataframe.cidade.str.contains("Rio de Janeiro")]
 
     dataframe["estacao"] = dataframe["estacao"].apply(unidecode)
-    dataframe["data_atualizacao"] = pendulum.now(tz="America/Sao_Paulo").format(
-        "YYYY-MM-DD"
-    )
+    dataframe["data_atualizacao"] = pendulum.now(tz="America/Sao_Paulo").format("YYYY-MM-DD")
 
     keep_cols = [
         "id_estacao",
@@ -282,13 +270,9 @@ def check_for_new_stations(
         "SBRJ",
         "SBSC",
     ]
-    new_stations = [
-        i for i in dataframe.id_estacao.unique() if i not in stations_before
-    ]
+    new_stations = [i for i in dataframe.id_estacao.unique() if i not in stations_before]
     if len(new_stations) != 0:
         message = f"New station identified. You need to update REDEMET\
               flow and add station(s) {new_stations}"
         log(message)
         raise ENDRUN(state=Failed(message))
-
-

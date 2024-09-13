@@ -51,23 +51,22 @@ Funções úteis no tratamento de dados de satélite
 import base64
 import datetime
 import os
+import re
 import shutil
 from pathlib import Path
-import re
 from typing import Union
-import requests
-
 
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
 import fiona
-from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pendulum
+import requests
 import s3fs
 import xarray as xr
+from google.cloud import storage
 
 from pipelines.meteorologia.satelite.remap import remap
 from pipelines.utils.utils import get_credentials_from_env, list_blobs_with_prefix, log
@@ -143,7 +142,7 @@ def extract_julian_day_and_hour_from_filename(filename: str):
     hour_utc (str): 1900 (20222901900203)
     """
     # Search for the Scan start in the file name  # noqa: E203
-    start = filename[filename.find("_s") + 2: filename.find("_e")]  # noqa: E203
+    start = filename[filename.find("_s") + 2 : filename.find("_e")]  # noqa: E203
     # Get year
     year = int(start[0:4])
     # Get julian day
@@ -221,7 +220,7 @@ def choose_file_to_download(
     # keep only ref_filename if it exists
     if ref_filename is not None:  # noqa: E203
         # extract this part of the name s_20222911230206_e20222911239514  # noqa: E203
-        ref_date = ref_filename[ref_filename.find("_s") + 1: ref_filename.find("_e")]  # noqa: E203
+        ref_date = ref_filename[ref_filename.find("_s") + 1 : ref_filename.find("_e")]  # noqa: E203
         log(f"\n\n[DEBUG]: ref_date: {ref_date}")
         match_text = re.compile(f".*{ref_date}")
         storage_files_path = list(filter(match_text.match, storage_files_path))
@@ -273,7 +272,7 @@ def get_info(path: str) -> dict:
         procura_m = path.find("-M3")
     if procura_m == -1:
         procura_m = path.find("-M4")
-    product = path[path.find("L2-") + 3: procura_m]  # noqa: E203
+    product = path[path.find("L2-") + 3 : procura_m]  # noqa: E203
 
     # Nem todos os produtos foram adicionados no dicionário de características
     # dos produtos. Olhar arquivo original caso o produto não estaja aqui
@@ -473,9 +472,7 @@ def remap_g16(
 
     os.makedirs(remap_path)
     for i in range(n_variables):
-        log(
-            f"Starting remap for path: {path}, remap_path: {remap_path}, variable: {variable[i]}"
-        )
+        log(f"Starting remap for path: {path}, remap_path: {remap_path}, variable: {variable[i]}")
         remap(path, remap_path, variable[i], extent)
 
 
@@ -510,9 +507,7 @@ def read_netcdf(file_path: str) -> pd.DataFrame:
     return dfr
 
 
-def save_data_in_file(
-    product: str, variable: list, datetime_save: str, mode_redis: str = "prod"
-):
+def save_data_in_file(product: str, variable: list, datetime_save: str, mode_redis: str = "prod"):
     """
     Read all nc or tif files and save them in a unique file inside a partition
     """
@@ -550,9 +545,7 @@ def save_data_in_file(
             data = data.merge(data_temp, on=["latitude", "longitude"], how="outer")
 
     # Guarda horário do arquivo na coluna
-    data["horario"] = pendulum.from_format(
-        datetime_save, "YYYYMMDD HHmmss"
-    ).to_time_string()
+    data["horario"] = pendulum.from_format(datetime_save, "YYYYMMDD HHmmss").to_time_string()
 
     print(f"Final df: {data.head()}")
     # Fixa ordem das colunas
@@ -629,9 +622,7 @@ def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
     #     print("File not found.")
 
     # Add coastlines, borders and gridlines
-    shapefile_dir = Path(
-        "/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles"
-    )
+    shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
     shapefile_path_neighborhood = shapefile_dir / "Limite_Bairros_RJ.shp"
     shapefile_path_state = shapefile_dir / "Limite_Estados_BR_IBGE.shp"
 

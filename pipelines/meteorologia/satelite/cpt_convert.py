@@ -4,6 +4,7 @@ cpt_convert explanation
 https://geonetcast.wordpress.com/2017/06/02/geonetclass-manipulating-goes-16-data-with-python-part-v/
 """
 import colorsys
+
 import numpy as np
 
 
