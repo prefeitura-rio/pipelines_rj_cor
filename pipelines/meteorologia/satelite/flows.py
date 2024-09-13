@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103
+# noqa: E501
 """
 Flows for emd
 """

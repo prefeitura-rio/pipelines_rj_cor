@@ -5,7 +5,7 @@ Common  Tasks for rj-cor
 """
 
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import List, Union, Tuple
 from google.cloud import storage
 import pandas as pd
 import pendulum
@@ -13,8 +13,12 @@ from prefect import task
 from prefect.triggers import all_successful
 
 from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 from prefeitura_rio.pipelines_utils.logging import log
+from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
+    parse_date_columns,
+    to_partitions,
+)
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
 
 from pipelines.utils_rj_cor import build_redis_key
 
@@ -64,7 +68,7 @@ def get_on_redis(
     table_id: str,
     mode: str = "prod",
     wait=None,
-) -> list:
+) -> List:
     """
     Get filenames saved on Redis.
     """
@@ -99,7 +103,7 @@ def save_on_redis(
 
 
 @task(nout=2)
-def get_storage_destination(filename: str, path: str):
+def get_storage_destination(filename: str, path: str) -> Tuple[str, str]:
     """
     Get storage blob destinationa and the name of the source file
     """
@@ -127,15 +131,15 @@ def upload_files_to_storage(
     # Cria um blob (o arquivo dentro do bucket)
     blob = bucket.blob(destination_blob_name)
     for i in source_file_name:
-        blob.upload_from_filename(source_file_name)
-        log(f"File {source_file_name} sent to {destination_blob_name} on bucket {bucket_name}.")
+        blob.upload_from_filename(i)
+        log(f"File {i} sent to {destination_blob_name} on bucket {bucket_name}.")
 
 
 @task
 def save_dataframe(
     dfr: pd.DataFrame,
     partition_column: str,
-    suffix: str = "current_timestamp", 
+    suffix: str = "current_timestamp",
     path: str = "temp",
     wait=None,  # pylint: disable=unused-argument
 ) -> Union[str, Path]:

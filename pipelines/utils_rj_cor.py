@@ -11,13 +11,15 @@ import basedosdados as bd
 from google.cloud import storage
 import pandas as pd
 import pendulum
+
 # from redis_pal import RedisPal
 # import pipelines.constants
-from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
+from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
 from pipelines.utils.utils import (
     log,
 )
+
 ###############
 #
 # Redis
@@ -26,6 +28,7 @@ from pipelines.utils.utils import (
 
 
 def getenv_or_action(key: str, action: Callable[[str], None], default: str = None) -> str:
+    """Get env or action"""
     value = getenv(key)
     if value is None:
         value = action(key)
@@ -35,14 +38,17 @@ def getenv_or_action(key: str, action: Callable[[str], None], default: str = Non
 
 
 def ignore(key: str) -> None:
-    pass
+    """Ignore"""
+    log(f"Ignore key {key}")
 
 
 def warn(key: str) -> None:
+    """Log a warn"""
     logger.warning(f"WARNING: Environment variable {key} is not set.")
 
 
 def raise_error(key: str) -> None:
+    """Raise error"""
     raise ValueError(f"Environment variable {key} is not set.")
 
 

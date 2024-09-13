@@ -67,7 +67,9 @@ import s3fs
 import xarray as xr
 
 from pipelines.meteorologia.satelite.remap import remap
-from refeitura_rio.pipelines_templates.dump_url import get_credentials_from_env  # pylint: disable=E0401
+from refeitura_rio.pipelines_templates.dump_url import (
+    get_credentials_from_env,
+)  # pylint: disable=E0401
 from refeitura_rio.pipelines_utils.bd import list_blobs_with_prefix  # pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.logging import log
 
@@ -186,11 +188,7 @@ def get_files_from_aws(partition_path):
     s3_fs = s3fs.S3FileSystem(anon=True)
 
     # Get all files of GOES-16 data (multiband format) at this hour
-    storage_files_path = np.sort(
-        np.array(
-            s3_fs.find(f"noaa-goes16/{partition_path}")
-        )
-    )
+    storage_files_path = np.sort(np.array(s3_fs.find(f"noaa-goes16/{partition_path}")))
     storage_origin = "aws"
 
     return storage_files_path, storage_origin, s3_fs

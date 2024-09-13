@@ -10,6 +10,7 @@ import requests
 from prefeitura_rio.pipelines_utils.logging import log
 
 
+# pylint: disable=too-many-arguments, too-many-instance-attributes
 class Api:
     """
     Api
