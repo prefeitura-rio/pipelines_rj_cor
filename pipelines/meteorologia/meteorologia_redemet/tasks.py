@@ -73,6 +73,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
             for hora in range(24):
                 url = f"{base_url}&localidade={id_estacao}&datahora={data:06}{hora:02}"
                 res = requests.get(url)
+                log(f"Requesting data from: {url}")
                 if res.status_code != 200:
                     log(f"Problema no id: {id_estacao}, {res.status_code}")
                     log(f"Data: {data}, Hora: {hora}")
