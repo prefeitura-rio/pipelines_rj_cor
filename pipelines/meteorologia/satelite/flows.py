@@ -2,7 +2,7 @@
 # pylint: disable=C0103
 # flake8: noqa: E501
 """
-Flows for emd
+Flows for emd.
 """
 from copy import deepcopy
 
