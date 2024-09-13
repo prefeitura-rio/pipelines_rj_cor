@@ -6,9 +6,8 @@ import json
 from os import getenv
 from time import sleep
 from typing import Callable, Dict
-from loguru import logger
+
 import basedosdados as bd
-from google.cloud import storage
 import pandas as pd
 import pendulum
 

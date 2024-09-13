@@ -9,9 +9,9 @@ from typing import List, Union, Tuple
 from google.cloud import storage
 import pandas as pd
 import pendulum
+from google.cloud import storage
 from prefect import task
 from prefect.triggers import all_successful
-
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
 from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401

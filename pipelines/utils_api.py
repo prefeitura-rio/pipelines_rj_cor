@@ -6,6 +6,7 @@ Utils file
 # from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 from datetime import datetime, timedelta
 from typing import Callable, Dict, Tuple  # , List
+
 import requests
 from prefeitura_rio.pipelines_utils.logging import log
 

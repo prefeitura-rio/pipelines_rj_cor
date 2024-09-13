@@ -8,27 +8,18 @@ from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 
-# # Adiciona o diretório `/algum/diretorio/` ao sys.path
-# import os, sys  # noqa
-
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../prefeitura-rio")))
 # # sys.path.insert(0, '/home/patricia/Documentos/escritorio_dados/prefeitura-rio/prefeitura-rio')
 # print("sys.path:", sys.path)
 from prefeitura_rio.pipelines_utils.custom import Flow
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
-# from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
-
-# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
 from pipelines.constants import constants
 
 # from pipelines.tasks import task_get_redis_client
 # from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
-from pipelines.meteorologia.radar.mendanha.constants import (
-    constants as radar_constants,
-)
-from pipelines.meteorologia.radar.mendanha.tasks import (
+from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
+from pipelines.meteorologia.radar.mendanha.tasks import (  # prefix_to_restore,; save_data,
     access_api,
     add_new_image,
     base64_to_bytes,
@@ -45,7 +36,6 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     img_to_base64,
     remap_data,
     rename_keys_redis,
-    send_zip_images_api,
     save_images_to_local,
     save_img_on_redis,
     # upload_file_to_storage,
@@ -53,6 +43,16 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     # save_data,
 )
 from pipelines.utils_rj_cor import build_redis_key
+
+# # Adiciona o diretório `/algum/diretorio/` ao sys.path
+# import os, sys  # noqa
+
+
+# from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
+
+# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+
+
 
 # from pipelines.tasks import (
 #     get_on_redis,

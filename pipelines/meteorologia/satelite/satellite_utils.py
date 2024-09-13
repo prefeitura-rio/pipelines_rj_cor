@@ -50,21 +50,28 @@ Funções úteis no tratamento de dados de satélite
 
 import datetime
 import os
+import re
 import shutil
 from pathlib import Path
-import re
 from typing import Tuple, Union
 
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
 import fiona
-from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pendulum
 import s3fs
 import xarray as xr
+from google.cloud import storage
+from prefeitura_rio.pipelines_utils.logging import log
+from refeitura_rio.pipelines_templates.dump_url import (  # pylint: disable=E0401
+    get_credentials_from_env,
+)
+from refeitura_rio.pipelines_utils.bd import (
+    list_blobs_with_prefix,  # pylint: disable=E0401
+)
 
 from pipelines.meteorologia.satelite.remap import remap
 from refeitura_rio.pipelines_templates.dump_url import (
