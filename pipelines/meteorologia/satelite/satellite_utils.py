@@ -65,12 +65,11 @@ import pendulum
 import s3fs
 import xarray as xr
 from google.cloud import storage
-from prefeitura_rio.pipelines_utils.logging import log
 from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disable=E0401
     get_credentials_from_env,
 )
 from prefeitura_rio.pipelines_utils.logging import log
-from refeitura_rio.pipelines_utils.bd import (
+from prefeitura_rio.pipelines_utils.bd import (
     list_blobs_with_prefix,  # pylint: disable=E0401
 )
 
