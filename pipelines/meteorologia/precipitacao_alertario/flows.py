@@ -5,33 +5,31 @@ Flows for precipitacao_alertario.
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.executors import LocalDaskExecutor
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.meteorologia.precipitacao_alertario.constants import (
     constants as alertario_constants,
 )
+from pipelines.meteorologia.precipitacao_alertario.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
     download_data,
-    treat_old_pluviometer,
-    treat_pluviometer_and_meteorological_data,
     save_data,
     save_data_old,
     save_last_dbt_update,
-)
-from pipelines.meteorologia.precipitacao_alertario.schedules import (
-    minute_schedule,
+    treat_old_pluviometer,
+    treat_pluviometer_and_meteorological_data,
 )
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )
+from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.custom import wait_for_flow_run_with_timeout
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants

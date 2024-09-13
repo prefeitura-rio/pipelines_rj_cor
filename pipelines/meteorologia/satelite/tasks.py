@@ -10,16 +10,17 @@ import re
 from pathlib import Path
 from typing import List, Union
 
-# import requests
-
 import pandas as pd
 import pendulum
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
+from prefeitura_rio.pipelines_utils.logging import log
+from prefeitura_rio.pipelines_utils.pandas import (
+    to_partitions,  # pylint: disable=E0611, E0401
+)
 
-from pipelines.meteorologia.satelite.satellite_utils import (
-    # create_and_save_image,
+from pipelines.meteorologia.satelite.satellite_utils import (  # create_and_save_image,; upload_image_to_api,
     choose_file_to_download,
     download_blob,
     extract_julian_day_and_hour_from_filename,
@@ -30,10 +31,11 @@ from pipelines.meteorologia.satelite.satellite_utils import (
     get_variable_values,
     remap_g16,
     save_data_in_file,
-    # upload_image_to_api,
 )
-from prefeitura_rio.pipelines_utils.logging import log
-from prefeitura_rio.pipelines_utils.pandas import to_partitions  # pylint: disable=E0611, E0401
+
+# import requests
+
+
 
 
 @task()

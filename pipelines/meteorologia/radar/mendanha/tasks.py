@@ -8,14 +8,13 @@ Tasks for setting rain dashboard using radar data.
 # import json
 import io
 import os
-from pathlib import Path
-from time import time, sleep
-from typing import Dict, List, Union, Tuple
 import zipfile
+from pathlib import Path
+from time import sleep, time
+from typing import Dict, List, Tuple, Union
 
 import cartopy.crs as ccrs
 import contextily as ctx
-from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
 import pendulum
@@ -23,33 +22,34 @@ import pyart
 
 # import wradlib as wrl
 import xarray as xr
+from google.cloud import storage
 
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
-
-# from pyart.map import grid_from_radars
-
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed  # Skipped
+from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
+from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.utils import (
+from pipelines.meteorologia.radar.mendanha.utils import (  # list_all_directories,
     create_colormap,
     extract_timestamp,
-    # list_all_directories,
     open_radar_file,
     save_image_to_local,
 )
+from pipelines.utils_api import Api
 from pipelines.utils_rj_cor import (
     download_blob,
     get_redis_output,
     list_files_storage,
     save_str_on_redis,
 )
-from pipelines.utils_api import Api
-from prefeitura_rio.pipelines_utils.logging import log
-from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
+
+# from pyart.map import grid_from_radars
+
+
 
 
 @task()

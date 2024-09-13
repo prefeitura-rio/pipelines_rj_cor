@@ -5,21 +5,20 @@ Flows for meteorologia_inmet
 """
 from datetime import timedelta
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.meteorologia.meteorologia_inmet.tasks import (
-    get_dates,
-    # slice_data,
-    download,
-    tratar_dados,
-    salvar_dados,
-)
 from pipelines.meteorologia.meteorologia_inmet.schedules import hour_schedule
+from pipelines.meteorologia.meteorologia_inmet.tasks import (  # slice_data,
+    download,
+    get_dates,
+    salvar_dados,
+    tratar_dados,
+)
+from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
@@ -27,7 +26,6 @@ from pipelines.utils.tasks import (
     create_table_and_upload_to_gcs,
     get_current_flow_labels,
 )
-
 
 with Flow(
     name="COR: Meteorologia - Meteorologia INMET",

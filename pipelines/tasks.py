@@ -6,15 +6,15 @@ Common  Tasks for rj-cor
 
 from pathlib import Path
 from typing import Dict, List, Union
-from google.cloud import storage
+
 import pandas as pd
 import pendulum
+from google.cloud import storage
 from prefect import task
 from prefect.triggers import all_successful
-
 from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 from prefeitura_rio.pipelines_utils.logging import log
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
 from pipelines.utils_rj_cor import build_redis_key
 
@@ -135,7 +135,7 @@ def upload_files_to_storage(
 def save_dataframe(
     dfr: pd.DataFrame,
     partition_column: str,
-    suffix: str = "current_timestamp", 
+    suffix: str = "current_timestamp",
     path: str = "temp",
     wait=None,  # pylint: disable=unused-argument
 ) -> Union[str, Path]:

@@ -7,11 +7,7 @@ Flows for teste
 
 from prefect.run_configs import LocalRun
 
-from pipelines.teste_pipeline.tasks import (
-    get_fake_data,
-    treat_fake_data,
-    print_data,
-)
+from pipelines.teste_pipeline.tasks import get_fake_data, print_data, treat_fake_data
 from pipelines.utils.decorators import Flow
 
 with Flow(

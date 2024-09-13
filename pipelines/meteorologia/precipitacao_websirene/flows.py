@@ -3,19 +3,17 @@
 """
 Flows for precipitacao_alertario
 """
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
+from pipelines.meteorologia.precipitacao_websirene.schedules import MINUTE_SCHEDULE
 from pipelines.meteorologia.precipitacao_websirene.tasks import (
     download_dados,
-    tratar_dados,
     salvar_dados,
-)
-from pipelines.meteorologia.precipitacao_websirene.schedules import (
-    MINUTE_SCHEDULE,
+    tratar_dados,
 )
 from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.decorators import Flow
@@ -23,7 +21,6 @@ from pipelines.utils.tasks import (
     create_table_and_upload_to_gcs,
     get_current_flow_labels,
 )
-
 
 with Flow(
     "COR: Meteorologia - Precipitacao WEBSIRENE",

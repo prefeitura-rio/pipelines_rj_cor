@@ -5,9 +5,10 @@ Converte coordenada X,Y para latlon
 """
 import math
 import re
+
 import netCDF4 as nc
 import numpy as np
-from osgeo import osr, gdal  # pylint: disable=E0401
+from osgeo import gdal, osr  # pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.logging import log
 
 

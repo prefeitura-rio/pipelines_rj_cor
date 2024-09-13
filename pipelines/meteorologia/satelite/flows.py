@@ -5,40 +5,9 @@ Flows for emd
 """
 from copy import deepcopy
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
-
-# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
-from pipelines.constants import constants
-
-# from pipelines.utils.constants import constants as utils_constants
-from pipelines.meteorologia.satelite.tasks import (
-    # create_image,
-    create_partitions,
-    get_dates,
-    generate_point_value,
-    slice_data,
-    download,
-    tratar_dados,
-    save_data,
-)
-from pipelines.tasks import (
-    get_on_redis,
-    save_on_redis,
-)
-from pipelines.meteorologia.satelite.schedules import (
-    cmip,
-    mcmip,
-    rrqpe,
-    tpw,
-    dsi,
-    lst,
-    sst,
-    aod,
-)
-
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
@@ -49,13 +18,41 @@ from prefeitura_rio.pipelines_utils.state_handlers import (
 #     create_table_and_upload_to_gcs,
 #     get_current_flow_labels,
 # )
-from prefeitura_rio.pipelines_utils.tasks import (
-    # rename_current_flow_run_dataset_table,
+from prefeitura_rio.pipelines_utils.tasks import (  # rename_current_flow_run_dataset_table,; get_current_flow_labels,
     create_table_and_upload_to_gcs,
-    # get_current_flow_labels,
     get_now_datetime,
     task_run_dbt_model_task,
 )
+
+from pipelines.constants import constants
+from pipelines.meteorologia.satelite.schedules import (
+    aod,
+    cmip,
+    dsi,
+    lst,
+    mcmip,
+    rrqpe,
+    sst,
+    tpw,
+)
+
+# from pipelines.utils.constants import constants as utils_constants
+from pipelines.meteorologia.satelite.tasks import (  # create_image,
+    create_partitions,
+    download,
+    generate_point_value,
+    get_dates,
+    save_data,
+    slice_data,
+    tratar_dados,
+)
+from pipelines.tasks import get_on_redis, save_on_redis
+
+# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+
+
+
+
 
 with Flow(
     name="COR: Meteorologia - Satelite GOES 16",

@@ -6,18 +6,20 @@ import json
 from os import getenv
 from time import sleep
 from typing import Callable, Dict
-from loguru import logger
+
 import basedosdados as bd
-from google.cloud import storage
 import pandas as pd
 import pendulum
+from google.cloud import storage
+from loguru import logger
+
 # from redis_pal import RedisPal
 # import pipelines.constants
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
-from pipelines.utils.utils import (
-    log,
-)
+
+from pipelines.utils.utils import log
+
 ###############
 #
 # Redis

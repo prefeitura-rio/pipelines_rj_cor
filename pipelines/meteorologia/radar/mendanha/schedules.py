@@ -3,9 +3,11 @@
 """
 Schedules for setting rain dashboard using radar data.
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
+
 from pipelines.constants import constants
 
 TIME_SCHEDULE = Schedule(
