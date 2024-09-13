@@ -50,4 +50,3 @@ month_schedule = Schedule(
         ),
     ]
 )
-
