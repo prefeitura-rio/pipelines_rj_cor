@@ -35,20 +35,20 @@ from pipelines.meteorologia.radar.mendanha.tasks import (
     combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
-    create_visualization_with_background,
+    # create_visualization_with_background,
     download_files_storage,
     get_and_format_time,
     get_colorbar_title,
     get_filenames_storage,
     get_radar_parameters,
-    get_storage_destination,
+    # get_storage_destination,
     img_to_base64,
     remap_data,
     rename_keys_redis,
     send_zip_images_api,
     save_images_to_local,
     save_img_on_redis,
-    upload_file_to_storage,
+    # upload_file_to_storage,
     # prefix_to_restore,
     # save_data,
 )
@@ -120,24 +120,24 @@ with Flow(
     send_zip_images_api(api, "uploadfile", zip_filename)
     access_api.set_upstream(saved_images_path)
 
-    fig_with_backgroud = create_visualization_with_background(
-        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
-    )
-    img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
-    img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
-    saved_with_background_img_path = save_images_to_local(
-        {formatted_time: img_bytes_with_backgroud}
-    )
+    # fig_with_backgroud = create_visualization_with_background(
+    #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
+    # )
+    # img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
+    # img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
+    # saved_with_background_img_path = save_images_to_local(
+    #     {formatted_time: img_bytes_with_backgroud}
+    # )
 
-    destination_blob_name, source_file_name = get_storage_destination(
-        formatted_time, saved_with_background_img_path
-    )
-    upload_file_to_storage(
-        project="datario",
-        bucket_name="datario-public",
-        destination_blob_name=destination_blob_name,
-        source_file_name=source_file_name,
-    )
+    # destination_blob_name, source_file_name = get_storage_destination(
+    #     formatted_time, saved_with_background_img_path
+    # )
+    # upload_file_to_storage(
+    #     project="datario",
+    #     bucket_name="datario-public",
+    #     destination_blob_name=destination_blob_name,
+    #     source_file_name=source_file_name,
+    # )
 
     # # Save new filenames on redis
     # save_last_update_redis = save_on_redis(
