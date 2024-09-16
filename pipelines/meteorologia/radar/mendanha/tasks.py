@@ -14,7 +14,8 @@ from typing import Dict, List, Union, Tuple
 import zipfile
 
 import cartopy.crs as ccrs
-import contextily as ctx
+
+# import contextily as ctx
 from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
@@ -439,15 +440,31 @@ def save_img_on_redis(
 
 
 @task
-def send_zip_images_api(api, api_route, zip_file_path) -> dict:
+def send_zip_images_api(api, api_route, zip_file_path, max_retries=5) -> dict:
     """
-    Send zip images to COR API
+    Send zip images to COR API, retrying up to max_retries if the token is invalid.
     """
-    with open(zip_file_path, "rb") as file:
-        files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
-        response = api.post(api_route, files=files)
-        log(response.json())
-    return response
+    retries = 0
+
+    while retries < max_retries:
+        with open(zip_file_path, "rb") as file:
+            files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
+            response = api.post(api_route, files=files)
+            response_data = response.json()
+
+            log(f"Send file response: {response_data}")
+
+            if response_data.get("Message") != "Invalid token":
+                return response_data
+
+            # If the token is invalid, refresh it and retry
+            log("Invalid token. Refreshing token and retrying...")
+            api.refresh_token()
+            retries += 1
+
+    # Return the last response after reaching the max retry limit
+    log(f"Max retries reached ({max_retries}). Could not send file.")
+    return response_data
 
 
 # noqa E302, E303
@@ -478,64 +495,64 @@ def get_colorbar_title(radar_product: str):
     return colorbar_title[radar_product]
 
 
-@task
-def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):
-    """
-    Plot radar 2D data over Rio de Janeiro's map using the same
-    color as they used before on colorbar
-    """
-    log(f"Start creating {radar_product} visualization with background")
-    cmap, norm, ordered_values = create_colormap()
+# @task
+# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line--too--long
+#     """
+#     Plot radar 2D data over Rio de Janeiro's map using the same
+#     color as they used before on colorbar
+#     """
+#     log(f"Start creating {radar_product} visualization with background")
+#     cmap, norm, ordered_values = create_colormap()
 
-    proj = ccrs.PlateCarree()
+#     proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(
-        figsize=(10, 10), subplot_kw={"projection": proj}
-    )  # pylint: disable=C0103
-    ax.set_aspect("auto")
+#     fig, ax = plt.subplots(
+#         figsize=(10, 10), subplot_kw={"projection": proj}
+#     )  # pylint: disable=C0103
+#     ax.set_aspect("auto")
 
-    # Extract data and coordinates from Xarray
-    data = radar_2d[radar_product][0].max(axis=0).values
-    lon = radar_2d["lon"].values
-    lat = radar_2d["lat"].values
+#     # Extract data and coordinates from Xarray
+#     data = radar_2d[radar_product][0].max(axis=0).values
+#     lon = radar_2d["lon"].values
+#     lat = radar_2d["lat"].values
 
-    # Plot data over base map
-    contour = ax.contourf(
-        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
-    )
+#     # Plot data over base map
+#     contour = ax.contourf(
+#         lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
+#     )
 
-    # Adicionar o mapa de base usando contextily
-    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+#     # Adicionar o mapa de base usando contextily
+#     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
 
-    # Configure axes
-    ax.set_title(
-        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
-    )  # , fontweight='bold', loc="left"
+#     # Configure axes
+#     ax.set_title(
+#         title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+#     )  # , fontweight='bold', loc="left"
 
-    ax.set_xlabel("")
-    ax.set_ylabel("")
-    ax.axis("off")
-    ax.grid(True, linestyle="--", alpha=0.5)
-    ax.set_xlim(lon.min(), lon.max())
-    ax.set_ylim(lat.min(), lat.max())
+#     ax.set_xlabel("")
+#     ax.set_ylabel("")
+#     ax.axis("off")
+#     ax.grid(True, linestyle="--", alpha=0.5)
+#     ax.set_xlim(lon.min(), lon.max())
+#     ax.set_ylim(lat.min(), lat.max())
 
-    # Customize colorbar to show only the specified values on the center of each box
-    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
-    cbar = plt.colorbar(
-        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-        ax=ax,
-        cax=cbar_ax,
-        orientation="vertical",
-    )
-    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
-    cbar.set_ticklabels([str(value) for value in ordered_values])
-    cbar.ax.tick_params(size=0)
-    cbar.ax.set_title(
-        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
-    )  # left, height
+#     # Customize colorbar to show only the specified values on the center of each box
+#     cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+#     cbar = plt.colorbar(
+#         mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+#         ax=ax,
+#         cax=cbar_ax,
+#         orientation="vertical",
+#     )
+#     cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+#     cbar.set_ticklabels([str(value) for value in ordered_values])
+#     cbar.ax.tick_params(size=0)
+#     cbar.ax.set_title(
+#         cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+#     )  # left, height
 
-    # plt.show()
-    return fig
+#     # plt.show()
+#     return fig
 
 
 @task
@@ -589,84 +606,3 @@ def get_storage_destination(filename: str, path: str):
 #     )
 #     log(f"[DEBUG] Files saved on {prepath}")
 #     return prepath
-
-
-def list_soft_deleted_objects_with_prefix(bucket_name, prefix):
-    """List soft-deleted objects with a specific prefix in a bucket."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-
-    # Listando objetos da pasta .zombie com o prefixo fornecido
-    blobs = bucket.list_blobs(prefix=f".zombie/{prefix}")
-
-    soft_deleted_files = []
-    for blob in blobs:
-        soft_deleted_files.append(blob.name)
-        print(f"Soft-deleted object found: {blob.name}")
-
-    return soft_deleted_files
-
-
-def restore_object(bucket_name, soft_deleted_object_name):
-    """Restores a soft-deleted object by moving it back to its original path."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-
-    # Pegando o objeto soft-deleted
-    blob = bucket.blob(soft_deleted_object_name)
-
-    # Definindo o nome original do objeto removendo a parte ".zombie/"
-    restore_to_name = soft_deleted_object_name.replace(".zombie/", "")
-
-    # Criando o novo blob no local de restauração (local original)
-    restored_blob = bucket.blob(restore_to_name)
-
-    # Copiando o arquivo para o local original
-    restored_blob.rewrite(blob)
-
-    # Deletando o arquivo da pasta .zombie para concluir a restauração
-    blob.delete()
-
-    print(f"Object {soft_deleted_object_name} restored to {restore_to_name}")
-
-
-def restore_files_with_prefix(bucket_name, prefix):
-    """Restore all soft-deleted files starting with a specific prefix to their original path."""
-    # Listar todos os arquivos soft-deleted que começam com o prefixo
-    soft_deleted_files = list_soft_deleted_objects_with_prefix(bucket_name, prefix)
-
-    for soft_deleted_file in soft_deleted_files:
-        # Restaurar o arquivo para seu caminho original
-        restore_object(bucket_name, soft_deleted_file)
-
-
-@task
-def prefix_to_restore():
-    """escolher prefix"""
-    # Exemplo de uso:
-    bucket_name = "rj-escritorio-scp"
-    prefix = "mendanha/odimhdf5/vol_d"  # Caminho para onde os arquivos serão restaurados
-    lista = []
-    for i in range(3, 8):
-        lista.append(f"{prefix}/MDN240{i}")
-    name = []
-    for i in range(1, 32):
-        name.append(f"{prefix}/MDN2408{str(i).zfill(2)}")
-
-    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
-    print(name)
-    lista = lista + name
-    lista.append(f"{prefix}/MDN2409")
-    for i in range(3, 8):
-        lista.append(f"{prefix}/MDN.20240{i}")
-    name = []
-    for i in range(1, 32):
-        name.append(f"{prefix}/MDN.202408{str(i).zfill(2)}")
-
-    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
-
-    lista = lista + name
-    lista.append(f"{prefix}/MDN.202409")
-    for prefix_ in lista:
-        # Restaurar todos os arquivos que começam com MDN
-        restore_files_with_prefix(bucket_name, prefix_)

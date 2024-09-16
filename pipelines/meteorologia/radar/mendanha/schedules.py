@@ -11,7 +11,7 @@ from pipelines.constants import constants
 TIME_SCHEDULE = Schedule(
     clocks=[
         IntervalClock(
-            interval=timedelta(minutes=2),
+            interval=timedelta(minutes=5),
             start_date=datetime(2021, 1, 1, 0, 0, 30),
             labels=[
                 constants.RJ_COR_AGENT_LABEL.value,

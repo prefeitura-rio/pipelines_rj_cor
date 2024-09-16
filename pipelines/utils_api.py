@@ -45,6 +45,7 @@ class Api:
                 "password": self._password,
             },
         )
+        log(f"Status code: {response.status_code}\nResponse:{response.content}")
         if response.status_code == 200:
             response_json = response.json()
             token_word = [i for i in response_json.keys() if "token" in i.lower()][0]
@@ -56,8 +57,8 @@ class Api:
                 if len(expires_word) == 0
                 else datetime.now() + timedelta(seconds=int(response_json[expires_word[0]]))
             )
+            log(f"Token {token[:10]} expires at {expires_at}")
         else:
-            log(f"Status code: {response.status_code}\nResponse:{response.content}")
             raise Exception()
 
         if self._header_type == "token":
@@ -73,6 +74,7 @@ class Api:
         """
         refresh
         """
+        self._expires_at = datetime.now()
         self._refresh_token_if_needed()
 
     def get_token(self):
