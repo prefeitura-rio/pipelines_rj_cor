@@ -454,7 +454,9 @@ def send_zip_images_api(api, api_route, zip_file_path, max_retries=5) -> dict:
 
             log(f"Send file response: {response_data}")
 
-            if response_data.get("Message") != "Invalid token":
+            if response_data == "Arquivo enviado com sucesso!":
+                break
+            elif response_data.get("Message") != "Invalid token":
                 return response_data
 
             # If the token is invalid, refresh it and retry
