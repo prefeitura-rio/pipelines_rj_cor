@@ -4,7 +4,7 @@
 """
 Tasks for setting rain dashboard using radar data.
 """
-# from datetime import timedelta
+from datetime import timedelta
 # import json
 import io
 import os
@@ -53,7 +53,7 @@ from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 
 
-@task()
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
     files_saved_redis: list = [],
@@ -121,7 +121,7 @@ def get_filenames_storage(
     return selected_files
 
 
-@task()
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def download_files_storage(
     bucket_name: str, files_to_download: list, destination_path: str
 ) -> None:
@@ -143,7 +143,7 @@ def download_files_storage(
     return files_path
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     Combine files from same radar but with different angles sweeps
@@ -161,7 +161,7 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     return combined_radar
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def get_and_format_time(radar_files: list) -> str:
     """
     Get time from first file and convert it to São Paulo timezone
@@ -218,7 +218,7 @@ def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     return grid_shape, grid_limits
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tuple) -> xr.Dataset:
     """
     Interpolate radar products data to obtain a 2D map and convert it to an xarray type
@@ -237,7 +237,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
     return radar_2d
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
@@ -302,7 +302,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
     return fig
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def img_to_base64(img):
     """Convert matplotlib fig to base64 to sent it to API"""
     log("Start converting fig to base64")
@@ -314,7 +314,7 @@ def img_to_base64(img):
     return img_base64
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def base64_to_bytes(img_base64):
     """Convert base64 to to bytes save it on redis"""
     log("Start converting base64 to bytes")
@@ -323,7 +323,7 @@ def base64_to_bytes(img_base64):
     return img_bytes
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def add_new_image(image_dict: dict, img_bytes) -> Dict:
     """
     Adding new image to dictionary after changing the name of the old ones on redis
@@ -332,7 +332,7 @@ def add_new_image(image_dict: dict, img_bytes) -> Dict:
     return image_dict
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     """
     Renaming redis keys so image_003
@@ -387,7 +387,7 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     return img_base64_dict
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     Save images in a PNG file
@@ -409,7 +409,7 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     return folder
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
     """
     Compress all images to a zip file
@@ -426,20 +426,23 @@ def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
     return zip_filename
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def save_img_on_redis(
     redis_hash: str,
     key: str,
     value: str,
+    saved_images_path: str,
 ):
     """
     Function to save a string on redis
+    saved_images_path is a parameter to force task wait it
     """
+    print(saved_images_path)
     save_str_on_redis(redis_hash, key, value)
     return True
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def send_zip_images_api(api, api_route, zip_file_path, max_retries=5) -> dict:
     """
     Send zip images to COR API, retrying up to max_retries if the token is invalid.
@@ -467,7 +470,7 @@ def send_zip_images_api(api, api_route, zip_file_path, max_retries=5) -> dict:
 
 
 # noqa E302, E303
-@task()
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
@@ -485,7 +488,7 @@ def access_api():
     return api
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def get_colorbar_title(radar_product: str):
     """
     Get colorbar title based on radar product

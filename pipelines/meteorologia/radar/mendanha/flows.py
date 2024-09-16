@@ -129,16 +129,16 @@ with Flow(
     # save_images_to_local.set_upstream(all_img_base64_dict)
 
     save_img_on_redis(
-        redis_hash, "radar_020.png", img_bytes
+        redis_hash, "radar_020.png", img_bytes, saved_images_path
     )  # esperar baixar imagens que já estão no redis
-    save_img_on_redis.set_upstream(saved_images_path)
+    # save_img_on_redis.set_upstream(saved_images_path)
 
     zip_filename = compress_to_zip("/images.zip", saved_images_path)
     # compress_to_zip.set_upstream(saved_images_path)
 
     api = access_api()
     send_zip_images_api(api, "uploadfile", zip_filename)
-    access_api.set_upstream(saved_images_path)
+    # access_api.set_upstream(saved_images_path)
     # send_zip_images_api.set_upstream(zip_filename)
     # send_zip_images_api.set_upstream(api)
 
