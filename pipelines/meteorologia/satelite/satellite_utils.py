@@ -51,23 +51,22 @@ Funções úteis no tratamento de dados de satélite
 import base64
 import datetime
 import os
+import re
 import shutil
 from pathlib import Path
-import re
 from typing import Union
-import requests
-
 
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
 import fiona
-from google.cloud import storage
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pendulum
+import requests
 import s3fs
 import xarray as xr
+from google.cloud import storage
 
 from pipelines.meteorologia.satelite.remap import remap
 from pipelines.utils.utils import get_credentials_from_env, list_blobs_with_prefix, log

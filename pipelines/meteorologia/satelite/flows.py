@@ -5,41 +5,34 @@ Flows for emd
 """
 from copy import deepcopy
 
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
-from pipelines.meteorologia.satelite.constants import (
-    constants as satelite_constants,
-)
-from pipelines.utils.constants import constants as utils_constants
-from pipelines.meteorologia.satelite.tasks import (
-    create_image_and_upload_to_api,
-    get_dates,
-    slice_data,
-    download,
-    tratar_dados,
-    save_data,
-)
-from pipelines.tasks import (
-    get_on_redis,
-    save_on_redis,
-)
+from pipelines.meteorologia.satelite.constants import constants as satelite_constants
 from pipelines.meteorologia.satelite.schedules import (
+    aod,
     cmip,
-    mcmip,
-    rrqpe,
-    tpw,
     dsi,
     lst,
+    mcmip,
+    rrqpe,
     sst,
-    aod,
+    tpw,
 )
-
+from pipelines.meteorologia.satelite.tasks import (
+    create_image_and_upload_to_api,
+    download,
+    get_dates,
+    save_data,
+    slice_data,
+    tratar_dados,
+)
+from pipelines.tasks import get_on_redis, save_on_redis
+from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.decorators import Flow
-
 from pipelines.utils.tasks import (
     create_table_and_upload_to_gcs,
     get_current_flow_labels,

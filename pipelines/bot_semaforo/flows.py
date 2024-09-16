@@ -7,14 +7,14 @@ from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 
-from pipelines.constants import constants
 from pipelines.bot_semaforo.schedules import bot_schedule
 from pipelines.bot_semaforo.tasks import (
-    get_token_and_group_id,
-    get_data,
     format_message,
+    get_data,
+    get_token_and_group_id,
     send_messages,
 )
+from pipelines.constants import constants
 from pipelines.utils.decorators import Flow
 
 with Flow(

@@ -2,20 +2,16 @@
 """
 Tasks for cor
 """
-from typing import List, Tuple
 from datetime import datetime, timedelta
+from typing import List, Tuple
 
 import basedosdados as bd
 import pandas as pd
-from prefect import task
 import pytz
+from prefect import task
 
 from pipelines.constants import constants
-from pipelines.utils.utils import (
-    get_vault_secret,
-    send_telegram_message,
-    smart_split,
-)
+from pipelines.utils.utils import get_vault_secret, send_telegram_message, smart_split
 
 
 @task(checkpoint=False, nout=2)

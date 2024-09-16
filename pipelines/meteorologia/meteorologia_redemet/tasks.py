@@ -2,25 +2,25 @@
 """
 Tasks for meteorologia_redemet
 """
-from datetime import timedelta
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Tuple, Union
-from unidecode import unidecode
 
 import pandas as pd
 import pendulum
+import requests
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
-import requests
+from unidecode import unidecode
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
     get_vault_secret,
     log,
-    to_partitions,
     parse_date_columns,
+    to_partitions,
 )
 
 
