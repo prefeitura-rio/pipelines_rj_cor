@@ -82,8 +82,9 @@ class Api:
         get token
         """
         self._refresh_token_if_needed()
-
-        return self._headers["Authorization"].split(" ")[1]
+        if "Authorization" in self._headers.keys():
+            return self._headers["Authorization"].split(" ")[1]
+        return self._headers["token"]
 
     def expires_at(self):
         """
