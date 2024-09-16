@@ -9,8 +9,24 @@ python = ">=3.10,<3.11"
 dbt-bigquery = "^1.6.1"
 google-cloud-storage = "^2.10.0"
 prefect = "1.4.1"
-prefeitura-rio = "1.0.0rc1"
-
+python-telegram-bot = "^21.4"
+redis-pal = "^1.0.0"
+bs4 = "^0.0.2"
+unidecode = "^1.3.8"
+pandas-read-xml = "^0.3.1"
+netcdf4 = "^1.7.1.post2"
+fiona = "^1.9.6"
+s3fs = "^2024.6.1"
+xarray = "^2024.7.0"
+matplotlib = "^3.9.2"
+cartopy = "^0.23.0"
+prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "40c691212ed302c8e595d1932118dfbb8df439f2", branch = "feat/reimplement-templates", extras = [
+    "pipelines",
+    "pipelines-templates",
+] }
+pandas = "^2.2.2"
+arm-pyart = "^1.19.0"
+contextily = "^1.6.2"
 
 [tool.poetry.group.dev]
 optional = true
@@ -41,6 +57,15 @@ profile = "black"
 
 [tool.taskipy.tasks]
 lint = "black . && isort . && flake8 ."
+
+[[package]]
+name = "basedosdados"
+version = "2.0.0-beta.21"
+description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
+optional = false
+python-versions = ">=3.8.1,<4"
+files = []
+develop = false
 
 [build-system]
 requires = ["poetry-core"]
