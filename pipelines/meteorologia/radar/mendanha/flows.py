@@ -19,20 +19,29 @@ from pipelines.constants import constants
 # from pipelines.tasks import task_get_redis_client
 from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.tasks import (
-from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
-from pipelines.meteorologia.radar.mendanha.tasks import (  # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+    pipelines.meteorologia.radar.mendanha.(
+    tasks,  # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+)
+)
+from pipelines.meteorologia.radar.mendanha.tasks import (
     access_api,
     add_new_image,
     base64_to_bytes,
     combine_radar_files,
     compress_to_zip,
+)
+from pipelines.meteorologia.radar.mendanha.tasks import constants as radar_constants
+from pipelines.meteorologia.radar.mendanha.tasks import (
     create_visualization_no_background,
     download_files_storage,
+    from,
     get_and_format_time,
     get_colorbar_title,
     get_filenames_storage,
     get_radar_parameters,
     img_to_base64,
+    import,
+    pipelines.meteorologia.radar.mendanha.constants,
     remap_data,
     rename_keys_redis,
     save_images_to_local,

@@ -51,8 +51,6 @@ from pipelines.utils_rj_cor import (
 # from pyart.map import grid_from_radars
 
 
-
-
 @task(max_retries=3, retry_delay=timedelta(seconds=10))
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
