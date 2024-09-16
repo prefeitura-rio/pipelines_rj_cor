@@ -24,7 +24,7 @@ from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_cred
 from pipelines.constants import constants
 
 # from pipelines.tasks import task_get_redis_client
-# from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
+from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.constants import (
     constants as radar_constants,
 )
@@ -183,4 +183,4 @@ cor_meteorologia_refletividade_radar_flow.run_config = KubernetesRun(
     memory_limit="3Gi",
 )
 
-# cor_meteorologia_refletividade_radar_flow.schedule = TIME_SCHEDULE
+cor_meteorologia_refletividade_radar_flow.schedule = TIME_SCHEDULE
