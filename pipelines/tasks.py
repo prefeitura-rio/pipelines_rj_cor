@@ -6,7 +6,6 @@ Common  Tasks for rj-cor
 
 from prefect import task
 from prefect.triggers import all_successful
-
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 

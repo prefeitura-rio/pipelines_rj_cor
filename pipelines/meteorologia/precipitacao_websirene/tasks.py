@@ -4,19 +4,19 @@ Tasks for precipitacao_alertario
 """
 from datetime import timedelta
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import pandas as pd
+import pandas_read_xml as pdx
 import pendulum
 from prefect import task
-import pandas_read_xml as pdx
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
     log,
-    to_partitions,
     parse_date_columns,
     save_updated_rows_on_redis,
+    to_partitions,
 )
 
 

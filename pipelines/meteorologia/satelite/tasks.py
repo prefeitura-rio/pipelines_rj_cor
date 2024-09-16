@@ -17,8 +17,8 @@ from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
 
 from pipelines.meteorologia.satelite.satellite_utils import (
-    create_and_save_image,
     choose_file_to_download,
+    create_and_save_image,
     download_blob,
     extract_julian_day_and_hour_from_filename,
     get_files_from_aws,
