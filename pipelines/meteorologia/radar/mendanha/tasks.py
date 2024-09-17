@@ -93,12 +93,12 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     files_saved_redis = {"filenames": []} if len(files_saved_redis) == 0 else files_saved_redis
 
     if last_file_vol_a in files_saved_redis["filenames"]:
-        files_to_save_redis = files_saved_redis
         message = f"Last file {last_file_vol_a} already on redis. Ending run"
         log(message)
         raise ENDRUN(state=Skipped(message))
 
-    files_to_save_redis["filenames"] = files_saved_redis["filenames"] + [last_file_vol_a]
+    files_saved_redis["filenames"].append(last_file_vol_a)
+    files_to_save_redis = files_saved_redis
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
