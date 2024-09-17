@@ -7,12 +7,12 @@ Flows for setting rain dashboard using radar data.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
-
 from prefeitura_rio.pipelines_utils.custom import Flow
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
 from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
+
 # from pipelines.tasks import task_get_redis_client
 from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.tasks import (  # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
@@ -43,7 +43,6 @@ from pipelines.utils_rj_cor import build_redis_key
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
 
 
 # from pipelines.tasks import (
