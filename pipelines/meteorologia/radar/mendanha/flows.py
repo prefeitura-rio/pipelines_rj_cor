@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: E501
-# pylint: disable=C0103
+# pylint: disable=C0103, C0301
 """
 Flows for setting rain dashboard using radar data.
 """
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
-
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../prefeitura-rio")))
-# # sys.path.insert(0, '/home/patricia/Documentos/escritorio_dados/prefeitura-rio/prefeitura-rio')
-# print("sys.path:", sys.path)
-from prefeitura_rio.pipelines_utils.custom import Flow
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
+from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
+    constants as radar_constants,
+)
 
 # from pipelines.tasks import task_get_redis_client
-# from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
-from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
-from pipelines.meteorologia.radar.mendanha.tasks import (  # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
+    TIME_SCHEDULE,
+)
+from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_new_image,
     base64_to_bytes,
@@ -38,23 +38,16 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # create_visualizatio
     save_img_on_redis,
     send_zip_images_api,
 )
-from pipelines.utils_rj_cor import build_redis_key
 
-# # Adiciona o diretório `/algum/diretorio/` ao sys.path
-# import os, sys  # noqa
-
+# create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+from pipelines.utils_rj_cor import build_redis_key  # pylint: disable=E0611, E0401
 
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
-
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
-
-
 # from pipelines.tasks import (
 #     get_on_redis,
 #     save_on_redis,
 # )
-
 # from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
 
@@ -65,6 +58,7 @@ with Flow(
     parallelism=100,
     # skip_if_running=True,
 ) as cor_meteorologia_refletividade_radar_flow:
+
     # Prefect Parameters
     MODE = Parameter("mode", default="prod")
     RADAR_NAME = Parameter("radar_name", default="men")
@@ -96,10 +90,6 @@ with Flow(
     combined_radar = combine_radar_files(radar_files)
     grid_shape, grid_limits = get_radar_parameters(combined_radar)
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
-    # download_files_storage.set_upstream(files_on_storage_list)
-    # combine_radar_files.set_upstream(radar_files)
-    # get_radar_parameters.set_upstream(combined_radar)
-    # remap_data.set_upstream(grid_shape)
 
     # Create visualizations
     formatted_time = get_and_format_time(radar_files)
@@ -107,12 +97,9 @@ with Flow(
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
     )
-    # create_visualization_no_background.set_upstream(radar_2d)
 
     img_base64 = img_to_base64(fig)
     img_bytes = base64_to_bytes(img_base64)
-    # img_to_base64.set_upstream(fig)
-    # base64_to_bytes.set_upstream(img_base64)
 
     # update the name of images that are already on redis and save them as png
     redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
@@ -120,23 +107,15 @@ with Flow(
     all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
     saved_images_path = save_images_to_local(all_img_base64_dict, folder="images")
 
-    # rename_keys_redis.set_upstream(img_bytes)
-    # add_new_image.set_upstream(img_base64_dict)
-    # save_images_to_local.set_upstream(all_img_base64_dict)
-
     save_img_on_redis(
         redis_hash, "radar_020.png", img_bytes, saved_images_path
     )  # esperar baixar imagens que já estão no redis
     # save_img_on_redis.set_upstream(saved_images_path)
 
     zip_filename = compress_to_zip("/images.zip", saved_images_path)
-    # compress_to_zip.set_upstream(saved_images_path)
 
     api = access_api()
     send_zip_images_api(api, "uploadfile", zip_filename)
-    # access_api.set_upstream(saved_images_path)
-    # send_zip_images_api.set_upstream(zip_filename)
-    # send_zip_images_api.set_upstream(api)
 
     # fig_with_backgroud = create_visualization_with_background(
     #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
@@ -179,4 +158,4 @@ cor_meteorologia_refletividade_radar_flow.run_config = KubernetesRun(
     memory_limit="3Gi",
 )
 
-# cor_meteorologia_refletividade_radar_flow.schedule = TIME_SCHEDULE
+cor_meteorologia_refletividade_radar_flow.schedule = TIME_SCHEDULE
