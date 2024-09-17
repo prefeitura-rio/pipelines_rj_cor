@@ -81,7 +81,7 @@ with Flow(
     # redis_port = Parameter("redis_port", default=6379)
     # redis_db = Parameter("redis_db", default=1)
 
-    redis_client = task_get_redis_client()
+    redis_client = task_get_redis_client(infisical_secrets_path="/redis")
     redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
     files_saved_redis = task_get_redis_output(redis_client, redis_hash=redis_hash, key="processed")
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
