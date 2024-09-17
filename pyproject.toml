@@ -5,7 +5,7 @@ description = ""
 authors = ["Gabriel Gazola Milan <gabriel.gazola@poli.ufrj.br>"]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = ">=3.9,<3.11"
 dbt-bigquery = "^1.6.1"
 google-cloud-storage = "^2.10.0"
 prefect = "1.4.1"
@@ -20,13 +20,14 @@ s3fs = "^2024.6.1"
 xarray = "^2024.7.0"
 matplotlib = "^3.9.2"
 cartopy = "^0.23.0"
-prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "40c691212ed302c8e595d1932118dfbb8df439f2", branch = "feat/reimplement-templates", extras = [
+prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "d9daa9f932c99f87693c83969fdd6127fa6129e9", branch = "feat/reimplement-templates", extras = [
     "pipelines",
     "pipelines-templates",
 ] }
-pandas = "^2.2.2"
-arm-pyart = "^1.19.0"
-contextily = "^1.6.2"
+openpyxl = "^3.1.5"
+arm-pyart = "^1.19.1"
+gdal = {url = "https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl"}
+numpy = "<2"
 
 [tool.poetry.group.dev]
 optional = true

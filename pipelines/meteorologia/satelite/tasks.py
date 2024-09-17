@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=W0102, W0613, R0913, R0914, R0915
+# flake8: noqa: E501
 """
 Tasks for emd
 """
@@ -8,27 +9,32 @@ import datetime as dt
 import os
 import re
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import pandas as pd
 import pendulum
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
+from prefeitura_rio.pipelines_utils.logging import log
+from prefeitura_rio.pipelines_utils.pandas import (
+    to_partitions,  # pylint: disable=E0611, E0401
+)
 
-from pipelines.meteorologia.satelite.satellite_utils import (
+from pipelines.meteorologia.satelite.satellite_utils import (  # create_and_save_image,; upload_image_to_api,
     choose_file_to_download,
-    create_and_save_image,
     download_blob,
     extract_julian_day_and_hour_from_filename,
     get_files_from_aws,
     get_files_from_gcp,
     get_info,
+    get_point_value,
     get_variable_values,
     remap_g16,
     save_data_in_file,
 )
-from pipelines.utils.utils import log
+
+# import requests
 
 
 @task()
@@ -212,27 +218,105 @@ def save_data(info: dict, mode_redis: str = "prod") -> Union[str, Path]:
     return output_path, output_filepath
 
 
-@task
-def create_image_and_upload_to_api(info: dict, output_filepath: Path):
+@task()
+def generate_point_value(info: dict, output_filepath: Path) -> List:
     """
-    Create image from dataframe and send it to API
+    Get the value of a point on the image.
     """
 
+    br_time = pendulum.from_format(info["datetime_save"], "YYYYMMDD HHmmss", tz="America/Sao_Paulo")
+    formatted_time = br_time.format("YYYY-MM-DD HH:mm:ss")
+    log(f"DEBUG info: {info}")
     dfr = pd.read_csv(output_filepath)
-
     dfr = dfr.sort_values(by=["latitude", "longitude"], ascending=[False, True])
 
-    for var in info["variable"]:
-        log(f"\nStart creating image for variable {var}\n")
+    df_point_values = pd.DataFrame(
+        columns=["produto_satelite", "data_medicao", "metrica", "valor", "latitude", "longitude"]
+    )
+
+    for i, var in enumerate(info["variable"]):
+        log(f"\nStart getting point value for variable {var}\n")
 
         var = var.lower()
         data_array = get_variable_values(dfr, var)
+        point_value, lat_lon = get_point_value(data_array)
+        df_point_values.loc[i] = [var, formatted_time, "Ponto", point_value, lat_lon[0], lat_lon[1]]
+        log(f"DEBUG df_point_values: {df_point_values.head()}")
+        log(f"DEBUG df_point_values: {df_point_values.iloc[i]}")
 
-        # Get the pixel values
-        data = data_array.data[:]
-        log(f"\n[DEBUG] data {data}")
-        save_image_path = create_and_save_image(data, info, var)
-        log(f"\nStart uploading image for variable {var} on API\n")
-        # upload_image_to_api(info, save_image_path)
-        log(save_image_path)
-        log(f"\nEnd uploading image for variable {var} on API\n")
+    return df_point_values
+
+
+@task
+def create_partitions(
+    data: pd.DataFrame,
+    partition_columns: List[str],
+    savepath: str = "temp",
+    data_type: str = "csv",
+    suffix: str = None,
+    build_json_dataframe: bool = False,
+    dataframe_key_column: str = None,
+) -> List[Path]:  # sourcery skip: raise-specific-error
+    """
+    Create task for to_partitions
+    """
+
+    saved_files = to_partitions(
+        data=data,
+        partition_columns=partition_columns,
+        savepath=savepath,
+        data_type=data_type,
+        suffix=suffix,
+        build_json_dataframe=build_json_dataframe,
+        dataframe_key_column=dataframe_key_column,
+    )
+    return saved_files
+
+
+# def create_image_and_upload_to_api(info: dict, output_filepath: Path):
+#     """
+#     Create image from dataframe, get the value of a point on the image and send these to API.
+#     """
+
+#     dfr = pd.read_csv(output_filepath)
+
+#         var = var.lower()
+#         data_array = get_variable_values(dfr, var)
+#         point_value = get_point_value(data_array)
+
+#         # Get the pixel values
+#         data = data_array.data[:]
+#         log(f"\n[DEBUG] {var} data \n{data}")
+#         log(f"\nmax value: {data.max()} min value: {data.min()}")
+#         save_image_path = create_and_save_image(data, info, var)
+
+#         log(f"\nStart uploading image for variable {var} on API\n")
+#         # upload_image_to_api(var, save_image_path, point_value)
+#         var = "cp" if var == "cape" else var
+
+#         log("Getting API url")
+#         url_secret = get_vault_secret("rionowcast")["data"]
+#         log(f"urlsecret1 {url_secret}")
+#         url_secret = url_secret["url_api_satellite_products"]
+#         log(f"urlsecret2 {url_secret}")
+#         api_url = f"{url_secret}/{var.lower()}"
+#         log(
+#             f"\n Sending image {save_image_path} to API: {api_url} with value {point_value}\n"
+#         )
+
+#         payload = {"value": point_value}
+
+#         # Convert from Path to string
+#         save_image_path = str(save_image_path)
+
+#         with open(save_image_path, "rb") as image_file:
+#             files = {"image": (save_image_path, image_file, "image/jpeg")}
+#             response = requests.post(api_url, data=payload, files=files)
+
+#         if response.status_code == 200:
+#             log("Finished the request successful!")
+#             log(response.json())
+#         else:
+#             log(f"Error: {response.status_code}, {response.text}")
+#         log(save_image_path)
+#         log(f"\nEnd uploading image for variable {var} on API\n")
