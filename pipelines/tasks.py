@@ -6,9 +6,49 @@ Common  Tasks for rj-cor
 
 from prefect import task
 from prefect.triggers import all_successful
+from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
-from pipelines.utils.utils import get_redis_client
 from pipelines.utils_rj_cor import build_redis_key
+
+# from pipelines.utils.utils import get_redis_client
+# from redis_pal import RedisPal
+
+
+@task(checkpoint=False)
+def task_get_redis_client(
+    infisical_host_env: str = "REDIS_HOST",
+    infisical_port_env: str = "REDIS_PORT",
+    infisical_db_env: str = "REDIS_DB",
+    infisical_password_env: str = "REDIS_PASSWORD",
+    infisical_secrets_path: str = "/",
+):
+    """
+    Gets a Redis client.
+
+    Args:
+        infisical_host_env: The environment variable for the Redis host.
+        infisical_port_env: The environment variable for the Redis port.
+        infisical_db_env: The environment variable for the Redis database.
+        infisical_password_env: The environment variable for the Redis password.
+
+    Returns:
+        The Redis client.
+    """
+    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
+    redis_port = int(
+        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
+    )
+    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
+    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
+        infisical_password_env
+    ]
+    return get_redis_client(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db,
+        password=redis_password,
+    )
 
 
 @task

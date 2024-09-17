@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103, C0302
-# noqa: E203
+# flake8: noqa: E303
 """
 General utilities for all pipelines.
 """
@@ -25,7 +25,7 @@ import pandas as pd
 import pendulum
 import prefect
 import requests
-import telegram
+# import telegram
 from google.cloud import storage
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
@@ -34,7 +34,8 @@ from prefect.engine.state import Skipped, State
 from prefect.run_configs import KubernetesRun
 from prefect.utilities.graphql import with_args
 from prefeitura_rio.pipelines_utils.infisical import get_secret
-from redis_pal import RedisPal
+# from redis_pal import RedisPal
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
 from pipelines.constants import constants
 
@@ -101,21 +102,21 @@ def determine_whether_to_execute_or_not(
 ###############
 
 
-def get_redis_client(
-    host: str = "redis.redis.svc.cluster.local",
-    port: int = 6379,
-    db: int = 0,  # pylint: disable=C0103
-    password: str = None,
-) -> RedisPal:
-    """
-    Returns a Redis client.
-    """
-    return RedisPal(
-        host=host,
-        port=port,
-        db=db,
-        password=password,
-    )
+# def get_redis_client(
+#     host: str = constants.REDIS_HOST,
+#     port: int = constants.REDIS_PORT,
+#     db: int = constants.REDIS_DB,
+#     password: str = constants.REDIS_PASSWORD,
+# ) -> RedisPal:
+#     """
+#     Returns a Redis client.
+#     """
+#     return RedisPal(
+#         host=host,
+#         port=port,
+#         db=db,
+#         password=password,
+#     )
 
 
 def get_vault_client() -> hvac.Client:
@@ -364,21 +365,21 @@ def send_discord_message(
     )
 
 
-def send_telegram_message(
-    message: str,
-    token: str,
-    chat_id: int,
-    parse_mode: str = telegram.constants.ParseMode.HTML,
-):
-    """
-    Sends a message to a Telegram chat.
-    """
-    bot = telegram.Bot(token=token)
-    bot.send_message(
-        chat_id=chat_id,
-        text=message,
-        parse_mode=parse_mode,
-    )
+# def send_telegram_message(
+#     message: str,
+#     token: str,
+#     chat_id: int,
+#     parse_mode: str = telegram.constants.ParseMode.HTML,
+# ):
+#     """
+#     Sends a message to a Telegram chat.
+#     """
+#     bot = telegram.Bot(token=token)
+#     bot.send_message(
+#         chat_id=chat_id,
+#         text=message,
+#         parse_mode=parse_mode,
+#     )
 
 
 def smart_split(
@@ -916,7 +917,7 @@ def build_redis_key(dataset_id: str, table_id: str, name: str = None, mode: str 
 
 
 def save_str_on_redis(
-    redis_key: str,
+    redis_hash: str,
     key: str,
     value: str,
 ):
@@ -925,7 +926,7 @@ def save_str_on_redis(
     """
 
     redis_client = get_redis_client()
-    redis_client.hset(redis_key, key, value)
+    redis_client.hset(redis_hash, key, value)
 
 
 def get_redis_output(redis_key):
@@ -945,6 +946,8 @@ def treat_redis_output(text):
     Redis returns a dict where both key and value are byte string
     Example: {b'date': b'2023-02-27 07:29:04'}
     """
+    if isinstance(list(text.keys())[0], bytes):
+        return {k.decode("utf-8"): v for k, v in text.items()}
     return {k.decode("utf-8"): v.decode("utf-8") for k, v in text.items()}
 
 
