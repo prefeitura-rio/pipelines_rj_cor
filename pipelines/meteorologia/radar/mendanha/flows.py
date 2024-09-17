@@ -39,9 +39,6 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     send_zip_images_api,
 )
 
-# create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
-# from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
-
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from pipelines.tasks import (
@@ -50,6 +47,10 @@ from pipelines.tasks import (
     task_get_redis_output,
     task_save_list_on_redis,
 )
+
+# create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+# from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
+
 
 # from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
