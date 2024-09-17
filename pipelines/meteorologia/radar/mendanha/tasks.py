@@ -28,7 +28,7 @@ from google.cloud import storage
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Failed  # Skipped
+from prefect.engine.state import Failed, Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
@@ -55,7 +55,7 @@ from pipelines.utils_rj_cor import (
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
     files_saved_redis: list = [],
-) -> List:
+) -> Union[List, List]:
     """Esc
     Volumes vol_c and vol_d need's almost 3 minutes to be generated after vol_a.
     We will wait 5 minutes to continue pipeline or stop flow
@@ -90,6 +90,13 @@ def get_filenames_storage(
 
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
+    if last_file_vol_a in files_saved_redis:
+        files_to_save_redis = files_saved_redis
+        message = f"Last file {last_file_vol_a} already on redis. Ending run"
+        log(message)
+        raise ENDRUN(state=Skipped(message))
+    
+    files_to_save_redis = files_saved_redis + [last_file_vol_a]
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
@@ -116,7 +123,7 @@ def get_filenames_storage(
             raise ENDRUN(state=Failed(message))
 
     log(f"Selected files on scp: {selected_files}")
-    return selected_files
+    return selected_files, files_to_save_redis
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=10))
@@ -236,7 +243,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
-def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):
+def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=too-many-locals
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
@@ -246,7 +253,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
 
     proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(
+    fig, ax = plt.subplots(  # pylint: disable=invalid-name
         figsize=(10, 10), subplot_kw={"projection": proj}
     )  # pylint: disable=C0103
     ax.set_aspect("auto")
@@ -496,7 +503,7 @@ def get_colorbar_title(radar_product: str):
 
 
 # @task
-# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line--too--long
+# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line-too-long
 #     """
 #     Plot radar 2D data over Rio de Janeiro's map using the same
 #     color as they used before on colorbar

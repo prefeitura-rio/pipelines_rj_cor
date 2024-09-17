@@ -40,14 +40,17 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
 )
 
 # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
-from pipelines.utils_rj_cor import build_redis_key  # pylint: disable=E0611, E0401
+# from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
 
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-# from pipelines.tasks import (
-#     get_on_redis,
-#     save_on_redis,
-# )
+from pipelines.tasks import (
+    task_build_redis_hash,
+    task_get_redis_client,
+    task_get_redis_output,
+    task_save_list_on_redis,
+)
+
 # from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
 
@@ -78,8 +81,13 @@ with Flow(
     # redis_port = Parameter("redis_port", default=6379)
     # redis_db = Parameter("redis_db", default=1)
 
+    redis_client = task_get_redis_client()
+    redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
+    files_saved_redis = task_get_redis_output(redis_client, redis_hash=redis_hash, key="processed")
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
-    files_on_storage_list = get_filenames_storage(BUCKET_NAME, files_saved_redis=[])
+    files_on_storage_list, files_to_save_redis = get_filenames_storage(
+        BUCKET_NAME, files_saved_redis=files_saved_redis
+    )
 
     radar_files = download_files_storage(
         bucket_name=BUCKET_NAME,
@@ -102,7 +110,6 @@ with Flow(
     img_bytes = base64_to_bytes(img_base64)
 
     # update the name of images that are already on redis and save them as png
-    redis_hash = build_redis_key(DATASET_ID, TABLE_ID, name="images", mode=MODE)
     img_base64_dict = rename_keys_redis(redis_hash, img_bytes)
     all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
     saved_images_path = save_images_to_local(all_img_base64_dict, folder="images")
@@ -136,15 +143,14 @@ with Flow(
     #     source_file_name=source_file_name,
     # )
 
-    # # Save new filenames on redis
-    # save_last_update_redis = save_on_redis(
-    #     DATASET_ID,
-    #     TABLE_ID,
-    #     MODE,
-    #     files_on_storage_list,
-    #     keep_last=3,
-    #     # wait=upload_table,
-    # )
+    # Save new filenames on redis
+    save_last_update_redis = task_save_list_on_redis(
+        redis_client=redis_client,
+        key=redis_hash,
+        files=files_to_save_redis,
+        keep_last=30,
+        # wait=upload_table,
+    )
     # save_last_update_redis.set_upstream(upload_table)
 
 
