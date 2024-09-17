@@ -51,7 +51,7 @@ from pipelines.utils_rj_cor import (
 # from pyart.map import grid_from_radars
 
 
-@task(max_retries=3, retry_delay=timedelta(seconds=10))
+@task(nout=2, max_retries=3, retry_delay=timedelta(seconds=10))
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
     files_saved_redis: list = [],
@@ -95,7 +95,7 @@ def get_filenames_storage(
         message = f"Last file {last_file_vol_a} already on redis. Ending run"
         log(message)
         raise ENDRUN(state=Skipped(message))
-    
+
     files_to_save_redis = files_saved_redis + [last_file_vol_a]
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
@@ -243,7 +243,9 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
-def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=too-many-locals
+def create_visualization_no_background(
+    radar_2d, radar_product: str, cbar_title: str, title: str
+):  # pylint: disable=too-many-locals
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
