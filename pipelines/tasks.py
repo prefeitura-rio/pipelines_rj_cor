@@ -10,7 +10,9 @@ import pandas as pd
 from prefect import task
 from prefect.triggers import all_successful
 from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.redis_pal import (
+    get_redis_client,
+)  # pylint: disable=E0611, E0401
 
 from pipelines.utils.utils import log
 from pipelines.utils_rj_cor import treat_redis_output
@@ -92,7 +94,7 @@ def task_build_redis_hash(dataset_id: str, table_id: str, name: str = None, mode
 def task_get_redis_output(
     redis_client,
     redis_hash: str = None,
-    key: str = None,
+    redis_key: str = None,
     treat_output: bool = True,
     is_df: bool = False,
 ):
@@ -112,11 +114,11 @@ def task_get_redis_output(
 
         return pd.DataFrame()
 
-    if redis_hash and key:
-        output = redis_client.hget(redis_hash, key)
+    if redis_hash and redis_key:
+        output = redis_client.hget(redis_hash, redis_key)
         log(f"Output from redis {type(output)}\n{output}")
-    elif key:
-        output = redis_client.get(key)
+    elif redis_key:
+        output = redis_client.get(redis_key)
         output = list(set(output))
         output.sort()
     else:
@@ -132,21 +134,26 @@ def task_get_redis_output(
 
 
 @task(trigger=all_successful)
-def task_save_list_on_redis(
+def task_save_on_redis(
     redis_client,
+    values,
     redis_hash: str = None,
     redis_key: str = None,
-    files: list = [],
     keep_last: int = 50,
     wait=None,
 ) -> None:
     """
-    Set the last updated time on Redis.
+    Save values on redis. If values are a list, order ir and keep only last names.
     """
-    if isinstance(files, list):
-        files = list(set(files))
-        files.sort()
-        files = files[-keep_last:]
-    log(f"Saving files {files} on redis {hash} {redis_key}")
-    # TODO: adicinar quando tiver hash tb
-    redis_client.set(redis_key, files)
+
+    if isinstance(values, list):
+        values = list(set(values))
+        values.sort()
+        values = values[-keep_last:]
+    log(f"Saving files {values} on redis {redis_hash} {redis_key}")
+
+    if redis_hash and redis_key:
+        redis_client.hset(redis_hash, redis_key, values)
+    if not redis_hash:
+        redis_client.set(redis_key, values)
+    log(f"Saved to Redis hash: {redis_hash}, key: {redis_key}, value: {values}")

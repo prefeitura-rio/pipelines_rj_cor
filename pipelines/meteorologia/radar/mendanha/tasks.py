@@ -34,14 +34,14 @@ from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.utils import (  # list_all_directories,
+from pipelines.meteorologia.radar.mendanha.utils import (  # pylint: disable=E0611, E0401
     create_colormap,
     extract_timestamp,
     open_radar_file,
     save_image_to_local,
 )
-from pipelines.utils_api import Api
-from pipelines.utils_rj_cor import (
+from pipelines.utils_api import Api  # pylint: disable=E0611, E0401
+from pipelines.utils_rj_cor import (  # pylint: disable=E0611, E0401
     download_blob,
     get_redis_output,
     list_files_storage,
@@ -52,10 +52,10 @@ from pipelines.utils_rj_cor import (
 
 
 @task(nout=2, max_retries=3, retry_delay=timedelta(seconds=10))
-def get_filenames_storage(
+def get_filenames_storage(  # pylint: disable=too-many-locals
     bucket_name: str = "rj-escritorio-scp",
-    files_saved_redis: list = [],
-) -> Union[List, List]:
+    files_saved_redis: dict = {},
+) -> Union[List, Dict]:
     """Esc
     Volumes vol_c and vol_d need's almost 3 minutes to be generated after vol_a.
     We will wait 5 minutes to continue pipeline or stop flow
@@ -90,13 +90,15 @@ def get_filenames_storage(
 
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
-    if last_file_vol_a in files_saved_redis:
+    files_saved_redis = {"filenames": []} if len(files_saved_redis) == 0 else files_saved_redis
+
+    if last_file_vol_a in files_saved_redis["filenames"]:
         files_to_save_redis = files_saved_redis
         message = f"Last file {last_file_vol_a} already on redis. Ending run"
         log(message)
         raise ENDRUN(state=Skipped(message))
 
-    files_to_save_redis = files_saved_redis + [last_file_vol_a]
+    files_to_save_redis["filenames"] = files_saved_redis["filenames"] + [last_file_vol_a]
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
@@ -483,9 +485,9 @@ def access_api():
     Acess api and return it to be used in other requests
     """
     log("Start accessing API")
-    infisical_url = constants.INFISICAL_URL.value
-    infisical_username = constants.INFISICAL_USERNAME.value
-    infisical_password = constants.INFISICAL_PASSWORD.value
+    infisical_url = constants.INFISICAL_URL.value  # pylint: disable=E1101
+    infisical_username = constants.INFISICAL_USERNAME.value  # pylint: disable=E1101
+    infisical_password = constants.INFISICAL_PASSWORD.value  # pylint: disable=E1101
 
     base_url = get_secret(infisical_url, path="/api_radar_mendanha")[infisical_url]
     username = get_secret(infisical_username, path="/api_radar_mendanha")[infisical_username]

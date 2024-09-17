@@ -45,7 +45,7 @@ from pipelines.tasks import (
     task_build_redis_hash,
     task_get_redis_client,
     task_get_redis_output,
-    task_save_list_on_redis,
+    task_save_on_redis,
 )
 
 # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
@@ -84,7 +84,9 @@ with Flow(
 
     redis_client = task_get_redis_client(infisical_secrets_path="/redis")
     redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
-    files_saved_redis = task_get_redis_output(redis_client, redis_hash=redis_hash, key="processed")
+    files_saved_redis = task_get_redis_output(
+        redis_client, redis_hash=redis_hash, redis_key="processed"
+    )
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
     files_on_storage_list, files_to_save_redis = get_filenames_storage(
         BUCKET_NAME, files_saved_redis=files_saved_redis
@@ -145,10 +147,11 @@ with Flow(
     # )
 
     # Save new filenames on redis
-    save_last_update_redis = task_save_list_on_redis(
+    save_last_update_redis = task_save_on_redis(
         redis_client=redis_client,
-        redis_key=redis_hash,
-        files=files_to_save_redis,
+        values=files_to_save_redis,
+        redis_hash=redis_hash,
+        redis_key="processed",
         keep_last=30,
         # wait=upload_table,
     )
