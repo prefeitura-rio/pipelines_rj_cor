@@ -7,19 +7,18 @@ Flows for setting rain dashboard using radar data.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
-
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
 from pipelines.meteorologia.radar.mendanha.constants import (
-    constants as radar_constants,
-)  # pylint: disable=E0611, E0401
+    constants as radar_constants,  # pylint: disable=E0611, E0401
+)
 
 # from pipelines.tasks import task_get_redis_client
-from pipelines.meteorologia.radar.mendanha.schedules import (
+from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
     TIME_SCHEDULE,
-)  # pylint: disable=E0611, E0401
+)
 from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_new_image,
