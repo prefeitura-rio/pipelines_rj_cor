@@ -10,7 +10,7 @@ import pandas as pd
 from prefect import task
 from prefect.triggers import all_successful
 from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client  # pylint: disable=E0611, E0401
 
 from pipelines.utils.utils import log
 from pipelines.utils_rj_cor import treat_redis_output
@@ -114,13 +114,17 @@ def task_get_redis_output(
 
     if redis_hash and key:
         output = redis_client.hget(redis_hash, key)
+        log(f"Output from redis {type(output)}\n{output}")
     elif key:
         output = redis_client.get(key)
-        output = [] if output is None else output
         output = list(set(output))
         output.sort()
     else:
         output = redis_client.hgetall(redis_hash)
+
+    if not output:
+        output = [] if not redis_hash else {}
+
     if len(output) > 0 and treat_output:
         output = treat_redis_output(output)
     log(f"Output from redis {type(output)}\n{output}")
