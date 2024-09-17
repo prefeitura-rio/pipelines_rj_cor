@@ -49,7 +49,6 @@ from pipelines.utils_rj_cor import build_redis_key
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 
-
 # from pipelines.tasks import (
 #     get_on_redis,
 #     save_on_redis,

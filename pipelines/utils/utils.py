@@ -25,6 +25,7 @@ import pandas as pd
 import pendulum
 import prefect
 import requests
+
 # import telegram
 from google.cloud import storage
 from google.cloud.storage.blob import Blob
@@ -34,6 +35,7 @@ from prefect.engine.state import Skipped, State
 from prefect.run_configs import KubernetesRun
 from prefect.utilities.graphql import with_args
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+
 # from redis_pal import RedisPal
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
