@@ -59,12 +59,12 @@ def task_build_redis_hash(dataset_id: str, table_id: str, name: str = None, mode
     """
     Helper function for building a key to redis
     """
-    hash = dataset_id + "." + table_id
+    redis_hash = dataset_id + "." + table_id
     if name:
-        hash = hash + "." + name
+        redis_hash = redis_hash + "." + name
     if mode == "dev":
-        hash = f"{mode}.{hash}"
-    return hash
+        redis_hash = f"{mode}.{redis_hash}"
+    return redis_hash
 
 
 # @task
@@ -88,7 +88,13 @@ def task_build_redis_hash(dataset_id: str, table_id: str, name: str = None, mode
 
 
 @task
-def task_get_redis_output(redis_client, redis_hash: str = None, key: str = None, treat_output: bool = True, is_df: bool = False):
+def task_get_redis_output(
+    redis_client,
+    redis_hash: str = None,
+    key: str = None,
+    treat_output: bool = True,
+    is_df: bool = False,
+):
     """
     Get Redis output. Use get to obtain a df from redis or hgetall if is a key value pair.
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
@@ -123,8 +129,8 @@ def task_get_redis_output(redis_client, redis_hash: str = None, key: str = None,
 @task(trigger=all_successful)
 def task_save_list_on_redis(
     redis_client,
-    hash: str = None,
-    key: str = None,
+    redis_hash: str = None,
+    redis_key: str = None,
     files: list = [],
     keep_last: int = 50,
     wait=None,
@@ -132,10 +138,10 @@ def task_save_list_on_redis(
     """
     Set the last updated time on Redis.
     """
-    if type(files) == list:
+    if isinstance(files, list):
         files = list(set(files))
         files.sort()
         files = files[-keep_last:]
-    log(f"Saving files {files} on redis {hash} {key}")
+    log(f"Saving files {files} on redis {hash} {redis_key}")
     # TODO: adicinar quando tiver hash tb
-    redis_client.set(key, files)
+    redis_client.set(redis_key, files)
