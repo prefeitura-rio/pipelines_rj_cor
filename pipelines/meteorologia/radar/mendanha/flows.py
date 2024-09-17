@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: E501
-# pylint: disable=C0103
+# pylint: disable=C0103, C0301
 """
 Flows for setting rain dashboard using radar data.
 """
@@ -8,14 +8,11 @@ from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../prefeitura-rio")))
-# # sys.path.insert(0, '/home/patricia/Documentos/escritorio_dados/prefeitura-rio/prefeitura-rio')
-# print("sys.path:", sys.path)
 from prefeitura_rio.pipelines_utils.custom import Flow
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-
+from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
 # from pipelines.tasks import task_get_redis_client
 from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.tasks import (  # create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
