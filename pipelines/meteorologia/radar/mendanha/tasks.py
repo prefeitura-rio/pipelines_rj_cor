@@ -51,8 +51,6 @@ from pipelines.utils_rj_cor import (
 # from pyart.map import grid_from_radars
 
 
-
-
 @task(max_retries=3, retry_delay=timedelta(seconds=10))
 def get_filenames_storage(
     bucket_name: str = "rj-escritorio-scp",
@@ -99,7 +97,7 @@ def get_filenames_storage(
         start_time = time()
         elapsed_time = 0
         next_files = []
-        while len(next_files) == 0 and elapsed_time <= 1 * 60:  # TO DO: change to 5 or 10
+        while len(next_files) == 0 and elapsed_time <= 4 * 60:  # TO DO: change to 5 or 10
             sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
             log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
             next_files = [
