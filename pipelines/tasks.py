@@ -96,14 +96,16 @@ def task_get_redis_output(
     redis_hash: str = None,
     redis_key: str = None,
     treat_output: bool = True,
+    expected_output_type: str = "list",
     is_df: bool = False,
 ):
     """
     Get Redis output. Use get to obtain a df from redis or hgetall if is a key value pair.
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
+    expected_output_type "list"m "dict", "df"
     """
 
-    if is_df:
+    if is_df or expected_output_type == "df":
         json_data = redis_client.get(redis_hash)
         log(f"[DEGUB] json_data {json_data}")
         if json_data:
@@ -122,7 +124,7 @@ def task_get_redis_output(
         output = redis_client.hgetall(redis_hash)
 
     if not output:
-        output = [] if not redis_hash else {}
+        output = [] if expected_output_type == "list" else {}
 
     log(f"Output from redis before treatment{type(output)}\n{output}")
     if len(output) > 0 and treat_output:
