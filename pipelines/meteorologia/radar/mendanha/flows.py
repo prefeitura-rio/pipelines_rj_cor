@@ -11,8 +11,8 @@ from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611,
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
-    constants as radar_constants,
+from pipelines.meteorologia.radar.mendanha.constants import (
+    constants as radar_constants,  # pylint: disable=E0611, E0401
 )
 
 # from pipelines.tasks import task_get_redis_client
@@ -85,10 +85,10 @@ with Flow(
 
     redis_client = task_get_redis_client(infisical_secrets_path="/redis")
     redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
-    redis_hash_processed = task_build_redis_hash(DATASET_ID, TABLE_ID, name="processed_images", mode=MODE)
-    files_saved_redis = task_get_redis_output(
-        redis_client, redis_key=redis_hash_processed
+    redis_hash_processed = task_build_redis_hash(
+        DATASET_ID, TABLE_ID, name="processed_images", mode=MODE
     )
+    files_saved_redis = task_get_redis_output(redis_client, redis_key=redis_hash_processed)
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
     files_on_storage_list, files_to_save_redis = get_filenames_storage(
         BUCKET_NAME, files_saved_redis=files_saved_redis
