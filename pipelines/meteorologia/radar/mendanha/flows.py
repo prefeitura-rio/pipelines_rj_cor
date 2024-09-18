@@ -38,6 +38,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     save_images_to_local,
     save_img_on_redis,
     send_zip_images_api,
+    upload_file_to_storage,
 )
 
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
@@ -49,7 +50,7 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_save_on_redis,
 )
 
-# create_visualization_with_background,; get_storage_destination,; upload_file_to_storage,; prefix_to_restore,; save_data,
+# create_visualization_with_background, prefix_to_restore, save_data,
 # from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
 
 
@@ -132,6 +133,12 @@ with Flow(
     saved_last_img_path = save_images_to_local({filename_time: img_bytes}, folder="last_image")
     destination_blob_name, source_file_name = get_storage_destination(
         filename_time, saved_last_img_path
+    )
+    upload_file_to_storage(
+        project="datario",
+        bucket_name="datario-public",
+        destination_blob_name=destination_blob_name,
+        source_file_name=source_file_name,
     )
     # fig_with_backgroud = create_visualization_with_background(
     #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
