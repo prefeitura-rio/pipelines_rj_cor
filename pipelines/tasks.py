@@ -127,7 +127,7 @@ def task_get_redis_output(
         output = [] if expected_output_type == "list" else {}
 
     log(f"Output from redis before treatment{type(output)}\n{output}")
-    if len(output) > 0 and treat_output:
+    if len(output) > 0 and treat_output and not isinstance(output, list):
         output = treat_redis_output(output)
     log(f"Output from redis {type(output)}\n{output}")
     return output
