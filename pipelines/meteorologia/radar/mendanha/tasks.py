@@ -54,8 +54,8 @@ from pipelines.utils_rj_cor import (  # pylint: disable=E0611, E0401
 @task(nout=2, max_retries=3, retry_delay=timedelta(seconds=10))
 def get_filenames_storage(  # pylint: disable=too-many-locals
     bucket_name: str = "rj-escritorio-scp",
-    files_saved_redis: dict = {},
-) -> Union[List, Dict]:
+    files_saved_redis: list = [],
+) -> Union[List, List]:
     """Esc
     Volumes vol_c and vol_d need's almost 3 minutes to be generated after vol_a.
     We will wait 5 minutes to continue pipeline or stop flow
@@ -90,14 +90,16 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
 
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
-    files_saved_redis = {"filenames": []} if len(files_saved_redis) == 0 else files_saved_redis
+    # files_saved_redis = {"filenames": []} if len(files_saved_redis) == 0 else files_saved_redis
 
-    if last_file_vol_a in files_saved_redis["filenames"]:
+    # if last_file_vol_a in files_saved_redis["filenames"]:
+    if last_file_vol_a in files_saved_redis:
         message = f"Last file {last_file_vol_a} already on redis. Ending run"
         log(message)
         raise ENDRUN(state=Skipped(message))
 
-    files_saved_redis["filenames"].append(last_file_vol_a)
+    # files_saved_redis["filenames"].append(last_file_vol_a)
+    files_saved_redis.append(last_file_vol_a)
     files_to_save_redis = files_saved_redis
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
@@ -168,8 +170,8 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     return combined_radar
 
 
-@task(max_retries=3, retry_delay=timedelta(seconds=3))
-def get_and_format_time(radar_files: list) -> str:
+@task(nout=2, max_retries=3, retry_delay=timedelta(seconds=3))
+def get_and_format_time(radar_files: list) -> Union[str, str]:
     """
     Get time from first file and convert it to São Paulo timezone
     """
@@ -178,9 +180,9 @@ def get_and_format_time(radar_files: list) -> str:
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
-
+    filename_time = br_time.format("YYYY-MM-DD-HH-mm-ss")
     log(f"Time of first file in São Paulo timezone: {formatted_time} {type(formatted_time)}")
-    return str(formatted_time)
+    return str(formatted_time), str(filename_time)
 
 
 @task(nout=2)

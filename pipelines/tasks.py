@@ -116,17 +116,15 @@ def task_get_redis_output(
 
     if redis_hash and redis_key:
         output = redis_client.hget(redis_hash, redis_key)
-        log(f"Output from redis {type(output)}\n{output}")
     elif redis_key:
         output = redis_client.get(redis_key)
-        output = list(set(output))
-        output.sort()
     else:
         output = redis_client.hgetall(redis_hash)
 
     if not output:
         output = [] if not redis_hash else {}
 
+    log(f"Output from redis before treatment{type(output)}\n{output}")
     if len(output) > 0 and treat_output:
         output = treat_redis_output(output)
     log(f"Output from redis {type(output)}\n{output}")
@@ -150,10 +148,14 @@ def task_save_on_redis(
         values = list(set(values))
         values.sort()
         values = values[-keep_last:]
+
+    if isinstance(values, dict):
+        values = json.dumps(values)
+
     log(f"Saving files {values} on redis {redis_hash} {redis_key}")
 
     if redis_hash and redis_key:
         redis_client.hset(redis_hash, redis_key, values)
-    if not redis_hash:
+    elif redis_key:
         redis_client.set(redis_key, values)
     log(f"Saved to Redis hash: {redis_hash}, key: {redis_key}, value: {values}")

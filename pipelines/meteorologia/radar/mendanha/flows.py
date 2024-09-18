@@ -11,8 +11,8 @@ from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611,
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.constants import (
-    constants as radar_constants,  # pylint: disable=E0611, E0401
+from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
+    constants as radar_constants,
 )
 
 # from pipelines.tasks import task_get_redis_client
@@ -31,6 +31,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     get_colorbar_title,
     get_filenames_storage,
     get_radar_parameters,
+    get_storage_destination,
     img_to_base64,
     remap_data,
     rename_keys_redis,
@@ -41,7 +42,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
 
 # from prefeitura_rio.pipelines_utils.tasks import create_table_and_upload_to_gcs
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-from pipelines.tasks import (
+from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_build_redis_hash,
     task_get_redis_client,
     task_get_redis_output,
@@ -103,7 +104,7 @@ with Flow(
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
     # Create visualizations
-    formatted_time = get_and_format_time(radar_files)
+    formatted_time, filename_time = get_and_format_time(radar_files)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
@@ -127,6 +128,10 @@ with Flow(
     api = access_api()
     response = send_zip_images_api(api, "uploadfile", zip_filename)
 
+    saved_last_img_path = save_images_to_local({filename_time: img_bytes}, folder="last_image")
+    destination_blob_name, source_file_name = get_storage_destination(
+        filename_time, saved_last_img_path
+    )
     # fig_with_backgroud = create_visualization_with_background(
     #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
     # )
