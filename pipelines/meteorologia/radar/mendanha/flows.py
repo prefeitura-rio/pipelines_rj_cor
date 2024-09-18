@@ -85,8 +85,9 @@ with Flow(
 
     redis_client = task_get_redis_client(infisical_secrets_path="/redis")
     redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
+    redis_hash_processed = task_build_redis_hash(DATASET_ID, TABLE_ID, name="processed_images", mode=MODE)
     files_saved_redis = task_get_redis_output(
-        redis_client, redis_hash=redis_hash, redis_key="processed"
+        redis_client, redis_key=redis_hash_processed
     )
     # files_saved_redis = get_on_redis(DATASET_ID, TABLE_ID, mode=MODE)
     files_on_storage_list, files_to_save_redis = get_filenames_storage(
@@ -155,8 +156,7 @@ with Flow(
     save_last_update_redis = task_save_on_redis(
         redis_client=redis_client,
         values=files_to_save_redis,
-        redis_hash=redis_hash,
-        redis_key="processed",
+        redis_key=redis_hash_processed,
         keep_last=30,
         wait=response,
     )
