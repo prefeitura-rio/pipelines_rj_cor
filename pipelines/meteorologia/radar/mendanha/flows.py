@@ -125,7 +125,7 @@ with Flow(
     zip_filename = compress_to_zip("/images.zip", saved_images_path)
 
     api = access_api()
-    send_zip_images_api(api, "uploadfile", zip_filename)
+    response = send_zip_images_api(api, "uploadfile", zip_filename)
 
     # fig_with_backgroud = create_visualization_with_background(
     #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
@@ -153,7 +153,7 @@ with Flow(
         redis_hash=redis_hash,
         redis_key="processed",
         keep_last=30,
-        # wait=upload_table,
+        wait=response,
     )
     # save_last_update_redis.set_upstream(upload_table)
 
