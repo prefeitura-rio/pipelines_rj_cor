@@ -936,7 +936,7 @@ def get_redis_output(redis_key):
     Get Redis output
     Example: {b'date': b'2023-02-27 07:29:04'}
     """
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     output = redis_client.hgetall(redis_key)
     if len(output) > 0:
         output = treat_redis_output(output)
