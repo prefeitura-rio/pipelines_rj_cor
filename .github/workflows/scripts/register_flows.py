@@ -238,23 +238,19 @@ def prepare_flows(flows: "List[FlowLike]") -> None:
     for flow in flows:
         if isinstance(flow, dict):
             # Add any extra labels to the flow
-            if flow.get("environment"):
-                new_labels = set(flow["environment"].get("labels") or []).union(labels)
-                flow["environment"]["labels"] = sorted(new_labels)
-            else:
-                new_labels = set(flow["run_config"].get("labels") or []).union(labels)
-                flow["run_config"]["labels"] = sorted(new_labels)
+            new_labels = set(flow["run_config"].get("labels") or []).union(labels)
+            flow["run_config"]["labels"] = sorted(new_labels)
         else:
             # Set the default flow result if not specified
             if not flow.result:
                 flow.result = flow.storage.result
 
             # Add a `run_config` if not configured explicitly
-            if flow.run_config is None and flow.environment is None:
+            if flow.run_config is None:
                 flow.run_config = UniversalRun()
             # Add any extra labels to the flow (either specified via the CLI,
             # or from the storage object).
-            obj = flow.run_config or flow.environment
+            obj = flow.run_config
             obj.labels.update(labels)
             obj.labels.update(flow.storage.labels)
 
