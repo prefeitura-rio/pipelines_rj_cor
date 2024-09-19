@@ -43,7 +43,7 @@ def download_data() -> pd.DataFrame:
     """
 
     url = get_secret("ALERTARIO_API")["ALERTARIO_API"]
-    log(f"URL: {url.status_code}")
+    log(f"URL: {url}")
 
     try:
         response = requests.get(url)
