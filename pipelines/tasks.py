@@ -14,7 +14,7 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
     get_redis_client,
 )
 
-from pipelines.utils.utils import log
+from pipelines.utils.utils import log, build_redis_key
 from pipelines.utils_rj_cor import treat_redis_output
 
 # from pipelines.utils.utils import get_redis_client
@@ -70,24 +70,24 @@ def task_build_redis_hash(dataset_id: str, table_id: str, name: str = None, mode
     return redis_hash
 
 
-# @task
-# def get_on_redis(
-#     dataset_id: str,
-#     table_id: str,
-#     mode: str = "prod",
-#     wait=None,
-# ) -> list:
-#     """
-#     Get filenames saved on Redis.
-#     converti em task_get_redis_output
-#     """
-#     redis_client = get_redis_client()
-#     key = build_redis_key(dataset_id, table_id, "files", mode)
-#     files_on_redis = redis_client.get(key)
-#     files_on_redis = [] if files_on_redis is None else files_on_redis
-#     files_on_redis = list(set(files_on_redis))
-#     files_on_redis.sort()
-#     return files_on_redis
+@task
+def get_on_redis(
+    dataset_id: str,
+    table_id: str,
+    mode: str = "prod",
+    wait=None,
+) -> list:
+    """
+    Get filenames saved on Redis.
+    converti em task_get_redis_output
+    """
+    redis_client = get_redis_client()
+    key = build_redis_key(dataset_id, table_id, "files", mode)
+    files_on_redis = redis_client.get(key)
+    files_on_redis = [] if files_on_redis is None else files_on_redis
+    files_on_redis = list(set(files_on_redis))
+    files_on_redis.sort()
+    return files_on_redis
 
 
 @task
