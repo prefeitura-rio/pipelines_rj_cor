@@ -283,4 +283,5 @@ def task_create_partitions(
         dataframe_key_column=dataframe_key_column,
     )
     log(f"Partition saved files {saved_files}")
-    return saved_files
+    log(f"Returned path {save_path}")
+    return save_path
