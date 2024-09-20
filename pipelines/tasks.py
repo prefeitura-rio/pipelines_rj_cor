@@ -21,6 +21,26 @@ from pipelines.utils_rj_cor import treat_redis_output
 # from redis_pal import RedisPal
 
 
+@task(trigger=all_successful)
+def save_on_redis(
+    dataset_id: str,
+    table_id: str,
+    mode: str = "prod",
+    files: list = [],
+    keep_last: int = 50,
+    wait=None,
+) -> None:
+    """
+    Set the last updated time on Redis.
+    """
+    redis_client = get_redis_client()
+    key = build_redis_key(dataset_id, table_id, "files", mode)
+    files = list(set(files))
+    print(">>>> save on redis files ", files)
+    files.sort()
+    files = files[-keep_last:]
+    redis_client.set(key, files)
+
 @task(checkpoint=False)
 def task_get_redis_client(
     infisical_host_env: str = "REDIS_HOST",
