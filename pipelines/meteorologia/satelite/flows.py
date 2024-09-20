@@ -39,7 +39,6 @@ from pipelines.meteorologia.satelite.schedules import (
 
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.meteorologia.satelite.tasks import (  # create_image,
-    create_partitions,
     download,
     generate_point_value,
     get_dates,
@@ -48,6 +47,7 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     tratar_dados,
 )
 from pipelines.tasks import (
+    task_create_partitions,
     task_get_redis_client,
     task_build_redis_hash,
     task_get_redis_output,
@@ -135,9 +135,10 @@ with Flow(
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
         df_point_values = generate_point_value(info, output_filepath)
-        point_values_path = create_partitions(
+        point_values_path = task_create_partitions(
             df_point_values,
-            partition_columns=["data_medicao"],
+            partition_date_column="data_medicao",
+            # partition_columns=["ano_particao", "mes_particao", "data_particao"],
             savepath="metricas_geoespaciais_goes16",
             suffix=now_datetime,
         )[0]

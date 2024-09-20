@@ -17,9 +17,6 @@ from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.logging import log
-from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
-    to_partitions,
-)
 
 from pipelines.meteorologia.satelite.satellite_utils import (
     choose_file_to_download,
@@ -245,32 +242,6 @@ def generate_point_value(info: dict, output_filepath: Path) -> List:
         log(f"DEBUG df_point_values: {df_point_values.iloc[i]}")
 
     return df_point_values
-
-
-@task
-def create_partitions(
-    data: pd.DataFrame,
-    partition_columns: List[str],
-    savepath: str = "temp",
-    data_type: str = "csv",
-    suffix: str = None,
-    build_json_dataframe: bool = False,
-    dataframe_key_column: str = None,
-) -> List[Path]:  # sourcery skip: raise-specific-error
-    """
-    Create task for to_partitions
-    """
-
-    saved_files = to_partitions(
-        data=data,
-        partition_columns=partition_columns,
-        savepath=savepath,
-        data_type=data_type,
-        suffix=suffix,
-        build_json_dataframe=build_json_dataframe,
-        dataframe_key_column=dataframe_key_column,
-    )
-    return saved_files
 
 
 # def create_image_and_upload_to_api(info: dict, output_filepath: Path):

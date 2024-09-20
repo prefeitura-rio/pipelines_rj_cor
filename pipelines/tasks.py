@@ -255,3 +255,31 @@ def save_dataframe(
     )
     log(f"Data saved on {prepath}")
     return prepath
+
+
+@task
+def task_create_partitions(
+    data: pd.DataFrame,
+    partition_date_column: str,
+    # partition_columns: List[str],
+    savepath: str = "temp",
+    data_type: str = "csv",
+    suffix: str = None,
+    build_json_dataframe: bool = False,
+    dataframe_key_column: str = None,
+) -> List[Path]:  # sourcery skip: raise-specific-error
+    """
+    Create task for to_partitions
+    """
+    data, partition_columns = parse_date_columns(data, partition_date_column)
+
+    saved_files = to_partitions(
+        data=data,
+        partition_columns=partition_columns,
+        savepath=savepath,
+        data_type=data_type,
+        suffix=suffix,
+        build_json_dataframe=build_json_dataframe,
+        dataframe_key_column=dataframe_key_column,
+    )
+    return saved_files
