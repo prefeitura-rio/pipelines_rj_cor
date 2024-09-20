@@ -267,7 +267,7 @@ def task_create_partitions(
     suffix: str = None,
     build_json_dataframe: bool = False,
     dataframe_key_column: str = None,
-) -> List[Path]:  # sourcery skip: raise-specific-error
+) -> Path:  # sourcery skip: raise-specific-error
     """
     Create task for to_partitions
     """
@@ -284,4 +284,4 @@ def task_create_partitions(
     )
     log(f"Partition saved files {saved_files}")
     log(f"Returned path {savepath}")
-    return savepath
+    return Path(savepath)
