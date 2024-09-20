@@ -11,6 +11,7 @@ import basedosdados as bd
 import pandas as pd
 import pendulum
 from google.cloud import storage
+from loguru import logger
 
 # from redis_pal import RedisPal
 # import pipelines.constants
@@ -40,19 +41,19 @@ def getenv_or_action(key: str, action: Callable[[str], None], default: str = Non
     return value
 
 
-# def ignore(key: str) -> None:
-#     """Ignore"""
-#     log(f"Ignore key {key}")
+def ignore(key: str) -> None:
+    """Ignore"""
+    log(f"Ignore key {key}")
 
 
-# def warn(key: str) -> None:
-#     """Log a warn"""
-#     logger.warning(f"WARNING: Environment variable {key} is not set.")
+def warn(key: str) -> None:
+    """Log a warn"""
+    logger.warning(f"WARNING: Environment variable {key} is not set.")
 
 
-# def raise_error(key: str) -> None:
-#     """Raise error"""
-#     raise ValueError(f"Environment variable {key} is not set.")
+def raise_error(key: str) -> None:
+    """Raise error"""
+    raise ValueError(f"Environment variable {key} is not set.")
 
 
 # def get_redis_client(

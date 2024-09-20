@@ -212,7 +212,7 @@ def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     grid_limits = (z_limits, y_limits, x_limits)
 
     # Number of vertical levels
-    z_levels = 11  # Você pode ajustar conforme necessário
+    z_levels = 20  # Você pode ajustar conforme necessário
 
     # Resolution in x and y (number of points on horizontal grade)
     x_points = int((x_limits[1] - x_limits[0]) / radar.range["meters_between_gates"])

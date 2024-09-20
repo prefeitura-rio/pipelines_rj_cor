@@ -16,7 +16,6 @@ from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable
 )
 
 # from pipelines.tasks import task_get_redis_client
-# from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
 from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
     TIME_SCHEDULE,
 )
