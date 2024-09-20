@@ -4,11 +4,11 @@
 """
 Tasks for setting rain dashboard using radar data.
 """
-# from datetime import timedelta
 # import json
 import io
 import os
 import zipfile
+from datetime import timedelta
 from pathlib import Path
 from time import sleep, time
 from typing import Dict, List, Tuple, Union
@@ -28,20 +28,20 @@ from google.cloud import storage
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Failed  # Skipped
+from prefect.engine.state import Failed, Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.utils import (  # list_all_directories,
+from pipelines.meteorologia.radar.mendanha.utils import (  # pylint: disable=E0611, E0401
     create_colormap,
     extract_timestamp,
     open_radar_file,
     save_image_to_local,
 )
-from pipelines.utils_api import Api
-from pipelines.utils_rj_cor import (
+from pipelines.utils_api import Api  # pylint: disable=E0611, E0401
+from pipelines.utils_rj_cor import (  # pylint: disable=E0611, E0401
     download_blob,
     get_redis_output,
     list_files_storage,
@@ -51,11 +51,11 @@ from pipelines.utils_rj_cor import (
 # from pyart.map import grid_from_radars
 
 
-@task()
-def get_filenames_storage(
+@task(nout=2, max_retries=3, retry_delay=timedelta(seconds=10))
+def get_filenames_storage(  # pylint: disable=too-many-locals
     bucket_name: str = "rj-escritorio-scp",
     files_saved_redis: list = [],
-) -> List:
+) -> Union[List, List]:
     """Esc
     Volumes vol_c and vol_d need's almost 3 minutes to be generated after vol_a.
     We will wait 5 minutes to continue pipeline or stop flow
@@ -90,6 +90,17 @@ def get_filenames_storage(
 
     # TODO: check if this file is already on redis ou mover os arquivos tratados para uma
     # data_partição e assim ter que ler menos nomes de arquivos
+    # files_saved_redis = {"filenames": []} if len(files_saved_redis) == 0 else files_saved_redis
+
+    # if last_file_vol_a in files_saved_redis["filenames"]:
+    if last_file_vol_a in files_saved_redis:
+        message = f"Last file {last_file_vol_a} already on redis. Ending run"
+        log(message)
+        raise ENDRUN(state=Skipped(message))
+
+    # files_saved_redis["filenames"].append(last_file_vol_a)
+    files_saved_redis.append(last_file_vol_a)
+    files_to_save_redis = files_saved_redis
 
     # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
@@ -97,7 +108,7 @@ def get_filenames_storage(
         start_time = time()
         elapsed_time = 0
         next_files = []
-        while len(next_files) == 0 and elapsed_time <= 1 * 60:  # TO DO: change to 5 or 10
+        while len(next_files) == 0 and elapsed_time <= 4 * 60:  # TO DO: change to 5 or 10
             sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
             log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
             next_files = [
@@ -116,10 +127,10 @@ def get_filenames_storage(
             raise ENDRUN(state=Failed(message))
 
     log(f"Selected files on scp: {selected_files}")
-    return selected_files
+    return selected_files, files_to_save_redis
 
 
-@task()
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def download_files_storage(
     bucket_name: str, files_to_download: list, destination_path: str
 ) -> None:
@@ -141,7 +152,7 @@ def download_files_storage(
     return files_path
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     """
     Combine files from same radar but with different angles sweeps
@@ -159,8 +170,8 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
     return combined_radar
 
 
-@task
-def get_and_format_time(radar_files: list) -> str:
+@task(nout=2, max_retries=3, retry_delay=timedelta(seconds=3))
+def get_and_format_time(radar_files: list) -> Union[str, str]:
     """
     Get time from first file and convert it to São Paulo timezone
     """
@@ -169,9 +180,9 @@ def get_and_format_time(radar_files: list) -> str:
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
-
+    filename_time = br_time.format("YYYY-MM-DD-HH-mm-ss")
     log(f"Time of first file in São Paulo timezone: {formatted_time} {type(formatted_time)}")
-    return str(formatted_time)
+    return str(formatted_time), str(filename_time)
 
 
 @task(nout=2)
@@ -216,7 +227,7 @@ def get_radar_parameters(radar) -> Union[Tuple, Tuple]:
     return grid_shape, grid_limits
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tuple) -> xr.Dataset:
     """
     Interpolate radar products data to obtain a 2D map and convert it to an xarray type
@@ -235,8 +246,10 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
     return radar_2d
 
 
-@task
-def create_visualization_no_background(radar_2d, radar_product: str, cbar_title: str, title: str):
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
+def create_visualization_no_background(
+    radar_2d, radar_product: str, cbar_title: str, title: str
+):  # pylint: disable=too-many-locals
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
     color as they used before on colorbar
@@ -246,7 +259,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
 
     proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(
+    fig, ax = plt.subplots(  # pylint: disable=invalid-name
         figsize=(10, 10), subplot_kw={"projection": proj}
     )  # pylint: disable=C0103
     ax.set_aspect("auto")
@@ -300,7 +313,7 @@ def create_visualization_no_background(radar_2d, radar_product: str, cbar_title:
     return fig
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def img_to_base64(img):
     """Convert matplotlib fig to base64 to sent it to API"""
     log("Start converting fig to base64")
@@ -312,7 +325,7 @@ def img_to_base64(img):
     return img_base64
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def base64_to_bytes(img_base64):
     """Convert base64 to to bytes save it on redis"""
     log("Start converting base64 to bytes")
@@ -321,7 +334,7 @@ def base64_to_bytes(img_base64):
     return img_bytes
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def add_new_image(image_dict: dict, img_bytes) -> Dict:
     """
     Adding new image to dictionary after changing the name of the old ones on redis
@@ -330,7 +343,7 @@ def add_new_image(image_dict: dict, img_bytes) -> Dict:
     return image_dict
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     """
     Renaming redis keys so image_003
@@ -385,7 +398,7 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     return img_base64_dict
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     """
     Save images in a PNG file
@@ -407,7 +420,7 @@ def save_images_to_local(img_base64_dict: dict, folder: str = "temp") -> str:
     return folder
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
     """
     Compress all images to a zip file
@@ -424,41 +437,59 @@ def compress_to_zip(zip_filename: str = "images.zip", folder: str = "temp"):
     return zip_filename
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def save_img_on_redis(
     redis_hash: str,
     key: str,
     value: str,
+    saved_images_path: str,
 ):
     """
     Function to save a string on redis
+    saved_images_path is a parameter to force task wait it
     """
+    print(saved_images_path)
     save_str_on_redis(redis_hash, key, value)
     return True
 
 
-@task
-def send_zip_images_api(api, api_route, zip_file_path) -> dict:
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
+def send_zip_images_api(api, api_route, zip_file_path, max_retries=5) -> dict:
     """
-    Send zip images to COR API
+    Send zip images to COR API, retrying up to max_retries if the token is invalid.
     """
-    with open(zip_file_path, "rb") as file:
-        files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
-        response = api.post(api_route, files=files)
-        log(response.json())
-    return response
+    retries = 0
+
+    while retries < max_retries:
+        with open(zip_file_path, "rb") as file:
+            files = {"file": (os.path.basename(zip_file_path), file, "application/zip")}
+            response = api.post(api_route, files=files)
+            response_data = response.json()
+
+            log(f"Send file response: {response_data}")
+
+            if response_data == "Arquivo enviado com sucesso!":
+                return response_data
+
+            log("Refreshing token and retrying...")
+            api.refresh_token()
+            retries += 1
+
+    # Return the last response after reaching the max retry limit
+    log(f"Max retries reached ({max_retries}). Could not send file.")
+    return response_data
 
 
 # noqa E302, E303
-@task()
+@task(max_retries=3, retry_delay=timedelta(seconds=10))
 def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
     """
     log("Start accessing API")
-    infisical_url = constants.INFISICAL_URL.value
-    infisical_username = constants.INFISICAL_USERNAME.value
-    infisical_password = constants.INFISICAL_PASSWORD.value
+    infisical_url = constants.INFISICAL_URL.value  # pylint: disable=E1101
+    infisical_username = constants.INFISICAL_USERNAME.value  # pylint: disable=E1101
+    infisical_password = constants.INFISICAL_PASSWORD.value  # pylint: disable=E1101
 
     base_url = get_secret(infisical_url, path="/api_radar_mendanha")[infisical_url]
     username = get_secret(infisical_username, path="/api_radar_mendanha")[infisical_username]
@@ -468,7 +499,7 @@ def access_api():
     return api
 
 
-@task
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
 def get_colorbar_title(radar_product: str):
     """
     Get colorbar title based on radar product
@@ -478,7 +509,7 @@ def get_colorbar_title(radar_product: str):
 
 
 # @task
-# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):
+# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line-too-long
 #     """
 #     Plot radar 2D data over Rio de Janeiro's map using the same
 #     color as they used before on colorbar
@@ -588,84 +619,3 @@ def get_storage_destination(filename: str, path: str):
 #     )
 #     log(f"[DEBUG] Files saved on {prepath}")
 #     return prepath
-
-
-def list_soft_deleted_objects_with_prefix(bucket_name, prefix):
-    """List soft-deleted objects with a specific prefix in a bucket."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-
-    # Listando objetos da pasta .zombie com o prefixo fornecido
-    blobs = bucket.list_blobs(prefix=f".zombie/{prefix}")
-
-    soft_deleted_files = []
-    for blob in blobs:
-        soft_deleted_files.append(blob.name)
-        print(f"Soft-deleted object found: {blob.name}")
-
-    return soft_deleted_files
-
-
-def restore_object(bucket_name, soft_deleted_object_name):
-    """Restores a soft-deleted object by moving it back to its original path."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-
-    # Pegando o objeto soft-deleted
-    blob = bucket.blob(soft_deleted_object_name)
-
-    # Definindo o nome original do objeto removendo a parte ".zombie/"
-    restore_to_name = soft_deleted_object_name.replace(".zombie/", "")
-
-    # Criando o novo blob no local de restauração (local original)
-    restored_blob = bucket.blob(restore_to_name)
-
-    # Copiando o arquivo para o local original
-    restored_blob.rewrite(blob)
-
-    # Deletando o arquivo da pasta .zombie para concluir a restauração
-    blob.delete()
-
-    print(f"Object {soft_deleted_object_name} restored to {restore_to_name}")
-
-
-def restore_files_with_prefix(bucket_name, prefix):
-    """Restore all soft-deleted files starting with a specific prefix to their original path."""
-    # Listar todos os arquivos soft-deleted que começam com o prefixo
-    soft_deleted_files = list_soft_deleted_objects_with_prefix(bucket_name, prefix)
-
-    for soft_deleted_file in soft_deleted_files:
-        # Restaurar o arquivo para seu caminho original
-        restore_object(bucket_name, soft_deleted_file)
-
-
-@task
-def prefix_to_restore():
-    """escolher prefix"""
-    # Exemplo de uso:
-    bucket_name = "rj-escritorio-scp"
-    prefix = "mendanha/odimhdf5/vol_d"  # Caminho para onde os arquivos serão restaurados
-    lista = []
-    for i in range(3, 8):
-        lista.append(f"{prefix}/MDN240{i}")
-    name = []
-    for i in range(1, 32):
-        name.append(f"{prefix}/MDN2408{str(i).zfill(2)}")
-
-    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
-    print(name)
-    lista = lista + name
-    lista.append(f"{prefix}/MDN2409")
-    for i in range(3, 8):
-        lista.append(f"{prefix}/MDN.20240{i}")
-    name = []
-    for i in range(1, 32):
-        name.append(f"{prefix}/MDN.202408{str(i).zfill(2)}")
-
-    name = [i for i in name if not i.endswith(("14", "15", "16", "17", "18", "19", "20", "21"))]
-
-    lista = lista + name
-    lista.append(f"{prefix}/MDN.202409")
-    for prefix_ in lista:
-        # Restaurar todos os arquivos que começam com MDN
-        restore_files_with_prefix(bucket_name, prefix_)

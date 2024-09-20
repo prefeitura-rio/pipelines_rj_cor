@@ -62,6 +62,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pendulum
+
+# import requests
 import s3fs
 import xarray as xr
 from google.cloud import storage

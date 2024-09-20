@@ -263,7 +263,9 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914, R0913
     return dataframe.reset_index()
 
 
-def get_redis_output(redis_hash, key: str = None, treat_output: bool = True, is_df: bool = False):
+def get_redis_output(
+    redis_hash: str = None, key: str = None, treat_output: bool = True, is_df: bool = False
+):
     """
     Get Redis output. Use get to obtain a df from redis or hgetall if is a key value pair.
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
@@ -282,7 +284,15 @@ def get_redis_output(redis_hash, key: str = None, treat_output: bool = True, is_
 
         return pd.DataFrame()
 
-    output = redis_client.hget(redis_hash, key) if key else redis_client.hgetall(redis_hash)
+    if redis_hash and key:
+        output = redis_client.hget(redis_hash, key)
+    elif key:
+        output = redis_client.get(key)
+        output = [] if output is None else output
+        output = list(set(output))
+        output.sort()
+    else:
+        output = redis_client.hgetall(redis_hash)
     if len(output) > 0 and treat_output:
         output = treat_redis_output(output)
     return output

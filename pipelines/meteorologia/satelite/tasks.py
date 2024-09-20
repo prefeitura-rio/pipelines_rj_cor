@@ -17,11 +17,11 @@ from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.logging import log
-from prefeitura_rio.pipelines_utils.pandas import (
-    to_partitions,  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
+    to_partitions,
 )
 
-from pipelines.meteorologia.satelite.satellite_utils import (  # create_and_save_image,; upload_image_to_api,
+from pipelines.meteorologia.satelite.satellite_utils import (
     choose_file_to_download,
     download_blob,
     extract_julian_day_and_hour_from_filename,

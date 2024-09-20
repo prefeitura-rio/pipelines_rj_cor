@@ -26,7 +26,6 @@ import pendulum
 import prefect
 
 # from redis_pal import RedisPal
-# from redis_pal import RedisPal
 import requests
 from google.cloud import storage
 from google.cloud.storage.blob import Blob

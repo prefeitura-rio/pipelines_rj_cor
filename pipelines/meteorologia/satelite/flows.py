@@ -19,7 +19,7 @@ from prefeitura_rio.pipelines_utils.state_handlers import (
 #     create_table_and_upload_to_gcs,
 #     get_current_flow_labels,
 # )
-from prefeitura_rio.pipelines_utils.tasks import (  # rename_current_flow_run_dataset_table,; get_current_flow_labels,
+from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
     get_now_datetime,
     task_run_dbt_model_task,
@@ -47,7 +47,7 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     slice_data,
     tratar_dados,
 )
-from pipelines.tasks import get_on_redis, save_on_redis
+from pipelines.tasks import get_on_redis, save_on_redis  # pylint: disable=E0611, E0401
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
