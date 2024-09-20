@@ -23,8 +23,7 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
     get_redis_client,
 )
 
-from pipelines.utils_rj_cor import (
-    # get_redis_client_from_infisical,
+from pipelines.utils_rj_cor import (  # get_redis_client_from_infisical,
     treat_redis_output,
 )
 
