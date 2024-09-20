@@ -47,7 +47,12 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     slice_data,
     tratar_dados,
 )
-from pipelines.tasks import get_on_redis, save_on_redis  # pylint: disable=E0611, E0401
+from pipelines.tasks import (
+    task_get_redis_client,
+    task_build_redis_hash,
+    task_get_redis_output,
+    task_save_on_redis,
+)  # pylint: disable=E0611, E0401
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
@@ -85,7 +90,10 @@ with Flow(
     date_hour_info = slice_data(current_time=current_time, ref_filename=ref_filename)
 
     # # Get filenames that were already treated on redis
-    redis_files = get_on_redis(dataset_id, table_id, mode=mode_redis)
+    # redis_files = get_on_redis(dataset_id, table_id, mode=mode_redis)
+    redis_client = task_get_redis_client(infisical_secrets_path="/redis")
+    redis_key = task_build_redis_hash(dataset_id, table_id, mode=mode_redis)
+    redis_files = task_get_redis_output(redis_client, redis_key=redis_key)
     # redis_files = []
 
     # Download raw data from API
@@ -113,11 +121,11 @@ with Flow(
     )
 
     # Save new filenames on redis
-    save_on_redis(
-        dataset_id,
-        table_id,
-        mode_redis,
-        redis_files_updated,
+    task_save_on_redis(
+        redis_client=redis_client,
+        values=redis_files_updated,
+        redis_key=redis_key,
+        keep_last=50,
         wait=path,
     )
 
