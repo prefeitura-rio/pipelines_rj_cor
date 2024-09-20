@@ -272,7 +272,7 @@ def task_create_partitions(
     Create task for to_partitions
     """
     data, partition_columns = parse_date_columns(data, partition_date_column)
-
+    log(f"Created partition columns {partition_columns} and data first row now is {data.iloc[0]}")
     saved_files = to_partitions(
         data=data,
         partition_columns=partition_columns,
@@ -282,4 +282,5 @@ def task_create_partitions(
         build_json_dataframe=build_json_dataframe,
         dataframe_key_column=dataframe_key_column,
     )
+    log(f"Partition saved files {saved_files}")
     return saved_files
