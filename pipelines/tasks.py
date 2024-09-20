@@ -41,6 +41,7 @@ def save_on_redis(
     files = files[-keep_last:]
     redis_client.set(key, files)
 
+
 @task(checkpoint=False)
 def task_get_redis_client(
     infisical_host_env: str = "REDIS_HOST",
