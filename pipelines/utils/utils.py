@@ -1106,4 +1106,3 @@ def get_redis_client_from_infisical(
         db=redis_db,
         password=redis_password,
     )
-
