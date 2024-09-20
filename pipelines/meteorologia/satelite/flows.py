@@ -46,13 +46,13 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     slice_data,
     tratar_dados,
 )
-from pipelines.tasks import (
+from pipelines.tasks import (  # pylint: disable=E0611, E0401
+    task_build_redis_hash,
     task_create_partitions,
     task_get_redis_client,
-    task_build_redis_hash,
     task_get_redis_output,
     task_save_on_redis,
-)  # pylint: disable=E0611, E0401
+)
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
