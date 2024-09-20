@@ -11,13 +11,12 @@ from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611,
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.constants import (
-    constants as radar_constants,  # pylint: disable=E0611, E0401
+from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
+    constants as radar_constants,
 )
 
 # from pipelines.tasks import task_get_redis_client
 # from pipelines.meteorologia.radar.mendanha.schedules import TIME_SCHEDULE
-from pipelines.meteorologia.radar.mendanha.constants import constants as radar_constants
 from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
     TIME_SCHEDULE,
 )
