@@ -141,7 +141,7 @@ with Flow(
             # partition_columns=["ano_particao", "mes_particao", "data_particao"],
             savepath="metricas_geoespaciais_goes16",
             suffix=now_datetime,
-        )[0]
+        )
         create_table_point_value = create_table_and_upload_to_gcs(
             data_path=point_values_path,
             dataset_id=dataset_id,
