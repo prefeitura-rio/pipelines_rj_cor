@@ -10,7 +10,6 @@ from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
