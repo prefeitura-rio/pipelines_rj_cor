@@ -27,6 +27,8 @@ prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git",
 openpyxl = "^3.1.5"
 arm-pyart = "^1.19.1"
 lxml = "^5.3.0"
+gdal = {url = "https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl"}
+numpy = "<2"
 
 [tool.poetry.group.dev]
 optional = true

@@ -48,13 +48,12 @@ Funções úteis no tratamento de dados de satélite
 # Required Libraries
 # ====================================================================
 
-import base64
 import datetime
 import os
 import re
 import shutil
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
@@ -63,13 +62,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pendulum
-import requests
+
+# import requests
 import s3fs
 import xarray as xr
 from google.cloud import storage
+from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disable=E0401
+    get_credentials_from_env,
+)
+from prefeitura_rio.pipelines_utils.bd import (
+    list_blobs_with_prefix,  # pylint: disable=E0401
+)
+from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.meteorologia.satelite.remap import remap
-from pipelines.utils.utils import get_credentials_from_env, list_blobs_with_prefix, log
 
 
 def get_blob_with_prefix(bucket_name: str, prefix: str, mode: str = "prod") -> str:
@@ -186,12 +192,7 @@ def get_files_from_aws(partition_path):
     s3_fs = s3fs.S3FileSystem(anon=True)
 
     # Get all files of GOES-16 data (multiband format) at this hour
-    storage_files_path = np.sort(
-        np.array(
-            s3_fs.find(f"noaa-goes16/{partition_path}")
-            # s3_fs.find(f"noaa-goes16/ABI-L2-CMIPF/2022/270/10/OR_ABI-L2-CMIPF-M6C13_G16_s20222701010208_e20222701019528_c20222701020005.nc")
-        )
-    )
+    storage_files_path = np.sort(np.array(s3_fs.find(f"noaa-goes16/{partition_path}")))
     storage_origin = "aws"
 
     return storage_files_path, storage_origin, s3_fs
@@ -251,6 +252,12 @@ def get_info(path: str) -> dict:
     """
     # Getting Information From the File Name  (Time, Date,
     # Product Type, Variable and Defining the CMAP)
+
+    Return:
+    {'variable': ['TPW'], 'vmin': 0, 'vmax': 60, 'cmap': 'jet', 'product': 'TPWF',
+    'filename': '/app/temp/input/prod/TPW/OR_ABI-L2-TPWF-M6_G16_s20242552000205_e20242552009513_c20242552011240.nc',  # noqa  # pylint: disable=line-too-long
+    'datetime_save': '20240911 170020', 'band': nan}
+
     """
     year, julian_day, hour_utc = extract_julian_day_and_hour_from_filename(path)
 
@@ -362,8 +369,16 @@ def get_info(path: str) -> dict:
     # DSIF - Derived Stability Indices: 'CAPE', 'KI', 'LI', 'SI', 'TT'
     product_caracteristics["DSIF"] = {
         "variable": ["LI", "CAPE", "TT", "SI", "KI"],
-        "vmin": 0,
-        "vmax": 1000,
+        # "vmin": 0,
+        # "vmax": 1000,
+        "vmin": {"LI": -20, "CAPE": 0, "TT": 10, "SI": -20, "KI": 0},
+        "vmax": {"LI": 20, "CAPE": 8000, "TT": 70, "SI": 20, "KI": 60},
+        # https://www.star.nesdis.noaa.gov/goesr/documents/ATBDs/Enterprise/ATBD_Enterprise_Soundings_Legacy_Atmospheric_Profiles_v3.1_2019-11-01.pdf
+        # Lifted Index: --10 to 40 K
+        # CAPE: 0 to 5000 J/kg
+        # Showalter index: >4 to -10 K
+        # Total totals Index: -43 to > 56
+        # K index: 0 to 40
         "cmap": "jet",
     }
     # FDCF - Fire-Hot Spot Characterization: 'Area', 'Mask', 'Power', 'Temp'
@@ -583,12 +598,35 @@ def get_variable_values(dfr: pd.DataFrame, variable: str) -> xr.DataArray:
     longitudes = list(matrix_temp.columns)
     latitudes = list(matrix_temp.index)
 
-    log("Convert to xr dataarray")
+    log("Convert df to xr data array")
     data_array = xr.DataArray(
         matrix, dims=("lat", "lon"), coords={"lon": longitudes, "lat": latitudes}
     )
-    log("end")
+    log("Finished converting df to data array")
     return data_array
+
+
+# pylint: disable=dangerous-default-value
+def get_point_value(
+    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546]
+) -> Tuple[float, tuple]:
+    """
+    Find the nearest point on data_array from the selected_point and return its value,
+    and the exact latitude and longitude of the nearest point.
+    """
+
+    # Find the nearest index of latitude and longitude from selected_point
+    lat_idx = (data_array["lat"] - selected_point[0]).argmin().values
+    lon_idx = (data_array["lon"] - selected_point[1]).argmin().values
+
+    # Get the value at the nearest point
+    point_value = data_array.isel(lat=lat_idx, lon=lon_idx).values
+
+    # Get the exact latitude and longitude at the nearest indices
+    lat_value = data_array["lat"].isel(lat=lat_idx).values
+    lon_value = data_array["lon"].isel(lon=lon_idx).values
+
+    return point_value, (lat_value, lon_value)
 
 
 # pylint: disable=unused-variable
@@ -608,21 +646,39 @@ def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
     # Define the color scale based on the channel
     colormap = "jet"  # White to black for IR channels
     # colormap = "gray_r" # White to black for IR channels
+    log(f"\nmax valueeeeeeeeeeeeeeeeee: {np.nanmax(data)} min value: {np.nanmin(data)}")
+
+    variable = variable.upper()
+    vmin = info["vmin"]
+    vmax = info["vmax"]
+    if variable in ["LI", "CAPE", "TT", "SI", "KI"]:
+        vmin = vmin[variable]
+        vmax = vmax[variable]
+        # vmin = np.nanmin(data)
+        # vmax = np.nanmax(data)
 
     # Plot the image
-    img = axis.imshow(data, origin="upper", extent=img_extent, cmap=colormap, alpha=0.8)
+    img = axis.imshow(
+        data,
+        origin="upper",
+        extent=img_extent,
+        cmap=colormap,
+        alpha=0.8,
+        vmin=vmin,
+        vmax=vmax,
+    )
 
-    # # Find shapefile file "Limite_Bairros_RJ.shp" across the entire file system
-    # for root, dirs, files in os.walk(os.sep):
-    #     if "Limite_Bairros_RJ.shp" in files:
-    #         log(f"[DEBUG] ROOT {root}")
-    #         shapefile_dir = root
-    #         break
-    # else:
-    #     print("File not found.")
+    # Find shapefile file "Limite_Bairros_RJ.shp" across the entire file system
+    for root, dirs, files in os.walk(os.sep):
+        if "Limite_Bairros_RJ.shp" in files:
+            log(f"[DEBUG] ROOT {root}")
+            shapefile_dir = root
+            break
+    else:
+        print("File not found.")
 
     # Add coastlines, borders and gridlines
-    shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
+    # shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
     shapefile_path_neighborhood = shapefile_dir / "Limite_Bairros_RJ.shp"
     shapefile_path_state = shapefile_dir / "Limite_Estados_BR_IBGE.shp"
 
@@ -675,27 +731,37 @@ def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
     if not output_image_path.exists():
         output_image_path.mkdir(parents=True, exist_ok=True)
 
-    plt.savefig(save_image_path, bbox_inches="tight", pad_inches=0, dpi=300)
-    log("\n Ended saving image")
+    plt.savefig(save_image_path, bbox_inches="tight", pad_inches=0.1, dpi=80)
+    log(f"\n Ended saving image on {save_image_path}")
     return save_image_path
 
 
-def upload_image_to_api(info: dict, save_image_path: Path):
-    """
-    Upload image to api
-    """
-    username = "your-username"
-    password = "your-password"
+# def upload_image_to_api(var: str, save_image_path: Path, point_value: float):
+#     """
+#     Upload image and point value to API.
+#     """
+#     # We need to change this variable so it can be posted on API
+#     var = "cp" if var == "cape" else var
 
-    image = base64.b64encode(open(save_image_path, "rb").read()).decode()
+#     log("Getting API url")
+#     url_secret = get_vault_secret("rionowcast")["data"]
+#     log(f"urlsecret1 {url_secret}")
+#     url_secret = url_secret["url_api_satellite_products"]
+#     log(f"urlsecret2 {url_secret}")
+#     api_url = f"{url_secret}/{var.lower()}"
+#     log(f"\n Sending image {save_image_path} to API: {api_url} with value {point_value}\n")
 
-    response = requests.post(
-        "https://api.example.com/upload-image",
-        data={"image": image, "timestamp": info["datetime_save"]},
-        auth=(username, password),
-    )
+#     payload = {"value": point_value}
 
-    if response.status_code == 200:
-        print("Image sent to API")
-    else:
-        print("Problem senting imagem to API")
+#     # Convert from Path to string
+#     save_image_path = str(save_image_path)
+
+#     with open(save_image_path, "rb") as image_file:
+#         files = {"image": (save_image_path, image_file, "image/jpeg")}
+#         response = requests.post(api_url, data=payload, files=files)
+
+#     if response.status_code == 200:
+#         log("Finished the request successful!")
+#         log(response.json())
+#     else:
+#         log(f"Error: {response.status_code}, {response.text}")

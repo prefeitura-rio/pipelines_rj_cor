@@ -5,11 +5,19 @@ Common  Tasks for rj-cor
 """
 
 import json
+from pathlib import Path
+from typing import List, Tuple, Union
 
 import pandas as pd
+import pendulum
+from google.cloud import storage
 from prefect import task
 from prefect.triggers import all_successful
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
+    parse_date_columns,
+    to_partitions,
+)
 from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611, E0401
     get_redis_client,
 )
@@ -17,7 +25,6 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
 from pipelines.utils.utils import build_redis_key, log
 from pipelines.utils_rj_cor import treat_redis_output
 
-# from pipelines.utils.utils import get_redis_client
 # from redis_pal import RedisPal
 
 
@@ -154,6 +161,27 @@ def task_get_redis_output(
     return output
 
 
+# @task(trigger=all_successful)
+# def save_on_redis(
+#     dataset_id: str,
+#     table_id: str,
+#     mode: str = "prod",
+#     files: list = [],
+#     keep_last: int = 50,
+#     wait=None,
+# ) -> None:
+#     """
+#     Set the last updated time on Redis.
+#     """
+#     redis_client = get_redis_client_from_infisical()
+#     key = build_redis_key(dataset_id, table_id, "files", mode)
+#     files = list(set(files))
+#     print(">>>> save on redis files ", files)
+#     files.sort()
+#     files = files[-keep_last:]
+#     redis_client.set(key, files)
+
+
 @task(trigger=all_successful)
 def task_save_on_redis(
     redis_client,
@@ -182,3 +210,97 @@ def task_save_on_redis(
     elif redis_key:
         redis_client.set(redis_key, values)
     log(f"Saved to Redis hash: {redis_hash}, key: {redis_key}, value: {values}")
+
+
+@task(nout=2)
+def get_storage_destination(filename: str, path: str) -> Tuple[str, str]:
+    """
+    Get storage blob destinationa and the name of the source file
+    """
+    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
+    source_file_name = f"{path}/{filename}.png"
+    log(f"File destination_blob_name {destination_blob_name}")
+    log(f"File source_file_name {source_file_name}")
+    return destination_blob_name, source_file_name
+
+
+@task
+def upload_files_to_storage(
+    project: str, bucket_name: str, destination_blob_name: str, source_file_name: List[str]
+) -> None:
+    """
+    Upload files to GCS
+
+    project="datario"
+    bucket_name="datario-public"
+    destination_blob_name=f"cor-clima-imagens/radar/mendanha/{filename}.png"
+    source_file_name=f"{path}/{filename}.png"
+    """
+    storage_client = storage.Client(project=project)
+    bucket = storage_client.bucket(bucket_name)
+    # Cria um blob (o arquivo dentro do bucket)
+    blob = bucket.blob(destination_blob_name)
+    for i in source_file_name:
+        blob.upload_from_filename(i)
+        log(f"File {i} sent to {destination_blob_name} on bucket {bucket_name}.")
+
+
+@task
+def save_dataframe(
+    dfr: pd.DataFrame,
+    partition_column: str,
+    suffix: str = "current_timestamp",
+    path: str = "temp",
+    wait=None,  # pylint: disable=unused-argument
+) -> Union[str, Path]:
+    """
+    Salvar dfr tratados em csv para conseguir subir pro GCP
+    """
+
+    prepath = Path(path)
+    prepath.mkdir(parents=True, exist_ok=True)
+
+    partition_column = "data_medicao"
+    dataframe, partitions = parse_date_columns(dfr, partition_column)
+    if suffix == "current_timestamp":
+        suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
+
+    to_partitions(
+        data=dataframe,
+        partition_columns=partitions,
+        savepath=prepath,
+        data_type="csv",
+        suffix=suffix,
+    )
+    log(f"Data saved on {prepath}")
+    return prepath
+
+
+@task
+def task_create_partitions(
+    data: pd.DataFrame,
+    partition_date_column: str,
+    # partition_columns: List[str],
+    savepath: str = "temp",
+    data_type: str = "csv",
+    suffix: str = None,
+    build_json_dataframe: bool = False,
+    dataframe_key_column: str = None,
+) -> Path:  # sourcery skip: raise-specific-error
+    """
+    Create task for to_partitions
+    """
+    data, partition_columns = parse_date_columns(data, partition_date_column)
+    log(f"Created partition columns {partition_columns} and data first row now is {data.iloc[0]}")
+    saved_files = to_partitions(
+        data=data,
+        partition_columns=partition_columns,
+        savepath=savepath,
+        data_type=data_type,
+        suffix=suffix,
+        build_json_dataframe=build_json_dataframe,
+        dataframe_key_column=dataframe_key_column,
+    )
+    log(f"Partition saved files {saved_files}")
+    log(f"Returned path {savepath}, {type(savepath)}")
+    return Path(savepath)
