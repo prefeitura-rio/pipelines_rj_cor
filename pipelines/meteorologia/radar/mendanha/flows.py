@@ -98,7 +98,6 @@ with Flow(
     radar_files = download_files_storage(
         bucket_name=BUCKET_NAME,
         files_to_download=files_on_storage_list,
-        # destination_path=f"{BASE_PATH}radar_data/",
         destination_path="temp/",
     )
     combined_radar = combine_radar_files(radar_files)
@@ -148,7 +147,6 @@ with Flow(
     # saved_with_background_img_path = save_images_to_local(
     #     {formatted_time: img_bytes_with_backgroud}
     # )
-    # # save_images_to_local.set_upstream(formatted_time)
     # destination_blob_name, source_file_name = get_storage_destination(
     #     formatted_time, saved_with_background_img_path
     # )

@@ -9,8 +9,7 @@ import re
 import netCDF4 as nc
 import numpy as np
 from osgeo import gdal, osr  # pylint: disable=E0401
-
-from pipelines.utils.utils import log
+from prefeitura_rio.pipelines_utils.logging import log
 
 
 def extract_resolution(input_string: str):

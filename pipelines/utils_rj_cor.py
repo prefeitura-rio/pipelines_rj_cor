@@ -15,8 +15,12 @@ from loguru import logger
 
 # from redis_pal import RedisPal
 # import pipelines.constants
-from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
+from prefeitura_rio.pipelines_utils.infisical import (
+    get_secret,  # pylint: disable=E0611, E0401
+)
+from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611, E0401
+    get_redis_client,
+)
 
 from pipelines.utils.utils import log
 
@@ -28,6 +32,7 @@ from pipelines.utils.utils import log
 
 
 def getenv_or_action(key: str, action: Callable[[str], None], default: str = None) -> str:
+    """Get env or action"""
     value = getenv(key)
     if value is None:
         value = action(key)
@@ -37,14 +42,17 @@ def getenv_or_action(key: str, action: Callable[[str], None], default: str = Non
 
 
 def ignore(key: str) -> None:
-    pass
+    """Ignore"""
+    log(f"Ignore key {key}")
 
 
 def warn(key: str) -> None:
+    """Log a warn"""
     logger.warning(f"WARNING: Environment variable {key} is not set.")
 
 
 def raise_error(key: str) -> None:
+    """Raise error"""
     raise ValueError(f"Environment variable {key} is not set.")
 
 
@@ -92,6 +100,7 @@ def get_redis_client_from_infisical(
     redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
         infisical_password_env
     ]
+    log(f"Acessing host: {redis_host}")
     return get_redis_client(
         host=redis_host,
         port=redis_port,

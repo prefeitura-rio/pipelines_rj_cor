@@ -108,6 +108,7 @@ class constants(Enum):
         },
     }
 
+    # Infisical
     INFISICAL_URL = "URL"
     INFISICAL_USERNAME = "USERNAME"
     INFISICAL_PASSWORD = "PASSWORD"
