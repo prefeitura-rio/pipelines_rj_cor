@@ -43,7 +43,7 @@ month_schedule = Schedule(
             parameter_defaults={
                 "materialize_after_dump": True,
                 "mode": "prod",
-                "materialize_to_datario": True,
+                "materialize_to_datario": False,
                 "dump_to_gcs": False,
                 # "dump_mode": "overwrite",
                 # "dataset_id": "clima_estacao_meteorologica",
