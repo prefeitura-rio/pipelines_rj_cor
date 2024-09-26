@@ -97,7 +97,6 @@ with Flow(
             dataset_id=DATASET_ID_PLUVIOMETRIC,
             table_id=TABLE_ID_PLUVIOMETRIC,
             dump_mode=DUMP_MODE,
-            wait=path_pluviometric,
         )
 
         with case(TRIGGER_RAIN_DASHBOARD_UPDATE, True):
@@ -333,7 +332,6 @@ with Flow(
             dataset_id=DATASET_ID_METEOROLOGICAL,
             table_id=TABLE_ID_METEOROLOGICAL,
             dump_mode=DUMP_MODE,
-            wait=path_meteorological,
         )
 
         with case(MATERIALIZE_AFTER_DUMP, True):
