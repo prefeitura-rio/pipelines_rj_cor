@@ -28,6 +28,10 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
+from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
+    task_run_dbt_model_task,
+)
+
 with Flow(
     name="COR: Meteorologia - Meteorologia INMET",
     state_handlers=[handler_inject_bd_credentials],
@@ -69,62 +73,38 @@ with Flow(
         wait=PATH,
     )
 
-    # Trigger DBT flow run
     with case(MATERIALIZE_AFTER_DUMP, True):
-        current_flow_labels = get_current_flow_labels()
-        materialization_flow = create_flow_run(
-            flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-            project_name=constants.PREFECT_DEFAULT_PROJECT.value,
-            parameters={
-                "dataset_id": DATASET_ID,
-                "table_id": TABLE_ID,
-                "mode": MATERIALIZATION_MODE,
-                "materialize_to_datario": MATERIALIZE_TO_DATARIO,
-            },
-            labels=current_flow_labels,
-            run_name=f"Materialize {DATASET_ID}.{TABLE_ID}",
+        run_dbt = task_run_dbt_model_task(
+            dataset_id=DATASET_ID,
+            table_id=TABLE_ID,
+            # mode=materialization_mode,
+            # materialize_to_datario=materialize_to_datario,
         )
+        
+        # with case(DUMP_TO_GCS, True):
+        #     # Trigger Dump to GCS flow run with project id as datario
+        #     dump_to_gcs_flow = create_flow_run(
+        #         flow_name=utils_constants.FLOW_DUMP_TO_GCS_NAME.value,
+        #         project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+        #         parameters={
+        #             "project_id": "datario",
+        #             "dataset_id": DATASET_ID_PLUVIOMETRIC,
+        #             "table_id": TABLE_ID_PLUVIOMETRIC,
+        #             "maximum_bytes_processed": MAXIMUM_BYTES_PROCESSED,
+        #         },
+        #         labels=[
+        #             "datario",
+        #         ],
+        #         run_name=f"Dump to GCS {DATASET_ID_PLUVIOMETRIC}.{TABLE_ID_PLUVIOMETRIC}",
+        #     )
+        #     dump_to_gcs_flow.set_upstream(wait_for_materialization)
 
-        materialization_flow.set_upstream(UPLOAD_TABLE)
-
-        wait_for_materialization = wait_for_flow_run(
-            materialization_flow,
-            stream_states=True,
-            stream_logs=True,
-            raise_final_state=True,
-        )
-
-        wait_for_materialization.max_retries = (
-            dump_db_constants.WAIT_FOR_MATERIALIZATION_RETRY_ATTEMPTS.value
-        )
-        wait_for_materialization.retry_delay = timedelta(
-            seconds=dump_db_constants.WAIT_FOR_MATERIALIZATION_RETRY_INTERVAL.value
-        )
-
-        with case(DUMP_TO_GCS, True):
-            # Trigger Dump to GCS flow run with project id as datario
-            dump_to_gcs_flow = create_flow_run(
-                flow_name=utils_constants.FLOW_DUMP_TO_GCS_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
-                parameters={
-                    "project_id": "datario",
-                    "dataset_id": DATASET_ID,
-                    "table_id": TABLE_ID,
-                    "maximum_bytes_processed": MAXIMUM_BYTES_PROCESSED,
-                },
-                labels=[
-                    "datario",
-                ],
-                run_name=f"Dump to GCS {DATASET_ID}.{TABLE_ID}",
-            )
-            dump_to_gcs_flow.set_upstream(wait_for_materialization)
-
-            wait_for_dump_to_gcs = wait_for_flow_run(
-                dump_to_gcs_flow,
-                stream_states=True,
-                stream_logs=True,
-                raise_final_state=True,
-            )
+        #     wait_for_dump_to_gcs = wait_for_flow_run_with_5min_timeout(
+        #         flow_run_id=dump_to_gcs_flow,
+        #         stream_states=True,
+        #         stream_logs=True,
+        #         raise_final_state=True,
+        #     )
 
 
 # para rodar na cloud
