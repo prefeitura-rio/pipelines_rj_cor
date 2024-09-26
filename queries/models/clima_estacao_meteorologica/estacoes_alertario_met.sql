@@ -1,6 +1,6 @@
 SELECT
   DISTINCT
-  SAFE_CAST(id_estacao AS STRING) id_estacao, 
+  SAFE_CAST(id_estacao AS STRING) id_estacao,
   estacao,
   SAFE_CAST(latitude AS FLOAT64) latitude,
   SAFE_CAST(longitude AS FLOAT64) longitude,

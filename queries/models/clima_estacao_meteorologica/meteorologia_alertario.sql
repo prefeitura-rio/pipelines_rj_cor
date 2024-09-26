@@ -11,7 +11,7 @@
     )
 }}
 
-SELECT 
+SELECT
     DISTINCT
     SAFE_CAST(
         REGEXP_REPLACE(id_estacao, r'\.0$', '') AS STRING
@@ -37,7 +37,7 @@ FROM `rj-cor.clima_estacao_meteorologica_staging.meteorologia_alertario`
     "SELECT DATE(gr) FROM (
         SELECT IF(
             max(data_particao) > CURRENT_DATE('America/Sao_Paulo'), CURRENT_DATE('America/Sao_Paulo'), max(data_particao)
-            ) as gr 
+            ) as gr
         FROM `rj-cor.clima_estacao_meteorologica_staging.meteorologia_alertario_last_partition`
         )
     ").columns[0].values()[0] %}

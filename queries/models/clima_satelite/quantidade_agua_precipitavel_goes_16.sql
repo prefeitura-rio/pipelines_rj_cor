@@ -26,11 +26,11 @@ FROM `rj-cor.clima_satelite_staging.quantidade_agua_precipitavel_goes_16`
     "
     SELECT IF(
         max(data_particao) > CURRENT_DATETIME('America/Sao_Paulo'), CURRENT_DATETIME('America/Sao_Paulo'), max(data_particao)
-        ) as gr 
+        ) as gr
     FROM `rj-cor.clima_satelite_staging.quantidade_agua_precipitavel_goes_16_last_partition`
     ").columns[0].values()[0] %}
 
-WHERE 
+WHERE
     ano_particao >= EXTRACT(YEAR FROM SAFE_CAST("{{ max_partition }}" AS DATETIME)) AND
     mes_particao >= EXTRACT(MONTH FROM SAFE_CAST("{{ max_partition }}" AS DATETIME)) AND
     data_particao >= EXTRACT(DATE FROM SAFE_CAST("{{ max_partition }}" AS DATETIME)) AND
