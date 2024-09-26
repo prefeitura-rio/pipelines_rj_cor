@@ -1,0 +1,22 @@
+version: 2
+
+models :
+  - name: enderecos_cameras
+    description: "**Descrição**: Localização das câmeras do COR para monitoramento\
+      \ das ruas.\n**Órgão responsável**: COR\n**Frequência de atualização**: Anual.\n**Fonte\
+      \ dos dados**: COR\n**Publicado por**: Patrícia Catandi\n**Publicado por (email)**:\
+      \ patriciabcatandi@gmail.com\n"
+    columns:
+      - name: id_camera
+        description: "ID único que identifica uma câmera."
+        tests:
+          - unique
+          - not_null
+      - name: endereco_camera
+        description: "Endereço aproximado no qual se encontra a câmera."
+      - name: latitude
+        description: "Latitude na qual se encontra a câmera."
+      - name: longitude
+        description: "Longitude na qual se encontra a câmera."
+      - name: posicao_camera
+        description: "Indica se a câmera está fixa. Valor extraído da coluna original de endereço."
