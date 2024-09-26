@@ -10,7 +10,7 @@
     )
 }}
 
-SELECT 
+SELECT
     DISTINCT
     CONCAT(id_estacao, '_', data, ' ', horario) AS primary_key,
     SAFE_CAST(

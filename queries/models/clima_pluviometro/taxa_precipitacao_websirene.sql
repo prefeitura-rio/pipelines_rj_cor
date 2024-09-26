@@ -5,14 +5,14 @@
         partition_by={
             "field": "data_particao",
             "data_type": "date",
-            "granularity": "month", 
+            "granularity": "month",
         },
         post_hook='CREATE OR REPLACE TABLE `rj-cor.clima_pluviometro_staging.taxa_precipitacao_websirene_last_partition` AS (SELECT CURRENT_DATETIME("America/Sao_Paulo") AS data_particao)'
     )
 }}
 
 WITH remove_extreme_values as (
-    SELECT 
+    SELECT
         SAFE_CAST(
             REGEXP_REPLACE(id_estacao, r'\.0$', '') AS STRING
         ) id_estacao,
@@ -23,28 +23,28 @@ WITH remove_extreme_values as (
         CASE WHEN SAFE_CAST(acumulado_chuva_24_h AS FLOAT64)   < 0 THEN NULL ELSE acumulado_chuva_24_h END acumulado_chuva_24_h,
         CASE WHEN SAFE_CAST(acumulado_chuva_96_h AS FLOAT64)   < 0 THEN NULL ELSE acumulado_chuva_96_h END acumulado_chuva_96_h
     FROM `rj-cor.clima_pluviometro_staging.taxa_precipitacao_websirene`
-    
+
     {% if is_incremental() %}
 
     {% set max_partition = run_query(
         "SELECT DATE(gr) FROM (
             SELECT IF(
-                max(data_particao) > CURRENT_DATE('America/Sao_Paulo'), 
-                CURRENT_DATE('America/Sao_Paulo'), 
+                max(data_particao) > CURRENT_DATE('America/Sao_Paulo'),
+                CURRENT_DATE('America/Sao_Paulo'),
                 max(data_particao)
-            ) as gr 
+            ) as gr
             FROM `rj-cor.clima_pluviometro_staging.taxa_precipitacao_websirene_last_partition`
         )").columns[0].values()[0] %}
     WHERE
         ano_particao >= EXTRACT(YEAR FROM DATE(("{{ max_partition }}"))) AND
         mes_particao >= EXTRACT(MONTH FROM DATE(("{{ max_partition }}"))) AND
         data_particao >= DATE_TRUNC(DATE(("{{ max_partition }}")), day)
-    
-    {% endif %} 
+
+    {% endif %}
     ),
 
     remove_duplicated as (
-    SELECT 
+    SELECT
         id_estacao,
         data_medicao,
         MIN(SAFE_CAST(acumulado_chuva_15_min AS FLOAT64)) acumulado_chuva_15_min,
@@ -58,7 +58,7 @@ WITH remove_extreme_values as (
         data_medicao
 )
 
-SELECT 
+SELECT
     DISTINCT
     CONCAT(id_estacao, '_', data_medicao) AS primary_key,
     id_estacao,
@@ -71,5 +71,5 @@ SELECT
             SAFE.PARSE_TIMESTAMP('%Y-%m-%d %H:%M:%S', data_medicao) AS TIME
         ) AS horario,
     SAFE_CAST(DATE_TRUNC(DATE(data_medicao), day) AS DATE) data_particao
-FROM 
+FROM
     remove_duplicated

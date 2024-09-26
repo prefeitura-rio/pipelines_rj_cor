@@ -5,14 +5,14 @@
         partition_by={
             "field": "data_particao",
             "data_type": "date",
-            "granularity": "month", 
+            "granularity": "month",
         },
         post_hook='CREATE OR REPLACE TABLE `rj-cor.clima_pluviometro_staging.taxa_precipitacao_alertario_5min_last_partition` AS (SELECT CURRENT_DATETIME("America/Sao_Paulo") AS data_particao)'
     )
 }}
 
 WITH remove_extreme_values as (
-    SELECT 
+    SELECT
         SAFE_CAST(
             REGEXP_REPLACE(id_estacao, r'\.0$', '') AS STRING
         ) id_estacao,
@@ -31,28 +31,28 @@ WITH remove_extreme_values as (
         CASE WHEN SAFE_CAST(acumulado_chuva_96h AS FLOAT64)   < 0 THEN NULL ELSE acumulado_chuva_96h END acumulado_chuva_96h,
         CASE WHEN SAFE_CAST(acumulado_chuva_mes AS FLOAT64)    < 0 THEN NULL ELSE acumulado_chuva_mes END acumulado_chuva_mes,
     FROM `rj-cor.clima_pluviometro_staging.taxa_precipitacao_alertario_5min`
-    
+
     {% if is_incremental() %}
 
     {% set max_partition = run_query(
         "SELECT DATE(gr) FROM (
             SELECT IF(
-                max(data_particao) > CURRENT_DATE('America/Sao_Paulo'), 
-                CURRENT_DATE('America/Sao_Paulo'), 
+                max(data_particao) > CURRENT_DATE('America/Sao_Paulo'),
+                CURRENT_DATE('America/Sao_Paulo'),
                 max(data_particao)
-            ) as gr 
+            ) as gr
             FROM `rj-cor.clima_pluviometro_staging.taxa_precipitacao_alertario_5min_last_partition`
         )").columns[0].values()[0] %}
     WHERE
         ano_particao >= SAFE_CAST(EXTRACT(YEAR FROM DATE(("{{ max_partition }}"))) AS STRING) AND
         mes_particao >= SAFE_CAST(EXTRACT(MONTH FROM DATE(("{{ max_partition }}"))) AS STRING) AND
         data_particao >= SAFE_CAST(DATE_TRUNC(DATE(("{{ max_partition }}")), day) AS STRING)
-    
-    {% endif %} 
+
+    {% endif %}
     ),
 
     remove_duplicated as (
-    SELECT 
+    SELECT
         id_estacao,
         data_medicao,
         MIN(SAFE_CAST(acumulado_chuva_5min AS FLOAT64)) acumulado_chuva_5min,
@@ -74,7 +74,7 @@ WITH remove_extreme_values as (
         data_medicao
 )
 
-SELECT 
+SELECT
     DISTINCT
     id_estacao,
     SAFE_CAST(
@@ -95,5 +95,5 @@ SELECT
     acumulado_chuva_mes,
     SAFE_CAST(DATE_TRUNC(DATE(data_medicao), day) AS DATE) data_particao,
     CONCAT(id_estacao, '_', data_medicao) AS primary_key,
-FROM 
+FROM
     remove_duplicated

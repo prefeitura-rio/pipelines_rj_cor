@@ -11,7 +11,7 @@
     )
 }}
 
-SELECT 
+SELECT
     DISTINCT
     CONCAT(id_estacao, '_', data, ' ', horario) AS primary_key,
     SAFE_CAST(
@@ -47,7 +47,7 @@ FROM `rj-cor.clima_estacao_meteorologica_staging.meteorologia_inmet`
     "SELECT DATE(gr) FROM (
         SELECT IF(
             max(data_particao) > CURRENT_DATE('America/Sao_Paulo'), CURRENT_DATE('America/Sao_Paulo'), max(data_particao)
-            ) as gr 
+            ) as gr
         FROM `rj-cor.clima_estacao_meteorologica_staging.meteorologia_inmet_last_partition`
         )
     ").columns[0].values()[0] %}
