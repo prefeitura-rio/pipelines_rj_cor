@@ -73,7 +73,7 @@ with Flow(
     # materialization_mode = Parameter("mode", default="dev", required=False)
 
     # Other parameters
-    dataset_id = mode_redis = Parameter("dataset_id", default="clima_satelite", required=False)
+    dataset_id = Parameter("dataset_id", default="clima_satelite", required=False)
     band = Parameter("band", default=None, required=False)()
     product = Parameter("product", default=None, required=False)()
     table_id = Parameter("table_id", default=None, required=False)()
