@@ -108,7 +108,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
         start_time = time()
         elapsed_time = 0
         next_files = []
-        while len(next_files) == 0 and elapsed_time <= 4 * 60:  # TO DO: change to 5 or 10
+        while len(next_files) == 0 and elapsed_time <= 7 * 60:  # TO DO: change to 5 or 10
             sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
             log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
             next_files = [
