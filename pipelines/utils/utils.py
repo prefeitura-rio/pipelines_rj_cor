@@ -927,7 +927,7 @@ def save_str_on_redis(
     Function to save a string on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     redis_client.hset(redis_hash, key, value)
 
 
