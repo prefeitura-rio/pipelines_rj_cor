@@ -155,7 +155,9 @@ def treat_pluviometer_and_meteorological_data(
 
     if not empty_data:
         see_cols = ["id_estacao", "data_medicao", "last_update"]
-        log(f"Dataframe after comparing with last data saved on redis for {table_id} {dfr[see_cols].head()}")
+        log(
+            f"Dataframe after comparing with last data saved on redis for {table_id} {dfr[see_cols].head()}"
+        )
         log(f"Dataframe first row after comparing for {table_id} {dfr.iloc[0]}")
         dfr["data_medicao"] = dfr["data_medicao"].dt.strftime("%Y-%m-%d %H:%M:%S")
         log(f"Dataframe after converting to string for {table_id} {dfr[see_cols].head()}")

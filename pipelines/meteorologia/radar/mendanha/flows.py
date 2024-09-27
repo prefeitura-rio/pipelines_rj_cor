@@ -4,7 +4,7 @@
 """
 Flows for setting rain dashboard using radar data.
 """
-from prefect import case, Parameter
+from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
