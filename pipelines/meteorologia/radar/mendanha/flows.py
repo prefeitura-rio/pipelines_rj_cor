@@ -4,7 +4,7 @@
 """
 Flows for setting rain dashboard using radar data.
 """
-from prefect import Parameter
+from prefect import case, Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
@@ -26,6 +26,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
+    create_visualization_with_background,
     download_files_storage,
     get_and_format_time,
     get_colorbar_title,
@@ -72,6 +73,7 @@ with Flow(
 
     DATASET_ID = Parameter("dataset_id", default=radar_constants.DATASET_ID.value)
     TABLE_ID = Parameter("table_id", default=radar_constants.TABLE_ID.value)
+    GENERATE_BACKGROUND_IMAGE = Parameter("generate_backgrounded_image", default=False)
     DUMP_MODE = Parameter("dump_mode", default="append")
     # BASE_PATH = "pipelines/rj_cor/meteorologia/radar/precipitacao/"
     BUCKET_NAME = "rj-escritorio-scp"
@@ -139,23 +141,29 @@ with Flow(
         destination_blob_name=destination_blob_name,
         source_file_name=source_file_name,
     )
-    # fig_with_backgroud = create_visualization_with_background(
-    #     radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
-    # )
-    # img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
-    # img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
-    # saved_with_background_img_path = save_images_to_local(
-    #     {formatted_time: img_bytes_with_backgroud}
-    # )
-    # destination_blob_name, source_file_name = get_storage_destination(
-    #     formatted_time, saved_with_background_img_path
-    # )
-    # upload_file_to_storage(
-    #     project="datario",
-    #     bucket_name="datario-public",
-    #     destination_blob_name=destination_blob_name,
-    #     source_file_name=source_file_name,
-    # )
+
+    with case(GENERATE_BACKGROUND_IMAGE, True):
+        fig_with_backgroud = create_visualization_with_background(
+            radar_2d,
+            radar_product=RADAR_PRODUCT_LIST[0],
+            cbar_title=cbar_title,
+            title=formatted_time,
+        )
+        img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
+        img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
+        saved_with_background_img_path = save_images_to_local(
+            {filename_time: img_bytes_with_backgroud}, folder="images_with_background"
+        )
+        (
+            destination_blob_name_with_backgroud,
+            source_file_name_with_backgroud,
+        ) = get_storage_destination(filename_time, saved_with_background_img_path)
+        upload_file_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_blob_name=f"background_images/{destination_blob_name_with_backgroud}",
+            source_file_name=source_file_name_with_backgroud,
+        )
 
     # Save new filenames on redis
     save_last_update_redis = task_save_on_redis(

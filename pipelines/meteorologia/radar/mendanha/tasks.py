@@ -22,7 +22,7 @@ import pyart
 # import wradlib as wrl
 import xarray as xr
 
-# import contextily as ctx
+import contextily as ctx
 from google.cloud import storage
 
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -508,64 +508,66 @@ def get_colorbar_title(radar_product: str):
     return colorbar_title[radar_product]
 
 
-# @task
-# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line-too-long
-#     """
-#     Plot radar 2D data over Rio de Janeiro's map using the same
-#     color as they used before on colorbar
-#     """
-#     log(f"Start creating {radar_product} visualization with background")
-#     cmap, norm, ordered_values = create_colormap()
+@task
+def create_visualization_with_background(
+    radar_2d, radar_product: str, cbar_title: str, title: str
+):  # pylint: disable=line-too-long
+    """
+    Plot radar 2D data over Rio de Janeiro's map using the same
+    color as they used before on colorbar
+    """
+    log(f"Start creating {radar_product} visualization with background")
+    cmap, norm, ordered_values = create_colormap()
 
-#     proj = ccrs.PlateCarree()
+    proj = ccrs.PlateCarree()
 
-#     fig, ax = plt.subplots(
-#         figsize=(10, 10), subplot_kw={"projection": proj}
-#     )  # pylint: disable=C0103
-#     ax.set_aspect("auto")
+    fig, ax = plt.subplots(
+        figsize=(10, 10), subplot_kw={"projection": proj}
+    )  # pylint: disable=C0103
+    ax.set_aspect("auto")
 
-#     # Extract data and coordinates from Xarray
-#     data = radar_2d[radar_product][0].max(axis=0).values
-#     lon = radar_2d["lon"].values
-#     lat = radar_2d["lat"].values
+    # Extract data and coordinates from Xarray
+    data = radar_2d[radar_product][0].max(axis=0).values
+    lon = radar_2d["lon"].values
+    lat = radar_2d["lat"].values
 
-#     # Plot data over base map
-#     contour = ax.contourf(
-#         lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
-#     )
+    # Plot data over base map
+    contour = ax.contourf(
+        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
+    )
 
-#     # Adicionar o mapa de base usando contextily
-#     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+    # Adicionar o mapa de base usando contextily
+    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
 
-#     # Configure axes
-#     ax.set_title(
-#         title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
-#     )  # , fontweight='bold', loc="left"
+    # Configure axes
+    ax.set_title(
+        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+    )  # , fontweight='bold', loc="left"
 
-#     ax.set_xlabel("")
-#     ax.set_ylabel("")
-#     ax.axis("off")
-#     ax.grid(True, linestyle="--", alpha=0.5)
-#     ax.set_xlim(lon.min(), lon.max())
-#     ax.set_ylim(lat.min(), lat.max())
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.axis("off")
+    ax.grid(True, linestyle="--", alpha=0.5)
+    ax.set_xlim(lon.min(), lon.max())
+    ax.set_ylim(lat.min(), lat.max())
 
-#     # Customize colorbar to show only the specified values on the center of each box
-#     cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
-#     cbar = plt.colorbar(
-#         mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-#         ax=ax,
-#         cax=cbar_ax,
-#         orientation="vertical",
-#     )
-#     cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
-#     cbar.set_ticklabels([str(value) for value in ordered_values])
-#     cbar.ax.tick_params(size=0)
-#     cbar.ax.set_title(
-#         cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
-#     )  # left, height
+    # Customize colorbar to show only the specified values on the center of each box
+    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+    cbar = plt.colorbar(
+        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+        ax=ax,
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+    cbar.set_ticklabels([str(value) for value in ordered_values])
+    cbar.ax.tick_params(size=0)
+    cbar.ax.set_title(
+        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+    )  # left, height
 
-#     # plt.show()
-#     return fig
+    # plt.show()
+    return fig
 
 
 @task
