@@ -5,8 +5,8 @@ Tasks for setting rain data in Redis.
 from typing import Dict, List, Union
 
 import basedosdados as bd
-from basedosdados.upload.base import Base
 import pandas as pd
+from basedosdados.upload.base import Base
 from prefect import task
 
 from pipelines.utils.utils import get_redis_client, log
@@ -34,9 +34,7 @@ def get_data(query: str, mode: str = "prod") -> pd.DataFrame:
 
     # Load data
     log("Loading data from BigQuery...")
-    dataframe = bd.read_sql(
-        query=query, billing_project_id=billing_project_id, from_file=True
-    )
+    dataframe = bd.read_sql(query=query, billing_project_id=billing_project_id, from_file=True)
 
     # Type assertions
     if "chuva_15min" in dataframe.columns:

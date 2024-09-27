@@ -9,6 +9,7 @@ from typing import List
 import cx_Oracle
 import pymysql.cursors
 import pyodbc
+
 from pipelines.utils.utils import log
 
 
@@ -283,8 +284,7 @@ class Oracle(Database):
         """
         # pylint: disable=E1101
         return cx_Oracle.connect(
-            f"{self._user}/{self._password}@"
-            f"{self._hostname}:{self._port}/{self._database}"
+            f"{self._user}/{self._password}@" f"{self._hostname}:{self._port}/{self._database}"
         )
 
     def get_cursor(self):

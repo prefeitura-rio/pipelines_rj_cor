@@ -3,10 +3,10 @@
 """
 General purpose tasks for dumping database data.
 """
-from datetime import datetime, timedelta
-from queue import Empty, Queue
-from pathlib import Path
 import re
+from datetime import datetime, timedelta
+from pathlib import Path
+from queue import Empty, Queue
 from threading import Event, Thread
 from time import sleep, time
 from typing import Dict, List, Union
@@ -16,37 +16,30 @@ import basedosdados as bd
 import pandas as pd
 from prefect import task
 
-from pipelines.utils.dump_db.db import (
-    Database,
-    MySql,
-    Oracle,
-    SqlServer,
-)
+from pipelines.constants import constants
+from pipelines.utils.dump_db.db import Database, MySql, Oracle, SqlServer
 from pipelines.utils.dump_db.utils import (
-    extract_last_partition_date,
     build_query_new_columns,
+    extract_last_partition_date,
 )
-from pipelines.utils.elasticsearch_metrics.utils import (
-    format_document,
-    index_document,
-)
+from pipelines.utils.elasticsearch_metrics.utils import format_document, index_document
 from pipelines.utils.utils import (
     batch_to_dataframe,
+    clean_dataframe,
     dataframe_to_csv,
     dataframe_to_parquet,
     delete_blobs_list,
     dump_header_to_file,
-    list_blobs_with_prefix,
-    parse_date_columns,
-    clean_dataframe,
-    to_partitions,
-    parser_blobs_to_partition_dict,
-    remove_tabs_from_query,
     get_storage_blobs,
+    list_blobs_with_prefix,
+    log,
+    log_mod,
+    parse_date_columns,
+    parser_blobs_to_partition_dict,
     remove_columns_accents,
+    remove_tabs_from_query,
+    to_partitions,
 )
-from pipelines.constants import constants
-from pipelines.utils.utils import log, log_mod
 
 DATABASE_MAPPING: Dict[str, Database] = {
     "mysql": MySql,
@@ -212,9 +205,7 @@ def format_partitioned_query(
     # extract only partitioned folders
     storage_partitions_dict = parser_blobs_to_partition_dict(blobs)
     # get last partition date
-    last_partition_date = extract_last_partition_date(
-        storage_partitions_dict, date_format
-    )
+    last_partition_date = extract_last_partition_date(storage_partitions_dict, date_format)
 
     if lower_bound_date == "current_year":
         lower_bound_date = datetime.now().replace(month=1, day=1).strftime("%Y-%m-%d")
@@ -503,9 +494,7 @@ def dump_upload_batch(
                     index=idx,
                     mod=log_number_of_batches,
                 )  # pylint: disable=C0301
-                st.delete_table(
-                    mode="staging", bucket_name=st.bucket_name, not_found_ok=True
-                )
+                st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
                 log_mod(
                     msg=(
                         "MODE OVERWRITE: Sucessfully DELETED OLD DATA from Storage:\n"
@@ -518,10 +507,7 @@ def dump_upload_batch(
                 # delete only staging table and let DBT overwrite the prod table
                 tb.delete(mode="staging")
                 log_mod(
-                    msg=(
-                        "MODE OVERWRITE: Sucessfully DELETED TABLE:\n"
-                        + f"{table_staging}\n"
-                    ),
+                    msg=("MODE OVERWRITE: Sucessfully DELETED TABLE:\n" + f"{table_staging}\n"),
                     index=idx,
                     mod=log_number_of_batches,
                 )  # pylint: disable=C0301
@@ -529,9 +515,7 @@ def dump_upload_batch(
             if not cleared_table:
                 # the header is needed to create a table when dosen't exist
                 # in overwrite mode the header is always created
-                st.delete_table(
-                    mode="staging", bucket_name=st.bucket_name, not_found_ok=True
-                )
+                st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
                 log_mod(
                     msg=(
                         "MODE OVERWRITE: Sucessfully DELETED OLD DATA from Storage:\n"
@@ -572,9 +556,7 @@ def dump_upload_batch(
                     mod=log_number_of_batches,
                 )
 
-                st.delete_table(
-                    mode="staging", bucket_name=st.bucket_name, not_found_ok=True
-                )
+                st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
                 log_mod(
                     msg=(
                         f"MODE OVERWRITE: Sucessfully REMOVED HEADER DATA from Storage\n:"
@@ -746,9 +728,7 @@ def dump_batches_to_file(  # pylint: disable=too-many-locals,too-many-statements
                 elif batch_data_type == "csv":
                     dataframe_to_csv(dataframe, prepath / f"{eventid}-{uuid4()}.csv")
                 elif batch_data_type == "parquet":
-                    dataframe_to_parquet(
-                        dataframe, prepath / f"{eventid}-{uuid4()}.parquet"
-                    )
+                    dataframe_to_parquet(dataframe, prepath / f"{eventid}-{uuid4()}.parquet")
                 elapsed_time = time() - start_time
                 doc = format_document(
                     flow_name=flow_name,
@@ -838,9 +818,7 @@ def dump_batches_to_file(  # pylint: disable=too-many-locals,too-many-statements
     while batches.unfinished_tasks > 0:
         sleep(start_sleep)
         start_sleep = min(start_sleep * 2, max_sleep)
-        log(
-            f"Waiting for {batches.unfinished_tasks} batches to be parsed as dataframes..."
-        )
+        log(f"Waiting for {batches.unfinished_tasks} batches to be parsed as dataframes...")
     batches.join()
     start_sleep = 1
     log("Waiting for dataframes queue...")
@@ -855,8 +833,6 @@ def dump_batches_to_file(  # pylint: disable=too-many-locals,too-many-statements
     worker_batch_to_dataframe.join()
     worker_dataframe_to_csv.join()
 
-    log(
-        f"Successfully dumped {idx} batches with size {len(batch)}, total of {idx*batch_size}"
-    )
+    log(f"Successfully dumped {idx} batches with size {len(batch)}, total of {idx*batch_size}")
 
     return prepath, idx

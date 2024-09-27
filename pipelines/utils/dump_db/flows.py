@@ -13,15 +13,9 @@ from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 
 from pipelines.constants import constants
 from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_db.db import Database
-from pipelines.utils.tasks import (
-    get_current_flow_labels,
-    get_user_and_password,
-    greater_than,
-    rename_current_flow_run_dataset_table,
-)
-from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_db.tasks import (
     database_execute,
     database_fetch,
@@ -31,6 +25,12 @@ from pipelines.utils.dump_db.tasks import (
     parse_comma_separated_string_to_list,
 )
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
+from pipelines.utils.tasks import (
+    get_current_flow_labels,
+    get_user_and_password,
+    greater_than,
+    rename_current_flow_run_dataset_table,
+)
 
 with Flow(
     name=utils_constants.FLOW_DUMP_DB_NAME.value,
@@ -51,21 +51,13 @@ with Flow(
     database_type = Parameter("db_type")
     query = Parameter("execute_query")
     partition_columns = Parameter("partition_columns", required=False, default="")
-    partition_date_format = Parameter(
-        "partition_date_format", required=False, default="%Y-%m-%d"
-    )
+    partition_date_format = Parameter("partition_date_format", required=False, default="%Y-%m-%d")
     lower_bound_date = Parameter("lower_bound_date", required=False)
 
     # Materialization parameters
-    materialize_after_dump = Parameter(
-        "materialize_after_dump", default=False, required=False
-    )
-    materialization_mode = Parameter(
-        "materialization_mode", default="dev", required=False
-    )
-    materialize_to_datario = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
+    materialization_mode = Parameter("materialization_mode", default="dev", required=False)
+    materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
     dump_to_gcs = Parameter("dump_to_gcs", default=False, required=False)
@@ -84,20 +76,14 @@ with Flow(
     # BigQuery parameters
     dataset_id = Parameter("dataset_id")
     table_id = Parameter("table_id")
-    dump_mode = Parameter(
-        "dump_mode", default="append", required=False
-    )  # overwrite or append
-    batch_data_type = Parameter(
-        "batch_data_type", default="csv", required=False
-    )  # csv or parquet
+    dump_mode = Parameter("dump_mode", default="append", required=False)  # overwrite or append
+    batch_data_type = Parameter("batch_data_type", default="csv", required=False)  # csv or parquet
     dbt_model_secret_parameters = Parameter(
         "dbt_model_secret_parameters", default={}, required=False
     )
     dbt_alias = Parameter("dbt_alias", default=False, required=False)
     biglake_table = Parameter("biglake_table", default=False, required=False)
-    log_number_of_batches = Parameter(
-        "log_number_of_batches", default=100, required=False
-    )
+    log_number_of_batches = Parameter("log_number_of_batches", default=100, required=False)
 
     #####################################
     #
@@ -114,9 +100,7 @@ with Flow(
     #####################################
 
     # Get credentials from Vault
-    user, password = get_user_and_password(
-        secret_path=secret_path, wait=rename_flow_run
-    )
+    user, password = get_user_and_password(secret_path=secret_path, wait=rename_flow_run)
 
     #####################################
     #

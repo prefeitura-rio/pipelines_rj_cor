@@ -28,9 +28,7 @@ with Flow(
     query_update = Parameter("query_update")
     mode = Parameter("mode", default="prod")
     redis_data_key = Parameter("redis_data_key", default="data_last_15min_rain")
-    redis_update_key = Parameter(
-        "redis_update_key", default="data_last_15min_rain_update"
-    )
+    redis_update_key = Parameter("redis_update_key", default="data_last_15min_rain_update")
     redis_host = Parameter("redis_host", default="redis.redis.svc.cluster.local")
     redis_port = Parameter("redis_port", default=6379)
     redis_db = Parameter("redis_db", default=1)

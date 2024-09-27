@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 from typing import List, Union
 
 import pandas as pd
-
 from prefect.schedules.clocks import IntervalClock
-from pipelines.utils.utils import log, query_to_line, remove_columns_accents, is_date
+
+from pipelines.utils.utils import is_date, log, query_to_line, remove_columns_accents
 
 
 def extract_last_partition_date(partitions_dict: dict, date_format: str):
@@ -18,23 +18,17 @@ def extract_last_partition_date(partitions_dict: dict, date_format: str):
     """
     last_partition_date = None
     for partition, values in partitions_dict.items():
-        new_values = [
-            date
-            for date in values
-            if is_date(date_string=date, date_format=date_format)
-        ]
+        new_values = [date for date in values if is_date(date_string=date, date_format=date_format)]
         try:
-            last_partition_date = datetime.strptime(
-                max(new_values), date_format
-            ).strftime(date_format)
+            last_partition_date = datetime.strptime(max(new_values), date_format).strftime(
+                date_format
+            )
             log(
                 f"last partition from {partition} is in date format "
                 f"{date_format}: {last_partition_date}"
             )
         except ValueError:
-            log(
-                f"partition {partition} is not a date or not in correct format {date_format}"
-            )
+            log(f"partition {partition} is not a date or not in correct format {date_format}")
     return last_partition_date
 
 
@@ -44,10 +38,7 @@ def build_query_new_columns(table_columns: List[str]) -> List[str]:
     """
     new_cols = remove_columns_accents(pd.DataFrame(columns=table_columns))
     return "\n".join(
-        [
-            f"{old_col} AS {new_col},"
-            for old_col, new_col in zip(table_columns, new_cols)
-        ]
+        [f"{old_col} AS {new_col}," for old_col, new_col in zip(table_columns, new_cols)]
     )
 
 
@@ -98,8 +89,7 @@ def generate_dump_db_schedules(  # pylint: disable=too-many-arguments,too-many-l
         clocks.append(
             IntervalClock(
                 interval=new_interval,
-                start_date=start_date
-                + timedelta(minutes=runs_interval_minutes * count),
+                start_date=start_date + timedelta(minutes=runs_interval_minutes * count),
                 labels=labels,
                 parameter_defaults=parameter_defaults,
             )
