@@ -559,7 +559,7 @@ def dump_upload_batch(
                 st.delete_table(mode="staging", bucket_name=st.bucket_name, not_found_ok=True)
                 log_mod(
                     msg=(
-                        f"MODE OVERWRITE: Sucessfully REMOVED HEADER DATA from Storage\n:" # noqa
+                        f"MODE OVERWRITE: Sucessfully REMOVED HEADER DATA from Storage\n:"  # noqa
                         + f"{storage_path}\n"
                         + f"{storage_path_link}"
                     ),
