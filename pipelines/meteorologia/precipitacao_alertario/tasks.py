@@ -120,7 +120,7 @@ def treat_pluviometer_and_meteorological_data(
             "Hora Leitura": "data_medicao",
             "Temp. (°C)": "temperatura",
             "Umi. do Ar (%)": "umidade_ar",
-            "Sen. Térmica (°C)": "sensacao_termica",
+            "Índice de Calor (°C)": "sensacao_termica",
             "P. Atm. (hPa)": "pressao_atmosferica",
             "P. de Orvalho (°C)": "temperatura_orvalho",
             "Vel. do Vento (Km/h)": "velocidade_vento",
