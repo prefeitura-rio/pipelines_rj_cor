@@ -273,6 +273,9 @@ def define_background(type_image_background: str) -> Tuple[str, str]:
         create_img_background = True
     if type_image_background in ["without", "both"]:
         create_img_without_background = True
+    log(
+        f"Create img with back {create_img_background} and without {create_img_without_background}"
+    )
     return create_img_background, create_img_without_background
 
 

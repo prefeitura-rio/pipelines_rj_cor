@@ -136,28 +136,25 @@ with Flow(
 
     dfr = rearange_dataframe(output_filepath)
 
-    with case(type_image_background, not None):
-        create_img_background, create_img_without_background = define_background(
-            type_image_background
+    create_img_background, create_img_without_background = define_background(type_image_background)
+
+    with case(create_img_background, True):
+        save_image_wb_paths = create_image(info, dfr, "with")
+        upload_files_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_folder="cor-clima-imagens/satelite/goes16/with_background/",
+            source_file_names=save_image_wb_paths,
         )
 
-        with case(create_img_background, True):
-            save_image_wb_paths = create_image(info, dfr, "with")
-            upload_files_to_storage(
-                project="datario",
-                bucket_name="datario-public",
-                destination_folder="cor-clima-imagens/satelite/goes16/with_background/",
-                source_file_names=save_image_wb_paths,
-            )
-
-        with case(create_img_without_background, True):
-            save_image_wtb_paths = create_image(info, dfr, "without")
-            upload_files_to_storage(
-                project="datario",
-                bucket_name="datario-public",
-                destination_folder="cor-clima-imagens/satelite/goes16/without_background/",
-                source_file_names=save_image_wtb_paths,
-            )
+    with case(create_img_without_background, True):
+        save_image_wtb_paths = create_image(info, dfr, "without")
+        upload_files_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_folder="cor-clima-imagens/satelite/goes16/without_background/",
+            source_file_names=save_image_wtb_paths,
+        )
 
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
