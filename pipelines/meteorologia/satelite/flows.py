@@ -44,10 +44,10 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     download,
     generate_point_value,
     get_dates,
+    rearange_dataframe,
     save_data,
     slice_data,
     tratar_dados,
-    rearange_dataframe,
 )
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_build_redis_hash,
