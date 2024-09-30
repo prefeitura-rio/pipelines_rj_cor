@@ -976,8 +976,8 @@ def compare_dates_between_tables_redis(
     print(f"Date2: {date_2}")
 
     # Convert byte string to string
-    date_1 = date_1.decode("utf-8")
-    date_2 = date_2.decode("utf-8")
+    date_1["date"] = date_1["date"].decode("utf-8")
+    date_2["date"] = date_2["date"].decode("utf-8")
 
     # Convert date to pendulum
     date_1 = pendulum.from_format(date_1["date"], format_date_table_1)
