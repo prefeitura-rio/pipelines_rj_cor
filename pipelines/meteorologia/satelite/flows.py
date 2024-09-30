@@ -139,21 +139,23 @@ with Flow(
     create_img_background, create_img_without_background = define_background(type_image_background)
 
     with case(create_img_background, True):
-        save_image_wb_paths = create_image(info, dfr, "with")
+        save_image_paths_wb = create_image(info, dfr, "with")
+        base_destination_folder_wb = "cor-clima-imagens/satelite/goes16/with_background"
         upload_files_to_storage(
             project="datario",
             bucket_name="datario-public",
-            destination_folder="cor-clima-imagens/satelite/goes16/with_background/",
-            source_file_names=save_image_wb_paths,
+            destination_folder=f"{base_destination_folder_wb}/{info['variable']}/",
+            source_file_names=save_image_paths_wb,
         )
 
     with case(create_img_without_background, True):
-        save_image_wtb_paths = create_image(info, dfr, "without")
+        save_image_paths_wtb = create_image(info, dfr, "without")
+        base_destination_folder_wtb = "cor-clima-imagens/satelite/goes16/without_background"
         upload_files_to_storage(
             project="datario",
             bucket_name="datario-public",
-            destination_folder="cor-clima-imagens/satelite/goes16/without_background/",
-            source_file_names=save_image_wtb_paths,
+            destination_folder=f"{base_destination_folder_wtb}/{info['variable']}/",
+            source_file_names=save_image_paths_wtb,
         )
 
     with case(create_point_value, True):

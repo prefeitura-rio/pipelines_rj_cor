@@ -736,9 +736,10 @@ def create_and_save_image(
     log("\n Start saving image")
     output_image_path = Path(os.getcwd()) / "output" / "images" / background_filename
 
-    save_image_path = output_image_path / (
-        f"{variable}_{background_filename}_{info['datetime_save']}.png"
-    )
+    br_time = pendulum.from_format(info["datetime_save"], "YYYYMMDD HHmmss", tz="America/Sao_Paulo")
+    formatted_time = br_time.format("YYYY-MM-DD HH:mm:ss")
+
+    save_image_path = output_image_path / (f"{variable}_{formatted_time}.png")
 
     if not output_image_path.exists():
         output_image_path.mkdir(parents=True, exist_ok=True)
