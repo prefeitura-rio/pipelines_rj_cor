@@ -240,6 +240,7 @@ def upload_files_to_storage(
     storage_client = storage.Client(project=project)
     bucket = storage_client.bucket(bucket_name)
 
+    log(f"Uploading {len(source_file_names)} files to {destination_folder}.")
     for file_path in source_file_names:
         file_name = file_path.split("/")[-1]
         blob = bucket.blob(f"{destination_folder}/{file_name}")
