@@ -20,6 +20,9 @@ class constants(Enum):
 
     RJ_COR_AGENT_LABEL = "cor"
 
+    RJ_ESCRITORIO_AGENT_LABEL = "rj-escritorio"
+    RJ_ESCRITORIO_DEV_AGENT_LABEL = "rj-escritorio-dev"
+
     ######################################
     # Other constants
     ######################################
