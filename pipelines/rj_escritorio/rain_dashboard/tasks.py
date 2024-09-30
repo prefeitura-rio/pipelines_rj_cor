@@ -6,7 +6,7 @@ from typing import Dict, List, Union
 
 import basedosdados as bd
 import pandas as pd
-from basedosdados.upload.base import Base
+from basedosdados.core.base import Base
 from prefect import task
 
 from pipelines.utils.utils import get_redis_client, log
