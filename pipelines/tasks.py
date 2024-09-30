@@ -194,11 +194,11 @@ def task_save_on_redis(
 
 
 @task
-def get_storage_destination(path: str, filename: str) -> str:
+def get_storage_destination(path: str, filename: str = None) -> str:
     """
     Get storage blob destinationa and the name of the source file
     """
-    destination_blob_name = f"path/{filename}"
+    destination_blob_name = f"{path}/{filename}" if filename else path
     log(f"File destination_blob_name {destination_blob_name}")
     return destination_blob_name
 
