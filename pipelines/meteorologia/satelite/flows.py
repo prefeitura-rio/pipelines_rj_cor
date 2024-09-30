@@ -39,12 +39,15 @@ from pipelines.meteorologia.satelite.schedules import (
 
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.meteorologia.satelite.tasks import (  # create_image,
+    create_image,
+    define_background,
     download,
     generate_point_value,
     get_dates,
     save_data,
     slice_data,
     tratar_dados,
+    rearange_dataframe,
 )
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_build_redis_hash,
@@ -52,6 +55,7 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_get_redis_client,
     task_get_redis_output,
     task_save_on_redis,
+    upload_files_to_storage,
 )
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
@@ -81,7 +85,8 @@ with Flow(
     mode_redis = Parameter("mode_redis", default="prod", required=False)
     ref_filename = Parameter("ref_filename", default=None, required=False)
     current_time = Parameter("current_time", default=None, required=False)
-    # create_image = Parameter("create_image", default=False, required=False)
+    # type_image_background can be "with" (with background), "without", "both" or None
+    type_image_background = Parameter("type_image_background", default=None, required=False)
     create_point_value = Parameter("create_point_value", default=False, required=False)
 
     # Starting tasks
@@ -129,12 +134,34 @@ with Flow(
         wait=path,
     )
 
-    # with case(create_image, True):
-    #     create_image_and_upload_to_api(info, output_filepath)
+    dfr = rearange_dataframe(output_filepath)
+
+    with case(type_image_background, not None):
+        create_img_background, create_img_without_background = define_background(
+            type_image_background
+        )
+
+        with case(create_img_background):
+            save_image_wb_paths = create_image(info, dfr, "with")
+            upload_files_to_storage(
+                project="datario",
+                bucket_name="datario-public",
+                destination_folder="cor-clima-imagens/satelite/goes16/with_background/",
+                source_file_names=save_image_wb_paths,
+            )
+
+        with case(create_img_without_background):
+            save_image_wtb_paths = create_image(info, dfr, "without")
+            upload_files_to_storage(
+                project="datario",
+                bucket_name="datario-public",
+                destination_folder="cor-clima-imagens/satelite/goes16/without_background/",
+                source_file_names=save_image_wtb_paths,
+            )
 
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
-        df_point_values = generate_point_value(info, output_filepath)
+        df_point_values = generate_point_value(info, dfr)
         point_values_path = task_create_partitions(
             df_point_values,
             partition_date_column="data_medicao",

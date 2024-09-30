@@ -205,25 +205,48 @@ def get_storage_destination(filename: str, path: str) -> Tuple[str, str]:
     return destination_blob_name, source_file_name
 
 
-@task
+# @task
+# def upload_files_to_storage(
+#     project: str, bucket_name: str, destination_blob_name: str, source_file_name: List[str]
+# ) -> None:
+#     """
+#     Upload files to GCS
+
+#     project="datario"
+#     bucket_name="datario-public"
+#     destination_blob_name=f"cor-clima-imagens/radar/mendanha/{filename}.png"
+#     source_file_name=f"{path}/{filename}.png"
+#     """
+#     storage_client = storage.Client(project=project)
+#     bucket = storage_client.bucket(bucket_name)
+#     # Cria um blob (o arquivo dentro do bucket)
+#     blob = bucket.blob(destination_blob_name)
+#     for i in source_file_name:
+#         blob.upload_from_filename(i)
+#         log(f"File {i} sent to {destination_blob_name} on bucket {bucket_name}.")
+
+
 def upload_files_to_storage(
-    project: str, bucket_name: str, destination_blob_name: str, source_file_name: List[str]
+    project: str, bucket_name: str, destination_folder: str, source_file_names: List[str]
 ) -> None:
     """
-    Upload files to GCS
+    Upload multiple files to GCS, where the destination folder is the directory in the bucket
+    and source_file_names is a list of file paths to upload.
 
     project="datario"
     bucket_name="datario-public"
-    destination_blob_name=f"cor-clima-imagens/radar/mendanha/{filename}.png"
-    source_file_name=f"{path}/{filename}.png"
+    destination_folder="cor-clima-imagens/radar/mendanha/"
+    source_file_names=["/local/path/image1.png", "/local/path/image2.png"]
     """
     storage_client = storage.Client(project=project)
     bucket = storage_client.bucket(bucket_name)
-    # Cria um blob (o arquivo dentro do bucket)
-    blob = bucket.blob(destination_blob_name)
-    for i in source_file_name:
-        blob.upload_from_filename(i)
-        log(f"File {i} sent to {destination_blob_name} on bucket {bucket_name}.")
+
+    for file_path in source_file_names:
+        file_name = file_path.split("/")[-1]
+        blob = bucket.blob(f"{destination_folder}/{file_name}")
+        blob.upload_from_filename(file_path)
+
+        log(f"File {file_name} sent to {destination_folder} on bucket {bucket_name}.")
 
 
 @task
