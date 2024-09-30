@@ -141,7 +141,7 @@ with Flow(
             type_image_background
         )
 
-        with case(create_img_background):
+        with case(create_img_background, True):
             save_image_wb_paths = create_image(info, dfr, "with")
             upload_files_to_storage(
                 project="datario",
@@ -150,7 +150,7 @@ with Flow(
                 source_file_names=save_image_wb_paths,
             )
 
-        with case(create_img_without_background):
+        with case(create_img_without_background, True):
             save_image_wtb_paths = create_image(info, dfr, "without")
             upload_files_to_storage(
                 project="datario",
