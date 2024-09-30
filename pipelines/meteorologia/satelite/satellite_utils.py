@@ -684,6 +684,7 @@ def create_and_save_image(
 
         # Add coastlines, borders and gridlines
         # shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
+        shapefile_dir = Path(shapefile_dir)
         shapefile_path_neighborhood = shapefile_dir / "Limite_Bairros_RJ.shp"
         shapefile_path_state = shapefile_dir / "Limite_Estados_BR_IBGE.shp"
 
