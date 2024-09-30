@@ -50,6 +50,7 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     tratar_dados,
 )
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
+    get_storage_destination,
     task_build_redis_hash,
     task_create_partitions,
     task_get_redis_client,
@@ -140,21 +141,25 @@ with Flow(
 
     with case(create_img_background, True):
         save_image_paths_wb = create_image(info, dfr, "with")
-        base_destination_folder_wb = "cor-clima-imagens/satelite/goes16/with_background"
+        destination_folder_wb = get_storage_destination(
+            path="cor-clima-imagens/satelite/goes16/with_background", filename=info["variable"]
+        )
         upload_files_to_storage(
             project="datario",
             bucket_name="datario-public",
-            destination_folder=f"{base_destination_folder_wb}/{info['variable']}/",
+            destination_folder=destination_folder_wb,
             source_file_names=save_image_paths_wb,
         )
 
     with case(create_img_without_background, True):
         save_image_paths_wtb = create_image(info, dfr, "without")
-        base_destination_folder_wtb = "cor-clima-imagens/satelite/goes16/without_background"
+        destination_folder_wtb = get_storage_destination(
+            path="cor-clima-imagens/satelite/goes16/without_background", filename=info["variable"]
+        )
         upload_files_to_storage(
             project="datario",
             bucket_name="datario-public",
-            destination_folder=f"{base_destination_folder_wtb}/{info['variable']}/",
+            destination_folder=destination_folder_wtb,
             source_file_names=save_image_paths_wtb,
         )
 

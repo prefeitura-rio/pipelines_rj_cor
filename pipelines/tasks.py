@@ -6,7 +6,7 @@ Common  Tasks for rj-cor
 
 import json
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import pandas as pd
 import pendulum
@@ -193,16 +193,14 @@ def task_save_on_redis(
     log(f"Saved to Redis hash: {redis_hash}, key: {redis_key}, value: {values}")
 
 
-@task(nout=2)
-def get_storage_destination(filename: str, path: str) -> Tuple[str, str]:
+@task
+def get_storage_destination(path: str, filename: str) -> str:
     """
     Get storage blob destinationa and the name of the source file
     """
-    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
-    source_file_name = f"{path}/{filename}.png"
+    destination_blob_name = f"path/{filename}"
     log(f"File destination_blob_name {destination_blob_name}")
-    log(f"File source_file_name {source_file_name}")
-    return destination_blob_name, source_file_name
+    return destination_blob_name
 
 
 # @task
