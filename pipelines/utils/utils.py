@@ -972,6 +972,11 @@ def compare_dates_between_tables_redis(
     if (len(date_1) == 0) | (len(date_2) == 0):
         return True
 
+    print(f"Date1: {date_1}")
+    print(f"Date2: {date_2}")
+
+    
+    
     # Convert date to pendulum
     date_1 = pendulum.from_format(date_1["date"], format_date_table_1)
     date_2 = pendulum.from_format(date_2["date"], format_date_table_2)
