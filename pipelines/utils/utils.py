@@ -968,19 +968,17 @@ def compare_dates_between_tables_redis(
     date_1 = get_redis_output(key_table_1)
     date_2 = get_redis_output(key_table_2)
 
-
     # Return true if there is no date_1 or date_2 saved on redis
     if (len(date_1) == 0) | (len(date_2) == 0):
         return True
 
     print(f"Date1: {date_1}")
     print(f"Date2: {date_2}")
-    
+
     # Convert byte string to string
     date_1 = date_1.decode("utf-8")
     date_2 = date_2.decode("utf-8")
 
-    
     # Convert date to pendulum
     date_1 = pendulum.from_format(date_1["date"], format_date_table_1)
     date_2 = pendulum.from_format(date_2["date"], format_date_table_2)
