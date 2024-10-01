@@ -302,7 +302,9 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
         log(f"\nmax value: {data.max()} min value: {data.min()}")
 
         if background not in ["without"]:
-            save_image_paths.append(create_and_save_image(data, info, var, with_background=True))
+            save_image_paths.append(
+                create_and_save_image(data, info, var, with_background=True, with_colorbar=True)
+            )
         if background not in ["with"]:
             save_image_paths.append(create_and_save_image(data, info, var, with_background=False))
 
