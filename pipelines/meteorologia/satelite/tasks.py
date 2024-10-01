@@ -290,7 +290,7 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
     Return:
     - save_image_paths: List
     """
-
+    save_image_paths = []
     for var in info["variable"]:
         log(f"\nStart creating image for variable {var}\n")
         var = var.lower()
@@ -301,13 +301,12 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
         log(f"\n[DEBUG] {var} data \n{data}")
         log(f"\nmax value: {data.max()} min value: {data.min()}")
 
-        save_image_paths = []
         if background not in ["without"]:
             save_image_paths.append(create_and_save_image(data, info, var, with_background=True))
         if background not in ["with"]:
             save_image_paths.append(create_and_save_image(data, info, var, with_background=False))
 
-    log(f"\nImages from {var} product were saved on {save_image_paths}\n")
+    log(f"\nImages were saved on {save_image_paths}\n")
     return save_image_paths
 
 
