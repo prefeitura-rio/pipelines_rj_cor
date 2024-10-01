@@ -29,12 +29,21 @@ arm-pyart = "^1.19.1"
 gdal = {url = "https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl"}
 numpy = "<2"
 
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
 flake8 = "^6.1.0"
 pre-commit = "^3.3.3"
 taskipy = "^1.12.0"
 isort = "^5.12.0"
 
+
+[tool.poetry.group.ci]
+optional = true
+
+[tool.poetry.group.ci.dependencies]
 networkx = "^3.1"
 loguru = "^0.7.0"
 typer = "^0.9.0"
