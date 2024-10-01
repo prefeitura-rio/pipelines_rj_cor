@@ -73,7 +73,10 @@ with Flow(
 
     DATASET_ID = Parameter("dataset_id", default=radar_constants.DATASET_ID.value)
     TABLE_ID = Parameter("table_id", default=radar_constants.TABLE_ID.value)
-    GENERATE_BACKGROUND_IMAGE = Parameter("generate_backgrounded_image", default=False)
+    SAVE_IMAGE_WITH_BACKGROUND = Parameter("save_image_with_backgroud", default=False)
+    SAVE_IMAGE_WITHOUT_BACKGROUND = Parameter("save_image_without_backgroud", default=False)
+    SAVE_IMAGE_WITH_COLORBAR = Parameter("save_image_with_colorbar", default=False)
+    SAVE_IMAGE_WITHOUT_COLORBAR = Parameter("save_image_without_colorbar", default=False)
     DUMP_MODE = Parameter("dump_mode", default="append")
     # BASE_PATH = "pipelines/rj_cor/meteorologia/radar/precipitacao/"
     BUCKET_NAME = "rj-escritorio-scp"
@@ -131,18 +134,56 @@ with Flow(
     api = access_api()
     response = send_zip_images_api(api, "uploadfile", zip_filename)
 
-    saved_last_img_path = save_images_to_local({filename_time: img_bytes}, folder="last_image")
-    destination_blob_name, source_file_name = get_storage_destination(
-        filename_time, saved_last_img_path
-    )
-    upload_file_to_storage(
-        project="datario",
-        bucket_name="datario-public",
-        destination_blob_name=destination_blob_name,
-        source_file_name=source_file_name,
-    )
+    # save images to appear on COR integrated platform
+    with case(SAVE_IMAGE_WITHOUT_BACKGROUND, True):
+        with case(SAVE_IMAGE_WITH_COLORBAR, True):
+            saved_last_img_path = save_images_to_local(
+                {filename_time: img_bytes}, folder="last_image"
+            )
+            destination_blob_name, source_file_name = get_storage_destination(
+                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/with_colourbar",
+                filename_time,
+                saved_last_img_path,
+            )
+            upload_file_to_storage(
+                project="datario",
+                bucket_name="datario-public",
+                destination_blob_name=destination_blob_name,
+                source_file_name=source_file_name,
+            )
 
-    with case(GENERATE_BACKGROUND_IMAGE, True):
+        # save images to appear on Escritório de Dados climate platform
+        with case(SAVE_IMAGE_WITHOUT_COLORBAR, True):
+            fig_without_backgroud_colorbar = create_visualization_no_background(
+                radar_2d,
+                radar_product=RADAR_PRODUCT_LIST[0],
+                cbar_title=None,
+                title=None,
+            )
+            img_base64_without_backgroud_colorbar = img_to_base64(fig_without_backgroud_colorbar)
+            img_bytes_without_backgroud_colorbar = base64_to_bytes(
+                img_base64_without_backgroud_colorbar
+            )
+            saved_without_background_colorbar_img_path = save_images_to_local(
+                {filename_time: img_bytes_without_backgroud_colorbar},
+                folder="images_without_background_colorbar",
+            )
+            (
+                destination_blob_name_without_backgroud_colorbar,
+                source_file_name_without_backgroud_colorbar,
+            ) = get_storage_destination(
+                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/without_colourbar",
+                filename_time,
+                saved_without_background_colorbar_img_path,
+            )
+            upload_file_to_storage(
+                project="datario",
+                bucket_name="datario-public",
+                destination_blob_name=destination_blob_name_without_backgroud_colorbar,
+                source_file_name=source_file_name_without_backgroud_colorbar,
+            )
+
+    with case(SAVE_IMAGE_WITH_BACKGROUND, True):
         fig_with_backgroud = create_visualization_with_background(
             radar_2d,
             radar_product=RADAR_PRODUCT_LIST[0],
@@ -157,11 +198,15 @@ with Flow(
         (
             destination_blob_name_with_backgroud,
             source_file_name_with_backgroud,
-        ) = get_storage_destination(filename_time, saved_with_background_img_path)
+        ) = get_storage_destination(
+            "cor-clima-imagens/radar/mendanha/refletividade_horizontal/with_background/with_colourbar",
+            filename_time,
+            saved_with_background_img_path,
+        )
         upload_file_to_storage(
             project="datario",
             bucket_name="datario-public",
-            destination_blob_name=f"background_images/{destination_blob_name_with_backgroud}",
+            destination_blob_name=destination_blob_name_with_backgroud,
             source_file_name=source_file_name_with_backgroud,
         )
 

@@ -267,6 +267,7 @@ def create_visualization_no_background(
     data = radar_2d[radar_product][0].max(axis=0).values
     lon = radar_2d["lon"].values
     lat = radar_2d["lat"].values
+    log(f"\nImage latitude limits: {lat}\nlongitude limits: {lon}\n")
 
     # Plot data over base map
     contour = ax.contourf(
@@ -586,12 +587,12 @@ def upload_file_to_storage(
 
 
 @task(nout=2)
-def get_storage_destination(filename: str, path: str):
+def get_storage_destination(destination_blob_path: str, source_filename: str, source_path: str):
     """
     get storage
     """
-    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
-    source_file_name = f"{path}/{filename}.png"
+    destination_blob_name = f"{destination_blob_path}/{source_filename}.png"
+    source_file_name = f"{source_path}/{source_filename}.png"
     log(f"File destination_blob_name {destination_blob_name}")
     log(f"File source_file_name {source_file_name}")
     return destination_blob_name, source_file_name
