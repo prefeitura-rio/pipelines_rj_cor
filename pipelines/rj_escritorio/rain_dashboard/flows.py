@@ -57,6 +57,6 @@ with Flow(
 rj_escritorio_rain_dashboard_flow.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
 rj_escritorio_rain_dashboard_flow.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
-    labels=[constants.RJ_ESCRITORIO_DEV_AGENT_LABEL.value],
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
 # rj_escritorio_rain_dashboard_flow.schedule = every_fifteen_minutes

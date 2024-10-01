@@ -63,7 +63,7 @@ with Flow(
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
     )
-    PREFECT_PROJECT = Parameter("Prefect_project", default="staging", required=False)
+    PREFECT_PROJECT = Parameter("prefect_project", default="staging", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
     DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
