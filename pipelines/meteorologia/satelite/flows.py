@@ -136,7 +136,7 @@ with Flow(
     )
 
     dfr = rearange_dataframe(output_filepath)
-    type_image_background = "both"
+
     create_img_background, create_img_without_background = define_background(type_image_background)
 
     with case(create_img_background, True):

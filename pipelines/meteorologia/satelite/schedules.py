@@ -25,6 +25,7 @@ rrqpe = Schedule(
                 "product": "RRQPEF",
                 # "create_image": True,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
@@ -45,6 +46,7 @@ tpw = Schedule(
                 "product": "TPWF",
                 # "create_image": False,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
@@ -66,6 +68,7 @@ cmip = Schedule(
                 "band": "13",
                 # "create_image": False,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
@@ -86,6 +89,7 @@ mcmip = Schedule(
                 "product": "MCMIPF",
                 # "create_image": False,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
@@ -106,6 +110,7 @@ dsi = Schedule(
                 "product": "DSIF",
                 # "create_image": True,
                 "create_point_value": True,
+                "type_image_background": "both",
             },
         )
     ]
@@ -126,6 +131,7 @@ lst = Schedule(
                 "product": "LSTF",
                 # "create_image": False,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
@@ -146,6 +152,7 @@ sst = Schedule(
                 "product": "SSTF",
                 # "create_image": False,
                 "create_point_value": True,
+                "type_image_background": "both",
             },
         )
     ]
@@ -166,6 +173,7 @@ aod = Schedule(
                 "product": "AODF",
                 # "create_image": False,
                 "create_point_value": False,
+                "type_image_background": "both",
             },
         )
     ]
