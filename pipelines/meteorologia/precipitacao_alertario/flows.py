@@ -373,5 +373,5 @@ cor_meteorologia_precipitacao_alertario.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-# cor_meteorologia_precipitacao_alertario.executor = LocalDaskExecutor(num_workers=10)
+cor_meteorologia_precipitacao_alertario.executor = LocalDaskExecutor(num_workers=10)
 cor_meteorologia_precipitacao_alertario.schedule = minute_schedule
