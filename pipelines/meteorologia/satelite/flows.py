@@ -28,7 +28,11 @@ from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E04
 from pipelines.constants import constants
 from pipelines.meteorologia.satelite.schedules import (
     aod,
-    cmip,
+    cmip7,
+    cmip9,
+    cmip11,
+    cmip13,
+    cmip15,
     dsi,
     lst,
     mcmip,
@@ -261,7 +265,7 @@ cor_meteorologia_goes16_cmip.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip.schedule = cmip
+cor_meteorologia_goes16_cmip.schedule = cmip13
 
 cor_meteorologia_goes16_mcmip = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_mcmip.name = (
@@ -317,3 +321,47 @@ cor_meteorologia_goes16_aod.run_config = KubernetesRun(
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
 cor_meteorologia_goes16_aod.schedule = aod
+
+cor_meteorologia_goes16_cmip7 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip7.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas curtas banda 7"
+)
+cor_meteorologia_goes16_cmip7.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip7.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip7.schedule = cmip7
+
+cor_meteorologia_goes16_cmip9 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip9.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Vapor d'água em níveis médios banda 9"
+)
+cor_meteorologia_goes16_cmip9.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip9.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip9.schedule = cmip9
+
+cor_meteorologia_goes16_cmip11 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip11.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Fase do topo da nuvem banda 11"
+)
+cor_meteorologia_goes16_cmip11.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip11.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip11.schedule = cmip11
+
+cor_meteorologia_goes16_cmip15 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip15.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas longas contaminada banda 15"
+)
+cor_meteorologia_goes16_cmip15.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip15.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip15.schedule = cmip15

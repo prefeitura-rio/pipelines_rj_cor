@@ -51,7 +51,7 @@ tpw = Schedule(
         )
     ]
 )
-cmip = Schedule(
+cmip13 = Schedule(
     clocks=[
         IntervalClock(
             interval=timedelta(minutes=5),
@@ -171,6 +171,96 @@ aod = Schedule(
                 "dataset_id": "clima_satelite",
                 "table_id": "profundidade_optica_aerossol_goes_16",
                 "product": "AODF",
+                # "create_image": False,
+                "create_point_value": False,
+                "type_image_background": "both",
+            },
+        )
+    ]
+)
+# Fonte nome das bandas do CMI
+# https://journals.ametsoc.org/view/journals/aies/3/2/AIES-D-23-0065.1.xml#tbl1
+cmip7 = Schedule(
+    clocks=[
+        IntervalClock(
+            interval=timedelta(minutes=5),
+            start_date=datetime(2021, 1, 1, 0, 4, 0),
+            labels=[constants.RJ_COR_AGENT_LABEL.value],
+            parameter_defaults={
+                "materialize_after_dump": False,
+                "materialize_to_datario": False,
+                "mode": "prod",
+                "mode_redis": "prod",
+                "dataset_id": "clima_satelite",
+                "table_id": "janela_ondas_curtas_banda_7_goes_16",
+                "product": "CMIPF",
+                "band": "7",
+                # "create_image": False,
+                "create_point_value": False,
+                "type_image_background": "both",
+            },
+        )
+    ]
+)
+cmip9 = Schedule(
+    clocks=[
+        IntervalClock(
+            interval=timedelta(minutes=5),
+            start_date=datetime(2021, 1, 1, 0, 4, 0),
+            labels=[constants.RJ_COR_AGENT_LABEL.value],
+            parameter_defaults={
+                "materialize_after_dump": False,
+                "materialize_to_datario": False,
+                "mode": "prod",
+                "mode_redis": "prod",
+                "dataset_id": "clima_satelite",
+                "table_id": "vapor_agua_niveis_medios_banda_9_goes_16",
+                "product": "CMIPF",
+                "band": "9",
+                # "create_image": False,
+                "create_point_value": False,
+                "type_image_background": "both",
+            },
+        )
+    ]
+)
+cmip11 = Schedule(
+    clocks=[
+        IntervalClock(
+            interval=timedelta(minutes=5),
+            start_date=datetime(2021, 1, 1, 0, 4, 0),
+            labels=[constants.RJ_COR_AGENT_LABEL.value],
+            parameter_defaults={
+                "materialize_after_dump": False,
+                "materialize_to_datario": False,
+                "mode": "prod",
+                "mode_redis": "prod",
+                "dataset_id": "clima_satelite",
+                "table_id": "fase_topo_nuvem_banda_11_goes_16",
+                "product": "CMIPF",
+                "band": "11",
+                # "create_image": False,
+                "create_point_value": False,
+                "type_image_background": "both",
+            },
+        )
+    ]
+)
+cmip15 = Schedule(
+    clocks=[
+        IntervalClock(
+            interval=timedelta(minutes=5),
+            start_date=datetime(2021, 1, 1, 0, 4, 0),
+            labels=[constants.RJ_COR_AGENT_LABEL.value],
+            parameter_defaults={
+                "materialize_after_dump": False,
+                "materialize_to_datario": False,
+                "mode": "prod",
+                "mode_redis": "prod",
+                "dataset_id": "clima_satelite",
+                "table_id": "janela_ondas_longas_contaminada_banda_15_goes_16",
+                "product": "CMIPF",
+                "band": "15",
                 # "create_image": False,
                 "create_point_value": False,
                 "type_image_background": "both",
