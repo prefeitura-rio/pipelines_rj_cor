@@ -21,7 +21,7 @@ every_fifteen_minutes = Schedule(
             interval=timedelta(minutes=15),
             start_date=pendulum.datetime(2021, 1, 1, 0, 5, 0, tz="America/Sao_Paulo"),
             labels=[
-                constants.RJ_ESCRITORIO_DEV_AGENT_LABEL.value,
+                constants.RJ_COR_AGENT_LABEL.value,
             ],
             parameter_defaults=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,
         )
