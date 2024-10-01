@@ -307,7 +307,8 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
         if background not in ["with"]:
             save_image_paths.append(create_and_save_image(data, info, var, with_background=False))
 
-        return save_image_paths
+    log(f"\nImages from {var} product were saved on {save_image_paths}\n")
+    return save_image_paths
 
 
 # def create_image_and_upload_to_api(info: dict, output_filepath: Path):
