@@ -107,7 +107,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario flow)",  # noqa
             )
@@ -126,7 +126,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_30MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 30min flow)",  # noqa
             )
@@ -145,7 +145,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_60MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 60min flow)",  # noqa
             )
@@ -164,7 +164,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_2H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 2h flow)",  # noqa
             )
@@ -183,7 +183,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_3H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 3h flow)",  # noqa
             )
@@ -202,7 +202,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_6H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 6h flow)",  # noqa
             )
@@ -221,7 +221,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_12H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 12h flow)",  # noqa
             )
@@ -240,7 +240,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_24H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 24h flow)",  # noqa
             )
@@ -259,7 +259,7 @@ with Flow(
                 project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_96H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
-                    "rj-escritorio-dev",
+                    constants.RJ_COR_AGENT_LABEL.value
                 ],
                 run_name="Update rain dashboard data (triggered by precipitacao_alertario last 96h flow)",  # noqa
             )
