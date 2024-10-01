@@ -63,6 +63,7 @@ with Flow(
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
     )
+    PREFECT_PROJECT = Parameter("Prefect_project", default="staging", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
     DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
@@ -103,7 +104,7 @@ with Flow(
             # Trigger rain dashboard update flow run
             rain_dashboard_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -122,7 +123,7 @@ with Flow(
             # Trigger rain dashboard update last 30min flow run
             rain_dashboard_last_30min_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_30MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -141,7 +142,7 @@ with Flow(
             # Trigger rain dashboard update last 60min flow run
             rain_dashboard_last_60min_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_60MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -160,7 +161,7 @@ with Flow(
             # Trigger rain dashboard update last 2h flow run
             rain_dashboard_last_2h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_2H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -179,7 +180,7 @@ with Flow(
             # Trigger rain dashboard update last 3h flow run
             rain_dashboard_last_3h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_3H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -198,7 +199,7 @@ with Flow(
             # Trigger rain dashboard update last 6h flow run
             rain_dashboard_last_6h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_6H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -217,7 +218,7 @@ with Flow(
             # Trigger rain dashboard update last 12h flow run
             rain_dashboard_last_12h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_12H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -236,7 +237,7 @@ with Flow(
             # Trigger rain dashboard update last 24h flow run
             rain_dashboard_last_24h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_24H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
@@ -255,7 +256,7 @@ with Flow(
             # Trigger rain dashboard update last 96h flow run
             rain_dashboard_last_96h_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=PREFECT_PROJECT,
                 parameters=alertario_constants.RAIN_DASHBOARD_LAST_96H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     "rj-escritorio-dev",
