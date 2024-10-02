@@ -6,7 +6,6 @@ Flows for precipitacao_alertario.
 from datetime import timedelta
 
 from prefect import Parameter, case
-from prefect.executors import LocalDaskExecutor
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
@@ -373,5 +372,5 @@ cor_meteorologia_precipitacao_alertario.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_precipitacao_alertario.executor = LocalDaskExecutor(num_workers=10)
+# cor_meteorologia_precipitacao_alertario.executor = LocalDaskExecutor(num_workers=10)
 cor_meteorologia_precipitacao_alertario.schedule = minute_schedule
