@@ -628,7 +628,13 @@ def get_point_value(
 
 
 # pylint: disable=unused-variable
-def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
+def create_and_save_image(
+    data: xr.DataArray,
+    info: dict,
+    variable,
+    with_background: bool = False,
+    with_colorbar: bool = False,
+) -> str:
     """
     Create image from xarray ans save it as png file.
     """
@@ -666,72 +672,82 @@ def create_and_save_image(data: xr.DataArray, info: dict, variable) -> Path:
         vmax=vmax,
     )
 
-    # Find shapefile file "Limite_Bairros_RJ.shp" across the entire file system
-    for root, dirs, files in os.walk(os.sep):
-        if "Limite_Bairros_RJ.shp" in files:
-            log(f"[DEBUG] ROOT {root}")
-            shapefile_dir = root
-            break
+    if with_background:
+        # Find shapefile file "Limite_Bairros_RJ.shp" across the entire file system
+        for root, dirs, files in os.walk(os.sep):
+            if "Limite_Bairros_RJ.shp" in files:
+                log(f"[DEBUG] ROOT {root}")
+                shapefile_dir = root
+                break
+        else:
+            print("File not found.")
+
+        # Add coastlines, borders and gridlines
+        # shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
+        shapefile_dir = Path(shapefile_dir)
+        shapefile_path_neighborhood = shapefile_dir / "Limite_Bairros_RJ.shp"
+        shapefile_path_state = shapefile_dir / "Limite_Estados_BR_IBGE.shp"
+
+        log("\nImporting shapefiles")
+        fiona.os.environ["SHAPE_RESTORE_SHX"] = "YES"
+        reader_neighborhood = shpreader.Reader(shapefile_path_neighborhood)
+        reader_state = shpreader.Reader(shapefile_path_state)
+        state = [record.geometry for record in reader_state.records()]
+        neighborhood = [record.geometry for record in reader_neighborhood.records()]
+        log("\nShapefiles imported")
+        axis.add_geometries(
+            state, ccrs.PlateCarree(), facecolor="none", edgecolor="black", linewidth=0.7
+        )
+        axis.add_geometries(
+            neighborhood,
+            ccrs.PlateCarree(),
+            facecolor="none",
+            edgecolor="black",
+            linewidth=0.2,
+        )
+        # axis.coastlines(resolution='10m', color='black', linewidth=1.0)
+        # axis.add_feature(cartopy.feature.BORDERS, edgecolor='black', linewidth=1.0)
+        background_filename = "with_background"
     else:
-        print("File not found.")
+        background_filename = "without_background"
 
-    # Add coastlines, borders and gridlines
-    # shapefile_dir = Path("/opt/venv/lib/python3.9/site-packages/pipelines/utils/shapefiles")
-    shapefile_path_neighborhood = shapefile_dir / "Limite_Bairros_RJ.shp"
-    shapefile_path_state = shapefile_dir / "Limite_Estados_BR_IBGE.shp"
+    if with_colorbar:
+        grdln = axis.gridlines(
+            crs=ccrs.PlateCarree(),
+            color="gray",
+            alpha=0.7,
+            linestyle="--",
+            linewidth=0.7,
+            xlocs=np.arange(-180, 180, 1),
+            ylocs=np.arange(-90, 90, 1),
+            draw_labels=True,
+        )
+        grdln.top_labels = False
+        grdln.right_labels = False
 
-    log("\nImporting shapefiles")
-    fiona.os.environ["SHAPE_RESTORE_SHX"] = "YES"
-    reader_neighborhood = shpreader.Reader(shapefile_path_neighborhood)
-    reader_state = shpreader.Reader(shapefile_path_state)
-    state = [record.geometry for record in reader_state.records()]
-    neighborhood = [record.geometry for record in reader_neighborhood.records()]
-    log("\nShapefiles imported")
-    axis.add_geometries(
-        state, ccrs.PlateCarree(), facecolor="none", edgecolor="black", linewidth=0.7
-    )
-    axis.add_geometries(
-        neighborhood,
-        ccrs.PlateCarree(),
-        facecolor="none",
-        edgecolor="black",
-        linewidth=0.2,
-    )
-    # axis.coastlines(resolution='10m', color='black', linewidth=1.0)
-    # axis.add_feature(cartopy.feature.BORDERS, edgecolor='black', linewidth=1.0)
-    grdln = axis.gridlines(
-        crs=ccrs.PlateCarree(),
-        color="gray",
-        alpha=0.7,
-        linestyle="--",
-        linewidth=0.7,
-        xlocs=np.arange(-180, 180, 1),
-        ylocs=np.arange(-90, 90, 1),
-        draw_labels=True,
-    )
-    grdln.top_labels = False
-    grdln.right_labels = False
-
-    plt.colorbar(
-        img,
-        label=variable.upper(),
-        extend="both",
-        orientation="horizontal",
-        pad=0.05,
-        fraction=0.05,
-    )
+        plt.colorbar(
+            img,
+            label=variable.upper(),
+            extend="both",
+            orientation="horizontal",
+            pad=0.05,
+            fraction=0.05,
+        )
 
     log("\n Start saving image")
-    output_image_path = Path(os.getcwd()) / "output" / "images"
+    output_image_path = Path(os.getcwd()) / "output" / "images" / background_filename
 
-    save_image_path = output_image_path / (f"{variable}_{info['datetime_save']}.png")
+    br_time = pendulum.from_format(info["datetime_save"], "YYYYMMDD HHmmss", tz="America/Sao_Paulo")
+    formatted_time = br_time.format("YYYY-MM-DD HH:mm:ss")
+
+    save_image_path = output_image_path / (f"{variable}_{formatted_time}.png")
 
     if not output_image_path.exists():
         output_image_path.mkdir(parents=True, exist_ok=True)
 
     plt.savefig(save_image_path, bbox_inches="tight", pad_inches=0.1, dpi=80)
     log(f"\n Ended saving image on {save_image_path}")
-    return save_image_path
+    return str(save_image_path)
 
 
 # def upload_image_to_api(var: str, save_image_path: Path, point_value: float):

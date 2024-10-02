@@ -28,7 +28,11 @@ from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E04
 from pipelines.constants import constants
 from pipelines.meteorologia.satelite.schedules import (
     aod,
-    cmip,
+    cmip7,
+    cmip9,
+    cmip11,
+    cmip13,
+    cmip15,
     dsi,
     lst,
     mcmip,
@@ -39,19 +43,24 @@ from pipelines.meteorologia.satelite.schedules import (
 
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.meteorologia.satelite.tasks import (  # create_image,
+    create_image,
+    define_background,
     download,
     generate_point_value,
     get_dates,
+    rearange_dataframe,
     save_data,
     slice_data,
     tratar_dados,
 )
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
+    get_storage_destination,
     task_build_redis_hash,
     task_create_partitions,
     task_get_redis_client,
     task_get_redis_output,
     task_save_on_redis,
+    upload_files_to_storage,
 )
 
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
@@ -81,7 +90,8 @@ with Flow(
     mode_redis = Parameter("mode_redis", default="prod", required=False)
     ref_filename = Parameter("ref_filename", default=None, required=False)
     current_time = Parameter("current_time", default=None, required=False)
-    # create_image = Parameter("create_image", default=False, required=False)
+    # type_image_background can be "with" (with background), "without", "both" or None
+    type_image_background = Parameter("type_image_background", default=None, required=False)
     create_point_value = Parameter("create_point_value", default=False, required=False)
 
     # Starting tasks
@@ -129,12 +139,37 @@ with Flow(
         wait=path,
     )
 
-    # with case(create_image, True):
-    #     create_image_and_upload_to_api(info, output_filepath)
+    dfr = rearange_dataframe(output_filepath)
+
+    create_img_background, create_img_without_background = define_background(type_image_background)
+
+    with case(create_img_background, True):
+        save_image_paths_wb = create_image(info, dfr, "with")
+        destination_folder_wb = get_storage_destination(
+            path="cor-clima-imagens/satelite/goes16/with_background"
+        )
+        upload_files_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_folder=destination_folder_wb,
+            source_file_names=save_image_paths_wb,
+        )
+
+    with case(create_img_without_background, True):
+        save_image_paths_wtb = create_image(info, dfr, "without")
+        destination_folder_wtb = get_storage_destination(
+            path="cor-clima-imagens/satelite/goes16/without_background"
+        )
+        upload_files_to_storage(
+            project="datario",
+            bucket_name="datario-public",
+            destination_folder=destination_folder_wtb,
+            source_file_names=save_image_paths_wtb,
+        )
 
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
-        df_point_values = generate_point_value(info, output_filepath)
+        df_point_values = generate_point_value(info, dfr)
         point_values_path = task_create_partitions(
             df_point_values,
             partition_date_column="data_medicao",
@@ -230,7 +265,7 @@ cor_meteorologia_goes16_cmip.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip.schedule = cmip
+cor_meteorologia_goes16_cmip.schedule = cmip13
 
 cor_meteorologia_goes16_mcmip = deepcopy(cor_meteorologia_goes16)
 cor_meteorologia_goes16_mcmip.name = (
@@ -286,3 +321,47 @@ cor_meteorologia_goes16_aod.run_config = KubernetesRun(
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
 cor_meteorologia_goes16_aod.schedule = aod
+
+cor_meteorologia_goes16_cmip7 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip7.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas curtas banda 7"
+)
+cor_meteorologia_goes16_cmip7.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip7.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip7.schedule = cmip7
+
+cor_meteorologia_goes16_cmip9 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip9.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Vapor d'água em níveis médios banda 9"
+)
+cor_meteorologia_goes16_cmip9.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip9.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip9.schedule = cmip9
+
+cor_meteorologia_goes16_cmip11 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip11.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Fase do topo da nuvem banda 11"
+)
+cor_meteorologia_goes16_cmip11.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip11.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip11.schedule = cmip11
+
+cor_meteorologia_goes16_cmip15 = deepcopy(cor_meteorologia_goes16)
+cor_meteorologia_goes16_cmip15.name = (
+    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas longas contaminada banda 15"
+)
+cor_meteorologia_goes16_cmip15.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes16_cmip15.run_config = KubernetesRun(
+    image=constants.DOCKER_IMAGE.value,
+    labels=[constants.RJ_COR_AGENT_LABEL.value],
+)
+cor_meteorologia_goes16_cmip15.schedule = cmip15

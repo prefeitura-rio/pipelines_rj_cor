@@ -9,7 +9,7 @@ import datetime as dt
 import os
 import re
 from pathlib import Path
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import pandas as pd
 import pendulum
@@ -20,6 +20,7 @@ from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.meteorologia.satelite.satellite_utils import (
     choose_file_to_download,
+    create_and_save_image,
     download_blob,
     extract_julian_day_and_hour_from_filename,
     get_files_from_aws,
@@ -215,8 +216,20 @@ def save_data(info: dict, mode_redis: str = "prod") -> Union[str, Path]:
     return output_path, output_filepath
 
 
+@task
+def rearange_dataframe(output_filepath: Path) -> pd.DataFrame:
+    """
+    Rearrange dataframe to convert it to a data array without creating a mess on lat an lon order.
+    The first column is the latitude in descending order and the second column is the longitude
+    in ascending order.
+    """
+    dfr = pd.read_csv(output_filepath)
+    dfr = dfr.sort_values(by=["latitude", "longitude"], ascending=[False, True])
+    return dfr
+
+
 @task()
-def generate_point_value(info: dict, output_filepath: Path) -> List:
+def generate_point_value(info: dict, dfr: pd.DataFrame) -> List:
     """
     Get the value of a point on the image.
     """
@@ -224,8 +237,6 @@ def generate_point_value(info: dict, output_filepath: Path) -> List:
     br_time = pendulum.from_format(info["datetime_save"], "YYYYMMDD HHmmss", tz="America/Sao_Paulo")
     formatted_time = br_time.format("YYYY-MM-DD HH:mm:ss")
     log(f"DEBUG info: {info}")
-    dfr = pd.read_csv(output_filepath)
-    dfr = dfr.sort_values(by=["latitude", "longitude"], ascending=[False, True])
 
     df_point_values = pd.DataFrame(
         columns=["produto_satelite", "data_medicao", "metrica", "valor", "latitude", "longitude"]
@@ -244,13 +255,72 @@ def generate_point_value(info: dict, output_filepath: Path) -> List:
     return df_point_values
 
 
+@task(nout=2)
+def define_background(type_image_background: str) -> Tuple[str, str]:
+    """
+    Define if should create image with or without background.
+
+    Args:
+    - type_image_background (str): Type of image background.
+        Options: "with", "without", "both".
+
+    Returns:
+    - create_img_background (bool): If should create image with background.
+    - create_img_without_background (bool): If should create image without background.
+    """
+    create_img_background, create_img_without_background = False, False
+    if type_image_background in ["with", "both"]:
+        create_img_background = True
+    if type_image_background in ["without", "both"]:
+        create_img_without_background = True
+    log(f"Create img with back {create_img_background} and without {create_img_without_background}")
+    return create_img_background, create_img_without_background
+
+
+@task
+def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> List:
+    """
+    Create image from dataframe, get the value of a point on the image and send these to API.
+
+    Input:
+    - info: dict
+    - dfr: pd.DataFrame
+    - background: str ["with", "without", "both"]
+
+    Return:
+    - save_image_paths: List
+    """
+    save_image_paths = []
+    for var in info["variable"]:
+        log(f"\nStart creating image for variable {var}\n")
+        var = var.lower()
+        data_array = get_variable_values(dfr, var)
+
+        # Get the pixel values
+        data = data_array.data[:]
+        log(f"\n[DEBUG] {var} data \n{data}")
+        log(f"\nmax value: {data.max()} min value: {data.min()}")
+
+        if background not in ["without"]:
+            save_image_paths.append(
+                create_and_save_image(data, info, var, with_background=True, with_colorbar=True)
+            )
+        if background not in ["with"]:
+            save_image_paths.append(create_and_save_image(data, info, var, with_background=False))
+
+    log(f"\nImages were saved on {save_image_paths}\n")
+    return save_image_paths
+
+
 # def create_image_and_upload_to_api(info: dict, output_filepath: Path):
 #     """
 #     Create image from dataframe, get the value of a point on the image and send these to API.
 #     """
 
 #     dfr = pd.read_csv(output_filepath)
-
+#     dfr = dfr.sort_values(by=["latitude", "longitude"], ascending=[False, True])
+#     for var in info["variable"]:
+#         log(f"\nStart creating image for variable {var}\n")
 #         var = var.lower()
 #         data_array = get_variable_values(dfr, var)
 #         point_value = get_point_value(data_array)
