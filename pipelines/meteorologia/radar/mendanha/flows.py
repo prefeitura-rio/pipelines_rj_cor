@@ -141,7 +141,7 @@ with Flow(
                 {filename_time: img_bytes}, folder="last_image"
             )
             destination_blob_name, source_file_name = get_storage_destination(
-                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/with_colourbar",
+                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/with_colorbar",
                 filename_time,
                 saved_last_img_path,
             )
@@ -172,7 +172,7 @@ with Flow(
                 destination_blob_name_without_backgroud_colorbar,
                 source_file_name_without_backgroud_colorbar,
             ) = get_storage_destination(
-                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/without_colourbar",
+                "cor-clima-imagens/radar/mendanha/refletividade_horizontal/without_background/without_colorbar",
                 filename_time,
                 saved_without_background_colorbar_img_path,
             )
@@ -199,7 +199,7 @@ with Flow(
             destination_blob_name_with_backgroud,
             source_file_name_with_backgroud,
         ) = get_storage_destination(
-            "cor-clima-imagens/radar/mendanha/refletividade_horizontal/with_background/with_colourbar",
+            "cor-clima-imagens/radar/mendanha/refletividade_horizontal/with_background/with_colorbar",
             filename_time,
             saved_with_background_img_path,
         )
