@@ -94,7 +94,7 @@ with Flow(
             current_flow_labels = get_current_flow_labels()
             materialization_flow = create_flow_run(
                 flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-                project_name=constants.PREFECET_STAGING_PROJECT.value,
+                project_name=constants.PREFECT_STAGING_PROJECT.value,
                 parameters={
                     "dataset_id": DATASET_ID_PLUVIOMETRIC,
                     "table_id": TABLE_ID_PLUVIOMETRIC,
@@ -165,7 +165,7 @@ with Flow(
             current_flow_labels = get_current_flow_labels()
             materialization_flow = create_flow_run(
                 flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-                project_name=constants.PREFECET_STAGING_PROJECT.value,
+                project_name=constants.PREFECT_STAGING_PROJECT.value,
                 parameters={
                     "dataset_id": DATASET_ID_FLUVIOMETRIC,
                     "table_id": TABLE_ID_FLUVIOMETRIC,

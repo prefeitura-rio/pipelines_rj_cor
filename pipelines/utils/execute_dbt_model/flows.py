@@ -92,7 +92,7 @@ with Flow(
         with case(running_at_datario, False):
             datario_materialization_flow = create_flow_run(
                 flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+                project_name=constants.PREFECT_STAGING_PROJECT.value,
                 parameters={
                     "dataset_id": dataset_id,
                     "table_id": table_id,
@@ -101,7 +101,7 @@ with Flow(
                     # infinite loop
                 },
                 labels=[
-                    constants.RJ_DATARIO_AGENT_LABEL.value,
+                    constants.RJ_COR_AGENT_LABEL.value,
                 ],
                 run_name=f"Publish to datario: {dataset_id}.{table_id}",
             )

@@ -28,8 +28,8 @@ class constants(Enum):
     ######################################
     # Prefect
     PREFECT_DEFAULT_PROJECT = "main"
-    PREFECET_STAGING_PROJECT = "staging"
-    PREFECET_PRODUCTION_PROJECT = "production"
+    PREFECT_STAGING_PROJECT = "staging"
+    PREFECT_PRODUCTION_PROJECT = "production"
 
     # Prefect tasks retry policy
     TASK_MAX_RETRIES = 5
