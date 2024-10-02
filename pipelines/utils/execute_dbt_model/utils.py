@@ -2,7 +2,7 @@
 """
 General utilities for interacting with dbt-rpc
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from dbt_client import DbtClient
@@ -54,8 +54,7 @@ def generate_execute_dbt_model_schedules(  # pylint: disable=too-many-arguments,
         clocks.append(
             IntervalClock(
                 interval=interval,
-                start_date=start_date
-                + timedelta(minutes=runs_interval_minutes * count),
+                start_date=start_date + timedelta(minutes=runs_interval_minutes * count),
                 labels=labels,
                 parameter_defaults=parameter_defaults,
             )

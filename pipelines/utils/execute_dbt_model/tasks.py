@@ -10,11 +10,8 @@ from typing import Any, Dict, List, Union
 from dbt_client import DbtClient
 from prefect import task
 
-from pipelines.utils.execute_dbt_model.utils import (
-    get_dbt_client,
-    parse_dbt_logs,
-)
 from pipelines.constants import constants
+from pipelines.utils.execute_dbt_model.utils import get_dbt_client, parse_dbt_logs
 from pipelines.utils.utils import get_vault_secret, log
 
 
@@ -156,10 +153,7 @@ def model_parameters_from_secrets(dictionary: Dict[str, str]) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Dictionary with the parameter name as key and the secret value as value.
     """
-    return {
-        key: get_vault_secret(value)["data"]["value"]
-        for key, value in dictionary.items()
-    }
+    return {key: get_vault_secret(value)["data"]["value"] for key, value in dictionary.items()}
 
 
 @task

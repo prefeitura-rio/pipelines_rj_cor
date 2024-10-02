@@ -36,9 +36,7 @@ with Flow(
     exclude = Parameter("exclude", default=None, required=False)
     flags = Parameter("flags", default=None, required=False)
     mode = Parameter("mode", default="dev", required=False)
-    materialize_to_datario = Parameter(
-        "materialize_to_datario", default=False, required=False
-    )
+    materialize_to_datario = Parameter("materialize_to_datario", default=False, required=False)
     dbt_model_parameters = Parameter("dbt_model_parameters", default={}, required=False)
     dbt_model_secret_parameters = Parameter(
         "dbt_model_secret_parameters", default={}, required=False
