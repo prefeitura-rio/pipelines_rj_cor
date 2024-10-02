@@ -179,7 +179,7 @@ def get_and_format_time(radar_files: list) -> Union[str, str]:
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
-    filename_time = br_time.format("YYYY-MM-DD-HH-mm-ss")
+    filename_time = br_time.format("YYYY-MM-DD HH:mm:ss")
     log(f"Time of first file in São Paulo timezone: {formatted_time} {type(formatted_time)}")
     return str(formatted_time), str(filename_time)
 
