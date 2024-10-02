@@ -267,7 +267,9 @@ def create_visualization_no_background(
     data = radar_2d[radar_product][0].max(axis=0).values
     lon = radar_2d["lon"].values
     lat = radar_2d["lat"].values
-    log(f"\nImage latitude limits: {lat.min()}, {lat.max()}\nlongitude limits: {lon.min()}, {lon.max()}\n")
+    log(
+        f"\nImage latitude limits: {lat.min()}, {lat.max()}\nlongitude limits: {lon.min()}, {lon.max()}\n"
+    )
 
     # Plot data over base map
     contour = ax.contourf(
