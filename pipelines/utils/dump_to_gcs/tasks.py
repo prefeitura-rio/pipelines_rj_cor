@@ -8,8 +8,7 @@ from time import sleep
 from typing import Union
 
 import jinja2
-from basedosdados.download.base import google_client
-from basedosdados.upload.base import Base
+from basedosdados.core.base import Base
 from google.cloud import bigquery
 from prefect import task
 
@@ -102,10 +101,12 @@ def download_data_to_gcs(  # pylint: disable=R0912,R0913,R0914,R0915
     # Checking if data exceeds the maximum allowed size
     log("Checking if data exceeds the maximum allowed size")
     # pylint: disable=E1124
-    client = google_client(project_id, billing_project_id, from_file=True, reauth=False)
+    # client = google_client(project_id, billing_project_id, from_file=True, reauth=False)
+    cliente_base = Base()
+    client = cliente_base.client()
     job_config = bigquery.QueryJobConfig()
     job_config.dry_run = True
-    job = client["bigquery"].query(query, job_config=job_config)
+    job = client["bigquery_staging"].query(query, job_config=job_config)
     while not job.done():
         sleep(1)
     table_size = job.total_bytes_processed
@@ -120,7 +121,7 @@ def download_data_to_gcs(  # pylint: disable=R0912,R0913,R0914,R0915
 
     # Get data
     log("Querying data from BigQuery")
-    job = client["bigquery"].query(query)
+    job = client["bigquery_staging"].query(query)
     while not job.done():
         sleep(1)
     # pylint: disable=protected-access
@@ -135,7 +136,7 @@ def download_data_to_gcs(  # pylint: disable=R0912,R0913,R0914,R0915
     dataset_ref = bigquery.DatasetReference(dest_project_id, dest_dataset_id)
     table_ref = dataset_ref.table(dest_table_id)
     job_config = bigquery.job.ExtractJobConfig(compression="GZIP")
-    extract_job = client["bigquery"].extract_table(
+    extract_job = client["bigquery_staging"].extract_table(
         table_ref,
         blob_path,
         location=location,
