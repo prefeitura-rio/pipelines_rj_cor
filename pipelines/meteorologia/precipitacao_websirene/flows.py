@@ -23,6 +23,10 @@ from pipelines.utils.tasks import (
     get_current_flow_labels,
 )
 
+from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
+    task_run_dbt_model_task,
+)
+
 with Flow(
     "COR: Meteorologia - Precipitacao WEBSIRENE",
     state_handlers=[handler_inject_bd_credentials],
@@ -58,27 +62,11 @@ with Flow(
 
         # Trigger DBT flow run
         with case(MATERIALIZE_AFTER_DUMP, True):
-            current_flow_labels = get_current_flow_labels()
-            materialization_flow = create_flow_run(
-                flow_name=utils_constants.FLOW_EXECUTE_DBT_MODEL_NAME.value,
-                project_name=constants.PREFECT_DEFAULT_PROJECT.value,
-                parameters={
-                    "dataset_id": DATASET_ID,
-                    "table_id": TABLE_ID,
-                    "mode": MATERIALIZATION_MODE,
-                    "materialize_to_datario": MATERIALIZE_TO_DATARIO,
-                },
-                labels=current_flow_labels,
-                run_name=f"Materialize {DATASET_ID}.{TABLE_ID}",
-            )
-
-            materialization_flow.set_upstream(UPLOAD_TABLE)
-
-            wait_for_materialization = wait_for_flow_run(
-                materialization_flow,
-                stream_states=True,
-                stream_logs=True,
-                raise_final_state=True,
+            run_dbt = task_run_dbt_model_task(
+                dataset_id=DATASET_ID,
+                table_id=TABLE_ID,
+                # mode=materialization_mode,
+                # materialize_to_datario=materialize_to_datario,
             )
 
 # para rodar na cloud
