@@ -31,7 +31,7 @@ from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
 from pipelines.utils.tasks import (
     create_table_and_upload_to_gcs,
-    get_current_flow_labels,
+
 )
 
 wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=2))
