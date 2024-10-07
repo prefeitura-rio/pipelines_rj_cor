@@ -22,6 +22,6 @@ MINUTE_SCHEDULE = Schedule(
                 "materialize_after_dump": True,
                 "mode": "prod",
             },
-        ),  
+        ),
     ]
 )
