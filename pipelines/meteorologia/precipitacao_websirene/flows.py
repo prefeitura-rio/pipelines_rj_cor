@@ -8,6 +8,9 @@ from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
+from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
+    task_run_dbt_model_task,
+)
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_websirene.schedules import MINUTE_SCHEDULE
@@ -21,10 +24,6 @@ from pipelines.utils.decorators import Flow
 from pipelines.utils.tasks import (
     create_table_and_upload_to_gcs,
     get_current_flow_labels,
-)
-
-from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
-    task_run_dbt_model_task,
 )
 
 with Flow(
