@@ -8,7 +8,10 @@ from datetime import timedelta
 from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
 from prefect.storage import GCS  # pylint: disable=E0611, E0401
-from prefect.tasks.prefect import create_flow_run, wait_for_flow_run  # pylint: disable=E0611,E0401
+from prefect.tasks.prefect import (  # pylint: disable=E0611,E0401
+    create_flow_run,
+    wait_for_flow_run,
+)
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
@@ -29,7 +32,6 @@ from pipelines.meteorologia.precipitacao_alertario.tasks import (
     save_last_dbt_update,
     treat_pluviometer_and_meteorological_data,
 )
-
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )

@@ -16,8 +16,8 @@ from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E04
 )
 
 from pipelines.constants import constants  # pylint: disable=E0611, E0401
-from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
-    constants as radar_constants,
+from pipelines.meteorologia.radar.mendanha.constants import (
+    constants as radar_constants,  # pylint: disable=E0611, E0401
 )
 
 # from pipelines.tasks import task_get_redis_client
@@ -51,14 +51,17 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_build_redis_hash,
+    task_create_partitions,
     task_get_redis_client,
     task_get_redis_output,
     task_save_on_redis,
 )
 
 # preprocessing imports
-from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
-    access_api as access_api_gypscie,
+from pipelines.utils.gypscie.tasks import (
+    access_api as access_api_gypscie,  # pylint: disable=E0611, E0401
+)
+from pipelines.utils.gypscie.tasks import (
     add_columns_on_dfr,
     download_datasets_from_gypscie,
     execute_dataset_processor,
@@ -67,10 +70,6 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     path_to_dfr,
     register_dataset_on_gypscie,
     task_wait_run,
-)
-
-from pipelines.tasks import (  # pylint: disable=E0611, E0401
-    task_create_partitions,
 )
 
 # create_visualization_with_background, prefix_to_restore, save_data,
