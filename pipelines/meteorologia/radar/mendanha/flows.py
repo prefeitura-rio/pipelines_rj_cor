@@ -104,6 +104,7 @@ with Flow(
     BUCKET_NAME = "rj-escritorio-scp"
 
     # Preprocessing gypscie parameters
+    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
     # Gypscie parameters
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
@@ -271,69 +272,72 @@ with Flow(
     #  Start preprocessing flow        #
     ####################################
 
-    api_gypscie = access_api_gypscie()
+    with case(preprocessing_gypscie, True):
+        api_gypscie = access_api_gypscie()
 
-    dataset_info = get_dataset_info(station_type, source)
+        dataset_info = get_dataset_info(station_type, source)
 
-    # Get processor information on gypscie
-    with case(dataset_processor_id, None):
-        dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
-            api_gypscie, processor_name
+        # Get processor information on gypscie
+        with case(dataset_processor_id, None):
+            dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
+                api_gypscie, processor_name
+            )
+        # TODO: e se o radar_files tiver mais de um arquivo?
+        dataset_response = register_dataset_on_gypscie(
+            api_gypscie, filepath=radar_files, domain_id=domain_id
         )
+        # TODO: verifcar no codigo do augustp se são esses os parametros corretos
+        processor_parameters = {
+            "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
+            "station_type": station_type,
+        }
 
-    dataset_response = register_dataset_on_gypscie(api_gypscie, filepath=dataset_path, domain_id=domain_id)
-    # TODO: verifcar no codigo do augustp se são esses os parametros corretos
-    processor_parameters = {
-        "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
-        "station_type": station_type,
-    }
+        dataset_processor_task_id = execute_dataset_processor(
+            api_gypscie,
+            processor_id=dataset_processor_id,
+            dataset_id=[dataset_response["id"]],
+            environment_id=environment_id,
+            project_id=project_id,
+            parameters=processor_parameters,
+        )
+        wait_run = task_wait_run(api_gypscie, dataset_processor_task_id, flow_type="processor")
+        dataset_path = download_datasets_from_gypscie(
+            api_gypscie, dataset_names=[dataset_response["id"]], wait=wait_run
+        )
+        dfr_ = path_to_dfr(dataset_path)
+        # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
+        dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
 
-    dataset_processor_task_id = execute_dataset_processor(
-        api_gypscie,
-        processor_id=dataset_processor_id,
-        dataset_id=[dataset_response["id"]],
-        environment_id=environment_id,
-        project_id=project_id,
-        parameters=processor_parameters,
-    )
-    wait_run = task_wait_run(api_gypscie, dataset_processor_task_id, flow_type="processor")
-    dataset_path = download_datasets_from_gypscie(
-        api_gypscie, dataset_names=[dataset_response["id"]], wait=wait_run
-    )
-    dfr_ = path_to_dfr(dataset_path)
-    # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-    dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
+        # Save pre-treated data on local file with partitions
+        now_datetime = get_now_datetime()
+        prediction_data_path = task_create_partitions(
+            dfr,
+            partition_date_column=dataset_info["partition_date_column"],
+            savepath="model_prediction",
+            suffix=now_datetime,
+        )
+        ################################
+        #  Save preprocessing on GCP   #
+        ################################
 
-    # Save pre-treated data on local file with partitions
-    now_datetime = get_now_datetime()
-    prediction_data_path = task_create_partitions(
-        dfr,
-        partition_date_column=dataset_info["partition_date_column"],
-        savepath="model_prediction",
-        suffix=now_datetime,
-    )
-    ################################
-    #  Save preprocessing on GCP   #
-    ################################
-
-    # Upload data to BigQuery
-    create_table = create_table_and_upload_to_gcs(
-        data_path=prediction_data_path,
-        dataset_id=dataset_id_previsao_chuva,
-        table_id=table_id_previsao_chuva,
-        dump_mode=dump_mode,
-        biglake_table=False,
-    )
-
-    # Trigger DBT flow run
-    with case(materialize_after_dump, True):
-        run_dbt = task_run_dbt_model_task(
+        # Upload data to BigQuery
+        create_table = create_table_and_upload_to_gcs(
+            data_path=prediction_data_path,
             dataset_id=dataset_id_previsao_chuva,
             table_id=table_id_previsao_chuva,
-            # mode=materialization_mode,
-            # materialize_to_datario=materialize_to_datario,
+            dump_mode=dump_mode,
+            biglake_table=False,
         )
-        run_dbt.set_upstream(create_table)
+
+        # Trigger DBT flow run
+        with case(materialize_after_dump, True):
+            run_dbt = task_run_dbt_model_task(
+                dataset_id=dataset_id_previsao_chuva,
+                table_id=table_id_previsao_chuva,
+                # mode=materialization_mode,
+                # materialize_to_datario=materialize_to_datario,
+            )
+            run_dbt.set_upstream(create_table)
 
 
 cor_meteorologia_refletividade_radar_flow.storage = GCS(constants.GCS_FLOWS_BUCKET.value)

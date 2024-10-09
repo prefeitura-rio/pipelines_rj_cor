@@ -5,10 +5,10 @@ Flows for precipitacao_alertario.
 """
 from datetime import timedelta
 
-from prefect import Parameter, case
-from prefect.run_configs import KubernetesRun
-from prefect.storage import GCS
-from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+from prefect import Parameter, case  # pylint: disable=E0611, E0401
+from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
+from prefect.storage import GCS  # pylint: disable=E0611, E0401
+from prefect.tasks.prefect import create_flow_run, wait_for_flow_run  # pylint: disable=E0611,E0401
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
@@ -91,6 +91,8 @@ with Flow(
         default=dump_to_gcs_constants.MAX_BYTES_PROCESSED_PER_TABLE.value,
     )
 
+    # Preprocessing gypscie parameters
+    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
     # Gypscie parameters
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
@@ -136,7 +138,7 @@ with Flow(
     )
 
     with case(empty_data_pluviometric, False):
-        path_pluviometric = save_data(
+        path_pluviometric, full_path_pluviometric = save_data(
             dfr_pluviometric, "pluviometric", wait=empty_data_pluviometric
         )
         # Create table in BigQuery
@@ -418,69 +420,73 @@ with Flow(
     #  Start preprocessing flow        #
     ####################################
 
-    api = access_api()
+    with case(empty_data_pluviometric, False):
+        with case(preprocessing_gypscie, True):
+            api = access_api()
 
-    dataset_info = get_dataset_info(station_type, source)
+            dataset_info = get_dataset_info(station_type, source)
 
-    # Get processor information on gypscie
-    with case(dataset_processor_id, None):
-        dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
-            api, processor_name
-        )
+            # Get processor information on gypscie
+            with case(dataset_processor_id, None):
+                dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
+                    api, processor_name
+                )
 
-    dataset_response = register_dataset_on_gypscie(api, filepath=dataset_path, domain_id=domain_id)
-    # TODO: verifcar no codigo do augustp se são esses os parametros corretos
-    processor_parameters = {
-        "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
-        "station_type": station_type,
-    }
+            dataset_response = register_dataset_on_gypscie(
+                api, filepath=full_path_pluviometric, domain_id=domain_id
+            )
+            # TODO: verifcar no codigo do augustp se são esses os parametros corretos
+            processor_parameters = {
+                "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
+                "station_type": station_type,
+            }
 
-    dataset_processor_task_id = execute_dataset_processor(
-        api,
-        processor_id=dataset_processor_id,
-        dataset_id=[dataset_response["id"]],
-        environment_id=environment_id,
-        project_id=project_id,
-        parameters=processor_parameters,
-    )
-    wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
-    dataset_path = download_datasets_from_gypscie(
-        api, dataset_names=[dataset_response["id"]], wait=wait_run
-    )
-    dfr_ = path_to_dfr(dataset_path)
-    # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-    dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
+            dataset_processor_task_id = execute_dataset_processor(
+                api,
+                processor_id=dataset_processor_id,
+                dataset_id=[dataset_response["id"]],
+                environment_id=environment_id,
+                project_id=project_id,
+                parameters=processor_parameters,
+            )
+            wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
+            dataset_path = download_datasets_from_gypscie(
+                api, dataset_names=[dataset_response["id"]], wait=wait_run
+            )
+            dfr_ = path_to_dfr(dataset_path)
+            # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
+            dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
 
-    # Save pre-treated data on local file with partitions
-    now_datetime = get_now_datetime()
-    prediction_data_path = task_create_partitions(
-        dfr,
-        partition_date_column=dataset_info["partition_date_column"],
-        savepath="model_prediction",
-        suffix=now_datetime,
-    )
-    ################################
-    #  Save preprocessing on GCP   #
-    ################################
+            # Save pre-treated data on local file with partitions
+            now_datetime = get_now_datetime()
+            prediction_data_path = task_create_partitions(
+                dfr,
+                partition_date_column=dataset_info["partition_date_column"],
+                savepath="model_prediction",
+                suffix=now_datetime,
+            )
+            ################################
+            #  Save preprocessing on GCP   #
+            ################################
 
-    # Upload data to BigQuery
-    create_table = create_table_and_upload_to_gcs(
-        data_path=prediction_data_path,
-        dataset_id=dataset_id_previsao_chuva,
-        table_id=table_id_previsao_chuva,
-        dump_mode=DUMP_MODE,
-        biglake_table=False,
-    )
+            # Upload data to BigQuery
+            create_table = create_table_and_upload_to_gcs(
+                data_path=prediction_data_path,
+                dataset_id=dataset_id_previsao_chuva,
+                table_id=table_id_previsao_chuva,
+                dump_mode=DUMP_MODE,
+                biglake_table=False,
+            )
 
-    # Trigger DBT flow run
-    with case(MATERIALIZE_AFTER_DUMP, True):
-        run_dbt = task_run_dbt_model_task(
-            dataset_id=dataset_id_previsao_chuva,
-            table_id=table_id_previsao_chuva,
-            # mode=materialization_mode,
-            # materialize_to_datario=materialize_to_datario,
-        )
-        run_dbt.set_upstream(create_table)
+            # Trigger DBT flow run
+            with case(MATERIALIZE_AFTER_DUMP, True):
+                run_dbt = task_run_dbt_model_task(
+                    dataset_id=dataset_id_previsao_chuva,
+                    table_id=table_id_previsao_chuva,
+                    # mode=materialization_mode,
+                    # materialize_to_datario=materialize_to_datario,
+                )
+                run_dbt.set_upstream(create_table)
 
 # para rodar na cloud
 cor_meteorologia_precipitacao_alertario.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
