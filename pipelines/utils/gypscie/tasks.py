@@ -20,7 +20,7 @@ from prefeitura_rio.pipelines_utils.logging import log
 from requests.exceptions import HTTPError
 
 from pipelines.constants import constants  # pylint: disable=E0611, E0401
-from pipelines.precipitation_model.rionowcast.utils import (  # pylint: disable=E0611, E0401
+from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
     GypscieApi,
     wait_run,
 )

@@ -4,15 +4,20 @@
 """
 Flows for setting rain dashboard using radar data.
 """
-from prefect import Parameter, case
-from prefect.run_configs import KubernetesRun
-from prefect.storage import GCS
-from prefeitura_rio.pipelines_utils.custom import Flow
+from prefect import Parameter, case  # pylint: disable=E0611, E0401
+from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
+from prefect.storage import GCS  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
+from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
+    create_table_and_upload_to_gcs,
+    get_now_datetime,
+    task_run_dbt_model_task,
+)
 
-from pipelines.constants import constants
-from pipelines.meteorologia.radar.mendanha.constants import (
-    constants as radar_constants,  # pylint: disable=E0611, E0401
+from pipelines.constants import constants  # pylint: disable=E0611, E0401
+from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
+    constants as radar_constants,
 )
 
 # from pipelines.tasks import task_get_redis_client
@@ -51,6 +56,23 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_save_on_redis,
 )
 
+# preprocessing imports
+from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
+    access_api as access_api_gypscie,
+    add_columns_on_dfr,
+    download_datasets_from_gypscie,
+    execute_dataset_processor,
+    get_dataset_info,
+    get_dataset_processor_info,
+    path_to_dfr,
+    register_dataset_on_gypscie,
+    task_wait_run,
+)
+
+from pipelines.tasks import (  # pylint: disable=E0611, E0401
+    task_create_partitions,
+)
+
 # create_visualization_with_background, prefix_to_restore, save_data,
 # from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
 
@@ -81,13 +103,38 @@ with Flow(
     # BASE_PATH = "pipelines/rj_cor/meteorologia/radar/precipitacao/"
     BUCKET_NAME = "rj-escritorio-scp"
 
-    # redis_data_key = Parameter("redis_data_key", default="data_last_15min_rain")
-    # redis_update_key = Parameter(
-    #     "redis_update_key", default="data_last_15min_rain_update"
-    # )
-    # redis_host = Parameter("redis_host", default="redis.redis.svc.cluster.local")
-    # redis_port = Parameter("redis_port", default=6379)
-    # redis_db = Parameter("redis_db", default=1)
+    # Preprocessing gypscie parameters
+    # Gypscie parameters
+    environment_id = Parameter("environment_id", default=1, required=False)
+    domain_id = Parameter("domain_id", default=1, required=False)
+    project_id = Parameter("project_id", default=1, required=False)
+    project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+
+    # Gypscie processor parameters
+    processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
+    dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
+
+    # Parameters for saving data on GCP
+    materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
+    dump_mode = Parameter("dump_mode", default=False, required=False)
+    dataset_id_previsao_chuva = Parameter(
+        "dataset_id_previsao_chuva", default="clima_previsao_chuva", required=False
+    )
+    table_id_previsao_chuva = Parameter(
+        "table_id_previsao_chuva", default="preprocessamento_radar_mendanha", required=False
+    )
+
+    # Dataset parameters
+    station_type = Parameter("station_type", default="radar", required=False)
+    source = Parameter("source", default="mendanha", required=False)
+
+    # Dataset path, if it was saved on ETL flow or it will be None
+    dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
+    model_version = Parameter("model_version", default=1, required=False)
+
+    ############################
+    #  Start radar flow        #
+    ############################
 
     redis_client = task_get_redis_client(infisical_secrets_path="/redis")
     redis_hash = task_build_redis_hash(DATASET_ID, TABLE_ID, name="images", mode=MODE)
@@ -219,6 +266,74 @@ with Flow(
         wait=response,
     )
     # save_last_update_redis.set_upstream(upload_table)
+
+    ####################################
+    #  Start preprocessing flow        #
+    ####################################
+
+    api_gypscie = access_api_gypscie()
+
+    dataset_info = get_dataset_info(station_type, source)
+
+    # Get processor information on gypscie
+    with case(dataset_processor_id, None):
+        dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
+            api_gypscie, processor_name
+        )
+
+    dataset_response = register_dataset_on_gypscie(api_gypscie, filepath=dataset_path, domain_id=domain_id)
+    # TODO: verifcar no codigo do augustp se são esses os parametros corretos
+    processor_parameters = {
+        "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
+        "station_type": station_type,
+    }
+
+    dataset_processor_task_id = execute_dataset_processor(
+        api_gypscie,
+        processor_id=dataset_processor_id,
+        dataset_id=[dataset_response["id"]],
+        environment_id=environment_id,
+        project_id=project_id,
+        parameters=processor_parameters,
+    )
+    wait_run = task_wait_run(api_gypscie, dataset_processor_task_id, flow_type="processor")
+    dataset_path = download_datasets_from_gypscie(
+        api_gypscie, dataset_names=[dataset_response["id"]], wait=wait_run
+    )
+    dfr_ = path_to_dfr(dataset_path)
+    # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
+    dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
+
+    # Save pre-treated data on local file with partitions
+    now_datetime = get_now_datetime()
+    prediction_data_path = task_create_partitions(
+        dfr,
+        partition_date_column=dataset_info["partition_date_column"],
+        savepath="model_prediction",
+        suffix=now_datetime,
+    )
+    ################################
+    #  Save preprocessing on GCP   #
+    ################################
+
+    # Upload data to BigQuery
+    create_table = create_table_and_upload_to_gcs(
+        data_path=prediction_data_path,
+        dataset_id=dataset_id_previsao_chuva,
+        table_id=table_id_previsao_chuva,
+        dump_mode=dump_mode,
+        biglake_table=False,
+    )
+
+    # Trigger DBT flow run
+    with case(materialize_after_dump, True):
+        run_dbt = task_run_dbt_model_task(
+            dataset_id=dataset_id_previsao_chuva,
+            table_id=table_id_previsao_chuva,
+            # mode=materialization_mode,
+            # materialize_to_datario=materialize_to_datario,
+        )
+        run_dbt.set_upstream(create_table)
 
 
 cor_meteorologia_refletividade_radar_flow.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
