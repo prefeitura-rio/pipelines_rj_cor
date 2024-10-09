@@ -32,8 +32,10 @@ from pipelines.meteorologia.precipitacao_alertario.tasks import (
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )
+
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
+
 # from pipelines.utils.dump_db.constants import constants as dump_db_constants
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
 
@@ -100,14 +102,12 @@ with Flow(
     processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
     dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
 
-    # Parameters for saving data on GCP
-    materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
-    dump_mode = Parameter("dump_mode", default=False, required=False)
+    # Parameters for saving data preprocessed on GCP
     dataset_id_previsao_chuva = Parameter(
-        "dataset_id", default="clima_previsao_chuva", required=False
+        "dataset_id_previsao_chuva", default="clima_previsao_chuva", required=False
     )
     table_id_previsao_chuva = Parameter(
-        "table_id", default="preprocessamento_pluviometro_alertario", required=False
+        "table_id_previsao_chuva", default="preprocessamento_pluviometro_alertario", required=False
     )
 
     # Dataset parameters
@@ -469,12 +469,12 @@ with Flow(
         data_path=prediction_data_path,
         dataset_id=dataset_id_previsao_chuva,
         table_id=table_id_previsao_chuva,
-        dump_mode=dump_mode,
+        dump_mode=DUMP_MODE,
         biglake_table=False,
     )
 
     # Trigger DBT flow run
-    with case(materialize_after_dump, True):
+    with case(MATERIALIZE_AFTER_DUMP, True):
         run_dbt = task_run_dbt_model_task(
             dataset_id=dataset_id_previsao_chuva,
             table_id=table_id_previsao_chuva,
