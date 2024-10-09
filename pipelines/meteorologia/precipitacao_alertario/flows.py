@@ -29,15 +29,6 @@ from pipelines.meteorologia.precipitacao_alertario.tasks import (
     save_last_dbt_update,
     treat_pluviometer_and_meteorological_data,
 )
-from pipelines.rj_escritorio.rain_dashboard.constants import (
-    constants as rain_dashboard_constants,
-)
-
-# from pipelines.utils.constants import constants as utils_constants
-from pipelines.utils.custom import wait_for_flow_run_with_timeout
-
-# from pipelines.utils.dump_db.constants import constants as dump_db_constants
-from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
 
 # preprocessing imports
 from pipelines.precipitation_model.rionowcast.tasks import (  # pylint: disable=E0611, E0401
@@ -51,9 +42,16 @@ from pipelines.precipitation_model.rionowcast.tasks import (  # pylint: disable=
     register_dataset_on_gypscie,
     task_wait_run,
 )
-from pipelines.tasks import (  # pylint: disable=E0611, E0401
-    task_create_partitions,
+from pipelines.rj_escritorio.rain_dashboard.constants import (
+    constants as rain_dashboard_constants,
 )
+from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E0401
+
+# from pipelines.utils.constants import constants as utils_constants
+from pipelines.utils.custom import wait_for_flow_run_with_timeout
+
+# from pipelines.utils.dump_db.constants import constants as dump_db_constants
+from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
 
 wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
 

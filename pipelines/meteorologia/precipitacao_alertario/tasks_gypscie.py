@@ -10,7 +10,6 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-
 from basedosdados.upload.base import Base
 from google.cloud import bigquery
 from prefect import task
