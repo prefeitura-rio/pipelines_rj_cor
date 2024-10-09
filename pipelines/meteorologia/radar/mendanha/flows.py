@@ -73,8 +73,8 @@ with Flow(
 
     DATASET_ID = Parameter("dataset_id", default=radar_constants.DATASET_ID.value)
     TABLE_ID = Parameter("table_id", default=radar_constants.TABLE_ID.value)
-    SAVE_IMAGE_WITH_BACKGROUND = Parameter("save_image_with_backgroud", default=False)
-    SAVE_IMAGE_WITHOUT_BACKGROUND = Parameter("save_image_without_backgroud", default=False)
+    SAVE_IMAGE_WITH_BACKGROUND = Parameter("save_image_with_background", default=False)
+    SAVE_IMAGE_WITHOUT_BACKGROUND = Parameter("save_image_without_background", default=False)
     SAVE_IMAGE_WITH_COLORBAR = Parameter("save_image_with_colorbar", default=False)
     SAVE_IMAGE_WITHOUT_COLORBAR = Parameter("save_image_without_colorbar", default=False)
     DUMP_MODE = Parameter("dump_mode", default="append")
