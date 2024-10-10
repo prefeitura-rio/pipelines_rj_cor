@@ -19,11 +19,10 @@ from pipelines.meteorologia.radar.mendanha.constants import (
 from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
     TIME_SCHEDULE,
 )
-from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401
+from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401; combine_radar_files,
     access_api,
     add_new_image,
     base64_to_bytes,
-    # combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
     create_visualization_with_background,
