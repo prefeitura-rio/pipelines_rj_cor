@@ -168,11 +168,10 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
 
 
 @task(nout=2, max_retries=3, retry_delay=timedelta(seconds=3))
-def get_and_format_time(radar_files: list) -> Union[str, str]:
+def get_and_format_time(radar: pyart.core.Radar) -> Union[str, str]:
     """
-    Get time from first file and convert it to São Paulo timezone
+    Get time from radar file and convert it to São Paulo timezone
     """
-    radar = pyart.aux_io.read_odim_h5(radar_files[0])
     utc_time_str = radar.time["units"].split(" ")[-1]
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")
