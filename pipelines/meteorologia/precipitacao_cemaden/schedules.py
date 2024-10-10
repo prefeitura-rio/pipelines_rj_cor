@@ -23,7 +23,7 @@ minute_schedule = Schedule(
                 # "trigger_rain_dashboard_update": True,
                 "materialize_after_dump": True,
                 "mode": "prod",
-                "materialize_to_datario": True,
+                "materialize_to_datario": False,
                 "dump_to_gcs": False,
                 "dump_mode": "append",
                 "dataset_id": "clima_pluviometro",

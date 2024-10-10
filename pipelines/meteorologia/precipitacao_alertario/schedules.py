@@ -24,7 +24,7 @@ minute_schedule = Schedule(
                 "materialize_after_dump_old_api": True,
                 "materialize_to_datario_old_api": True,
                 "materialize_after_dump": True,
-                "materialize_to_datario": True,
+                "materialize_to_datario": False,
                 "mode": "prod",
                 "dump_to_gcs": False,
             },

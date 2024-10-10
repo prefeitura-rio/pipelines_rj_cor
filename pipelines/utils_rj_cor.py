@@ -326,18 +326,18 @@ def compare_actual_df_with_redis_df(
     return dfr_diff, updated_dfr_redis
 
 
-def bq_project(kind: str = "bigquery_prod"):
-    """Get the set BigQuery project_id
-
-    Args:
-        kind (str, optional): Which client to get the project name from.
-        Options are 'bigquery_staging', 'bigquery_prod' and 'storage_staging'
-        Defaults to 'bigquery_prod'.
-
-    Returns:
-        str: the requested project_id
-    """
-    return bd.upload.base.Base().client[kind].project
+# def bq_project(kind: str = "bigquery_prod"):
+#     """Get the set BigQuery project_id
+#
+#     Args:
+#         kind (str, optional): Which client to get the project name from.
+#         Options are 'bigquery_staging', 'bigquery_prod' and 'storage_staging'
+#         Defaults to 'bigquery_prod'.
+#
+#     Returns:
+#         str: the requested project_id
+#     """
+#     return bd.upload.base.Base().client[kind].project
 
 
 def wait_task_run(api, task_id) -> Dict:

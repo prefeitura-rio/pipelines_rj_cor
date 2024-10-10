@@ -13,15 +13,11 @@ import requests
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 from unidecode import unidecode
 
 from pipelines.constants import constants
-from pipelines.utils.utils import (
-    get_vault_secret,
-    log,
-    parse_date_columns,
-    to_partitions,
-)
+from pipelines.utils.utils import log, parse_date_columns, to_partitions
 
 
 @task(nout=3)
@@ -62,8 +58,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
         "SBSC",
     ]
 
-    redemet_token = get_vault_secret("redemet-token")
-    redemet_token = redemet_token["data"]["token"]
+    redemet_token = get_secret("REDEMET-TOKEN")["REDEMET-TOKEN"]
 
     # Converte datas em int para cálculo de faixas.
     first_date_int = int(first_date.replace("-", ""))
@@ -80,6 +75,7 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
                 res = requests.get(url)
                 if res.status_code != 200:
                     log(f"Problema no id: {id_estacao}, {res.status_code}")
+                    log(f"Data: {data}, Hora: {hora}")
                     continue
                 res_data = json.loads(res.text)
                 if res_data["status"] is not True:
@@ -90,11 +86,16 @@ def download_data(first_date: str, last_date: str) -> pd.DataFrame:
                     continue
                 raw.append(res_data)
 
+    log(f"Raw data size: {len(raw)}")
+
     # Extrai objetos de dataframe
     raw = [res_data["data"] for res_data in raw]
 
     # converte para dataframe
     dataframe = pd.DataFrame(raw)
+
+    # Log dataframe size
+    log(f"Daframe shape: {dataframe.shape}")
 
     return dataframe
 
@@ -205,8 +206,7 @@ def download_stations_data() -> pd.DataFrame:
     Download station information
     """
 
-    redemet_token = get_vault_secret("redemet-token")
-    redemet_token = redemet_token["data"]["token"]
+    redemet_token = get_secret("REDEMET-TOKEN")["REDEMET-TOKEN"]
     base_url = f"https://api-redemet.decea.mil.br/aerodromos/?api_key={redemet_token}"  # noqa
     url = f"{base_url}&pais=Brasil"
     res = requests.get(url)

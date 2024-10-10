@@ -24,9 +24,9 @@ import numpy as np
 import pandas as pd
 import pendulum
 import prefect
-
-# from redis_pal import RedisPal
 import requests
+
+# import telegram
 from google.cloud import storage
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
@@ -34,8 +34,9 @@ from prefect.client import Client
 from prefect.engine.state import Skipped, State
 from prefect.run_configs import KubernetesRun
 from prefect.utilities.graphql import with_args
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
-# import telegram
+# from redis_pal import RedisPal
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
 from pipelines.constants import constants
@@ -926,7 +927,7 @@ def save_str_on_redis(
     Function to save a string on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     redis_client.hset(redis_hash, key, value)
 
 
@@ -935,7 +936,7 @@ def get_redis_output(redis_key):
     Get Redis output
     Example: {b'date': b'2023-02-27 07:29:04'}
     """
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
     output = redis_client.hgetall(redis_key)
     if len(output) > 0:
         output = treat_redis_output(output)
@@ -971,6 +972,13 @@ def compare_dates_between_tables_redis(
     if (len(date_1) == 0) | (len(date_2) == 0):
         return True
 
+    print(f"Date1: {date_1}")
+    print(f"Date2: {date_2}")
+
+    # Convert byte string to string
+    date_1["date"] = date_1["date"].decode("utf-8")
+    date_2["date"] = date_2["date"].decode("utf-8")
+
     # Convert date to pendulum
     date_1 = pendulum.from_format(date_1["date"], format_date_table_1)
     date_2 = pendulum.from_format(date_2["date"], format_date_table_2)
@@ -994,7 +1002,7 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914
     updated unique_id as a DataFrame and save new dates on redis
     """
 
-    redis_client = get_redis_client()
+    redis_client = get_redis_client_from_infisical()
 
     key = dataset_id + "." + table_id
     if mode == "dev":
@@ -1070,3 +1078,38 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914
     [redis_client.hset(key, k, v) for k, v in new_updates.items()]
 
     return dataframe.reset_index()
+
+
+def get_redis_client_from_infisical(
+    infisical_host_env: str = "REDIS_HOST",
+    infisical_port_env: str = "REDIS_PORT",
+    infisical_db_env: str = "REDIS_DB",
+    infisical_password_env: str = "REDIS_PASSWORD",
+    infisical_secrets_path: str = "/new_redis_cor",
+):
+    """
+    Gets a Redis client.
+
+    Args:
+        infisical_host_env: The environment variable for the Redis host.
+        infisical_port_env: The environment variable for the Redis port.
+        infisical_db_env: The environment variable for the Redis database.
+        infisical_password_env: The environment variable for the Redis password.
+
+    Returns:
+        The Redis client.
+    """
+    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
+    redis_port = int(
+        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
+    )
+    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
+    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
+        infisical_password_env
+    ]
+    return get_redis_client(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db,
+        password=redis_password,
+    )

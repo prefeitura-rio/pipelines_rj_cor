@@ -1,0 +1,46 @@
+version: 2
+models:
+  - name: lamina_agua_inea
+    description: "**Descrição**: Medições fluviométricas realizadas pelo INEA dentro da cidade do Rio de Janeiro."
+    columns:
+      - name: primary_key
+        description:
+          Chave primária criada a partir da concatenação da coluna id_estacao
+          e data_medicao. Serve para evitar dados duplicados. Formato [id_estacao]_AAAA-MM-DD_HH:MM:SS
+      - name: id_reservatorio
+        description: ID criado manualmente.
+      - name: data_particao
+        description: Data da medição em formato AAAA-MM-DD.
+      - name: data_medicao
+        description: Data e horário em que foi realizada a medição no formato YYYY-MM-DD HH:MM:SS.
+      - name: altura_agua
+        description: Altura da água no momento da medição em metros.
+      - name: tipo_reservatorio
+        description: Qual o tipo de reservatório rio, córrego, lagoa...
+
+  - name: estacoes_inea_flu
+    description: "Dados sobre as estações pluviométricas do INEA na cidade do Rio de Janeiro."
+    columns:
+      - name: id_estacao
+        description: "ID da estação definido manualmente."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+      - name: altitude
+        description: "Altura em metros onde a estação se encontra."
+      - name: tipo_estacao
+        description: "Qual tipo da estação (pluviométrica e/ou fluviométrica)."
+      - name: reservatorio_monitorado
+        description: "Nome do reservatório que é monitorado."
+      - name: regiao_hidrografica
+        description: "Região hidrográfica na qual se encontra a estação."
+      - name: bacia
+        description: "Bacia hidrográfica na qual se encontra a estação."
+      - name: data_implantacao
+        description: "Data em que a estação começou a operar."

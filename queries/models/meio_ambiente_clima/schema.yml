@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: taxa_precipitacao_satelite
+    description: "Taxa de precipitação estimada de áreas do sudeste brasileiro. As estimativas são feitas de hora em hora, cada registro contendo dados desta estimativa. Cada área é um quadrado formado por 4km de lado. Dados coletados pelo satélite GOES-16."
+    columns:
+      - name: latitude
+        description: "Latitude do centro da área."
+      - name: longitude
+        description: "Longitude do centro da área."
+      - name: rrqpe
+        description: "Taxa de precipitação estimada, medidas em milimetros por hora."
+
+
+  - name: quantidade_agua_precipitavel_satelite
+    description: "Quantidade estimada de água precipitável na atmosfera de áreas do sudeste brasileiro. As estimativas são feitas de hora em hora, cada registro contendo dados desta estimativa. Cada área é um quadrado formado por 4km de lado. Dados coletados pelo satélite GOES-16."
+    columns:
+      - name: latitude
+        description: "Latitude do centro da área."
+      - name: longitude
+        description: "Longitude do centro da área."
+      - name: tpw
+        description: "Quantidade total de água precipitável, medidas em milimetros."
