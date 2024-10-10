@@ -9,11 +9,11 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-import pendulum
+import pendulum  # pylint: disable=E0401
 import requests
-from bs4 import BeautifulSoup
-from prefect import task
-from prefeitura_rio.pipelines_utils.infisical import get_secret
+from bs4 import BeautifulSoup  # pylint: disable=E0401
+from prefect import task  # pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0401
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
@@ -178,12 +178,12 @@ def treat_pluviometer_and_meteorological_data(
     return dfr, empty_data
 
 
-@task
+@task(nout=2)
 def save_data(
     dfr: pd.DataFrame,
     data_name: str = "temp",
     wait=None,  # pylint: disable=unused-argument
-) -> Union[str, Path]:
+) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
     Salvar dfr tratados em csv para conseguir subir pro GCP
     """
@@ -199,15 +199,15 @@ def save_data(
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
     log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
-    to_partitions(
+    full_path = to_partitions(
         data=dataframe,
         partition_columns=partitions,
         savepath=prepath,
         data_type="csv",
         suffix=current_time,
     )
-    log(f"Files saved on {prepath}")
-    return prepath
+    log(f"Files saved on {prepath}, full path is {full_path}")
+    return prepath, full_path
 
 
 @task
