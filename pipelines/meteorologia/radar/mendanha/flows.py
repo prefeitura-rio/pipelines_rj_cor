@@ -38,6 +38,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     save_images_to_local,
     save_img_on_redis,
     send_zip_images_api,
+    task_open_radar_file,
     upload_file_to_storage,
 )
 
@@ -104,9 +105,9 @@ with Flow(
         files_to_download=files_on_storage_list,
         destination_path="temp/",
     )
-    combined_radar = radar_files
-    grid_shape, grid_limits = get_radar_parameters(combined_radar)
-    radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+    radar = task_open_radar_file(radar_files[0])
+    grid_shape, grid_limits = get_radar_parameters(radar)
+    radar_2d = remap_data(radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
     # Create visualizations
     formatted_time, filename_time = get_and_format_time(radar_files)

@@ -4,7 +4,6 @@
 """
 Tasks for setting rain dashboard using radar data.
 """
-# import json
 import io
 import os
 import zipfile
@@ -77,7 +76,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     # log(f"Directories inside bucket {directories}")
 
     sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
-    log(f"{len(sorted_files)} files found in vol_cor")
+    log(f"{len(sorted_files)} files with prefix {vol_a}")
     log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
 
     # Identificar o último arquivo em vol_a
@@ -108,7 +107,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
 @task(max_retries=3, retry_delay=timedelta(seconds=10))
 def download_files_storage(
     bucket_name: str, files_to_download: list, destination_path: str
-) -> None:
+) -> List:
     """
     Realiza o download dos arquivos listados em files_to_download no bucket especificado
     """
@@ -125,6 +124,27 @@ def download_files_storage(
     log("Finished Downloading all files")
     log(files_path)
     return files_path
+
+
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
+def task_open_radar_file(file_path: str) -> pyart.core.Radar:
+    """
+    Open radar file with h5 extension.
+
+    If file is compressed as a gzip file, it will be decompressed
+    before being opened.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file.
+
+    Returns
+    -------
+    radar : pyart.core.Radar
+        Radar object.
+    """
+    return open_radar_file(file_path)
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
