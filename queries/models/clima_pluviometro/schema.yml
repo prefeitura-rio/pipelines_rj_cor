@@ -1,0 +1,262 @@
+version: 2
+
+models:
+  - name: estacoes_alertario
+    description: "Dados sobre as estações pluviométricas do alertario ( Sistema Alerta Rio da Prefeitura do Rio de Janeiro ) na cidade do Rio de Janeiro."
+    columns:
+      - name: id_estacao
+        description: "ID da estação definido pelo AlertaRIO."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+      - name: cota
+        description: "Altura em metros onde a estação se encontra."
+      - name: x
+        description: "X UTM (SAD69 Zona 23)"
+      - name: y
+        description: "Y UTM (SAD69 Zona 23)"
+      - name: endereco
+        description: "Endereço completo da estação."
+      - name: situacao
+        description: "Indica se a estação está operante ou com falha."
+      - name: data_inicio_operacao
+        description: "Data em que a estação começou a operar."
+      - name: data_fim_operacao
+        description: "Data em que a estação parou de operar."
+      - name: data_atualizacao
+        description: "Última data em que os dados sobre a data de operação foram atualizados."
+
+  - name: taxa_precipitacao_alertario
+    description: "Taxa medida de precipitação das estações pluviométricas da cidade do Rio de Janeiro. As estimativas são feitas de 15 em 15 minutos, cada registro contendo dados desta medida."
+    columns:
+      - name: primary_key
+        description: "Chave primária criada a partir da coluna id_estacao e da data_medicao. Serve para evitar dados duplicados."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário em que foi realizada a medição"
+      - name: id_estacao
+        description: "ID da estação pluviométrica em que ocorreu a medição."
+        tests:
+          - not_null
+      - name: acumulado_chuva_15_min
+        description: "Acumulado de chuva em 15 minutos."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora."
+      - name: acumulado_chuva_4_h
+        description: "Acumulado de chuva em 4 horas."
+      - name: acumulado_chuva_24_h
+        description: "Acumulado de chuva em 24 horas."
+      - name: acumulado_chuva_96_h
+        description: "Acumulado de chuva em 96 horas."
+      - name: horario
+        description: "Horário no qual foi realizada a medição."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: taxa_precipitacao_alertario_5min
+    description: "Taxa medida de precipitação das estações pluviométricas da cidade do Rio de Janeiro. As estimativas são feitas de 5 em 5 minutos, cada registro contendo dados desta medida."
+    columns:
+      - name: primary_key
+        description: "Chave primária criada a partir da coluna id_estacao e da data_medicao. Serve para evitar dados duplicados."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e hora em que foi realizada a medição (no formato Y-m-d H:M:S)."
+      - name: id_estacao
+        description: "ID da estação pluviométrica em que ocorreu a medição."
+        tests:
+          - not_null
+      - name: acumulado_chuva_5min
+        description: "Acumulado de chuva em 5 minutos."
+      - name: acumulado_chuva_10min
+        description: "Acumulado de chuva em 10 minutos."
+      - name: acumulado_chuva_15min
+        description: "Acumulado de chuva em 15 minutos."
+      - name: acumulado_chuva_30min
+        description: "Acumulado de chuva em 30 minutos."
+      - name: acumulado_chuva_1h
+        description: "Acumulado de chuva em 1 hora."
+      - name: acumulado_chuva_2h
+        description: "Acumulado de chuva em 2 horas."
+      - name: acumulado_chuva_3h
+        description: "Acumulado de chuva em 3 horas."
+      - name: acumulado_chuva_4h
+        description: "Acumulado de chuva em 4 horas."
+      - name: acumulado_chuva_6h
+        description: "Acumulado de chuva em 6 horas."
+      - name: acumulado_chuva_12h
+        description: "Acumulado de chuva em 12 horas."
+      - name: acumulado_chuva_24h
+        description: "Acumulado de chuva em 24 horas."
+      - name: acumulado_chuva_96h
+        description: "Acumulado de chuva em 96 horas."
+      - name: acumulado_chuva_mes
+        description: "Acumulado de chuva mensal."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: estacoes_websirene
+    description: "Dados sobre as estações pluviométricas do Sistema Alerta Sonoro da Prefeitura do Rio de Janeiro  (Websirene)."
+    columns:
+      - name: id_estacao
+        description: "ID da estação definido pelo Websirene."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+
+  - name: taxa_precipitacao_websirene
+    description:
+      "Taxa medida de precipitação das estações pluviométricas da Defesa Civil da cidade do Rio de Janeiro.\
+      \ As estimativas são feitas de 15 em 15 minutos, cada registro contendo dados desta medida.\
+      \ As medições dsses pluviômetros são utilizadas para ligar as sirenes da cidade."
+    columns:
+      - name: primary_key
+        description: "Chave primária criada a partir da coluna id_estacao e da data_medicao. Serve para evitar dados duplicados."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário em que foi realizada a medição no formato YYYY-MM-DD HH:MM:SS em América/São Paulo."
+      - name: id_estacao
+        description: "ID da estação pluviométrica em que ocorreu a medição."
+        tests:
+          - not_null
+      - name: acumulado_chuva_15_min
+        description: "Acumulado de chuva em 15 minutos."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora."
+      - name: acumulado_chuva_4_h
+        description: "Acumulado de chuva em 4 horas."
+      - name: acumulado_chuva_24_h
+        description: "Acumulado de chuva em 24 horas."
+      - name: acumulado_chuva_96_h
+        description: "Acumulado de chuva em 96 horas."
+      - name: acumulado_chuva_mes
+        description: "Acumulado de chuva no mês."
+      - name: horario
+        description: "Horário no qual foi realizada a medição."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: estacoes_cemaden
+    description: "Dados sobre as estações pluviométricas do CEMADEN."
+    columns:
+      - name: id_estacao
+        description: "ID da estação meteorológica em que ocorreu a medição definido pelo CEMADEN."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+
+  - name: taxa_precipitacao_cemaden
+    description:
+      "Taxa medida de precipitação das estações pluviométricas do CEMADEN presentes dentro do perímetro da cidade do Rio de Janeiro.\
+      \ As estimativas são feitas de 10 em 10 minutos, cada registro contendo dados acumulados de chuva."
+    columns:
+      - name: primary_key
+        description: "Chave primária criada a partir da coluna id_estacao e da data_medicao. Serve para evitar dados duplicados."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário em que foi realizada a medição no formato YYYY-MM-DD HH:MM:SS em América/São Paulo."
+      - name: id_estacao
+        description: "ID da estação pluviométrica em que ocorreu a medição dada pelo CEMADEN."
+        tests:
+          - not_null
+      - name: acumulado_chuva_10_min
+        description: "Acumulado de chuva em 10 minutos."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora."
+      - name: acumulado_chuva_3_h
+        description: "Acumulado de chuva em 3 horas."
+      - name: acumulado_chuva_6_h
+        description: "Acumulado de chuva em 6 horas."
+      - name: acumulado_chuva_12_h
+        description: "Acumulado de chuva em 12 horas."
+      - name: acumulado_chuva_24_h
+        description: "Acumulado de chuva em 24 horas."
+      - name: acumulado_chuva_48_h
+        description: "Acumulado de chuva em 48 horas."
+      - name: acumulado_chuva_72_h
+        description: "Acumulado de chuva em 72 horas."
+      - name: acumulado_chuva_96_h
+        description: "Acumulado de chuva em 96 horas."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: taxa_precipitacao_inea
+    description:
+      "Taxa medida de precipitação das estações pluviométricas do INEA presentes dentro do perímetro da cidade do Rio de Janeiro.\
+      \ As estimativas são feitas de 10 em 10 minutos, cada registro contendo dados acumulados de chuva."
+    columns:
+      - name: primary_key
+        description: "Chave primária criada a partir da coluna id_estacao e da data_medicao. Serve para evitar dados duplicados."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário em que foi realizada a medição no formato YYYY-MM-DD HH:MM:SS em América/São Paulo."
+      - name: id_estacao
+        description: "ID da estação pluviométrica em que ocorreu a medição dada pelo CEMADEN."
+        tests:
+          - not_null
+      - name: acumulado_chuva_15_min
+        description: "Acumulado de chuva em 15 minutos."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora."
+      - name: acumulado_chuva_4_h
+        description: "Acumulado de chuva em 4 horas."
+      - name: acumulado_chuva_24_h
+        description: "Acumulado de chuva em 24 horas."
+      - name: acumulado_chuva_96_h
+        description: "Acumulado de chuva em 96 horas."
+      - name: acumulado_chuva_30_d
+        description: "Acumulado de chuva em 30 dias."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: estacoes_inea
+    description: "Dados sobre as estações pluviométricas do INEA na cidade do Rio de Janeiro."
+    columns:
+      - name: id_estacao
+        description: "ID da estação definido manualmente."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+      - name: altitude
+        description: "Altura em metros onde a estação se encontra."
+      - name: tipo_estacao
+        description: "Qual tipo da estação (pluviométrica e/ou fluviométrica)."
+      - name: regiao_hidrografica
+        description: "Região hidrográfica na qual se encontra a estação."
+      - name: bacia
+        description: "Bacia hidrográfica na qual se encontra a estação."
+      - name: data_implantacao
+        description: "Data em que a estação começou a operar."

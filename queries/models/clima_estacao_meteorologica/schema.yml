@@ -1,0 +1,223 @@
+version: 2
+
+models:
+  - name: meteorologia_inmet
+    description: "Dados meteorológicos obtidas das estações do inmet ( Instituto Nacional de Meteorologia ) na cidade do Rio de Janeiro. As medidas são feitas de hora em hora, cada registro contendo dados destas medidas para cada estação. Entre os dados temos horário da medição, acumulado de chuva em 1 hora, direção e velocidade do vento, temperatura, pressão atmosférica, umidade e radiação global."
+    columns:
+      - name: id_estacao
+        description: "ID da estação dada pelo INMET."
+        tests:
+          - unique
+          - not_null
+      - name: data
+        description: "Data em que foi realizada a medição."
+      - name: horario
+        description: "Horário em que foi realizada a medição."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora na estação em mm."
+      - name: direcao_vento
+        description: "Direção horária do vento na estação em º (gr)."
+      - name: velocidade_vento
+        description: "Velocidade do vento na estação em m/s."
+      - name: rajada_vento_max
+        description: "Rajada de vento máxima na estação em m/s."
+      - name: pressao
+        description: "Pressão atmosférica ao nível da estação em hPa."
+      - name: pressao_minima
+        description: "Pressão atmosférica mínima na hora anterior em hPa."
+      - name: pressao_maxima
+        description: "Pressão atmosférica máxima na hora anterior em hPa."
+      - name: umidade
+        description: "Umidade relativa do ar instantânea na estação em %."
+      - name: umidade_minima
+        description: "Umidade relativa mínima na hora anterior em %."
+      - name: umidade_maxima
+        description: "Umidade relativa máxima na hora anterior em %."
+      - name: temperatura
+        description: "Temperatura na medição instantânea na estação em ºC."
+      - name: temperatura_minima
+        description: "Temperatura mínima na hora anterior na estação em ºC."
+      - name: temperatura_maxima
+        description: "Temperatura máxima na hora anterior na estação em ºC."
+      - name: radiacao_global
+        description: "Radiação solar global captada na estação em KJ/m²."
+      - name: temperatura_orvalho
+        description: "Temperatura de orvalho instantânea na estação ºC."
+      - name: temperatura_orvalho_minimo
+        description: "Temperatura mínima de orvalho na hora anterior ºC."
+      - name: temperatura_orvalho_maximo
+        description: "Temperatura máxima de orvalho na hora anterior ºC."
+      - name: primary_key
+        description:
+          Chave primária criada a partir da concatenação da coluna id_estacao,
+          data e horário Serve para evitar dados duplicados.
+      - name: data_particao
+        description: Data em que foi realizada a medição.
+
+  - name: meteorologia_inmet_temp
+    description: "Dados meteorológicos obtidas das estações do inmet ( Instituto Nacional de Meteorologia ) na cidade do Rio de Janeiro. As medidas são feitas de hora em hora, cada registro contendo dados destas medidas para cada estação. Entre os dados temos horário da medição, acumulado de chuva em 1 hora, direção e velocidade do vento, temperatura, pressão atmosférica, umidade e radiação global."
+    columns:
+      - name: id_estacao
+        description: "ID da estação dada pelo INMET."
+        tests:
+          - unique
+          - not_null
+      - name: data
+        description: "Data em que foi realizada a medição."
+      - name: horario
+        description: "Horário em que foi realizada a medição."
+      - name: acumulado_chuva_1_h
+        description: "Acumulado de chuva em 1 hora na estação em mm."
+      - name: direcao_vento
+        description: "Direção horária do vento na estação em º (gr)."
+      - name: velocidade_vento
+        description: "Velocidade do vento na estação em m/s."
+      - name: rajada_vento_max
+        description: "Rajada de vento máxima na estação em m/s."
+      - name: pressao
+        description: "Pressão atmosférica ao nível da estação em hPa."
+      - name: pressao_minima
+        description: "Pressão atmosférica mínima na hora anterior em hPa."
+      - name: pressao_maxima
+        description: "Pressão atmosférica máxima na hora anterior em hPa."
+      - name: umidade
+        description: "Umidade relativa do ar instantânea na estação em %."
+      - name: umidade_minima
+        description: "Umidade relativa mínima na hora anterior em %."
+      - name: umidade_maxima
+        description: "Umidade relativa máxima na hora anterior em %."
+      - name: temperatura
+        description: "Temperatura na medição instantânea na estação em ºC."
+      - name: temperatura_minima
+        description: "Temperatura mínima na hora anterior na estação em ºC."
+      - name: temperatura_maxima
+        description: "Temperatura máxima na hora anterior na estação em ºC."
+      - name: radiacao_global
+        description: "Radiação solar global captada na estação em KJ/m²."
+      - name: temperatura_orvalho
+        description: "Temperatura de orvalho instantânea na estação ºC."
+      - name: temperatura_orvalho_minimo
+        description: "Temperatura mínima de orvalho na hora anterior ºC."
+      - name: temperatura_orvalho_maximo
+        description: "Temperatura máxima de orvalho na hora anterior ºC."
+
+  - name: estacoes_inmet
+    description: "Dados sobre as estações meteorológicas do inmet ( Instituto Nacional de Meteorologia ) na cidade do Rio de Janeiro."
+    columns:
+      - name: id_estacao
+        description: "ID da estação definido pelo INMET."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: sigla_uf
+        description: "Sigla do estado."
+      - name: id_municipio
+        description: "Código do município do IBGE de 7 dígitos."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+      - name: data_inicio_operacao
+        description: "Data em que a estação começou a operar."
+      - name: data_fim_operacao
+        description: "Data em que a estação parou de operar."
+      - name: situacao
+        description: "Indica se a estação está operante ou com falha."
+      - name: tipo_estacao
+        description: "Indica se a estação é automática ou manual. Pode conter nulos."
+      - name: entidade_responsavel
+        description: "Entidade responsável pela estação."
+      - name: data_atualizacao
+        description: "Última data em que os dados sobre a data de operação foram atualizados."
+
+  - name: meteorologia_redemet
+    description:
+      "Dados meteorológicos obtidos das estações meteorológicas dos aeródromos (aeroportos e bases aéreas) na cidade do Rio de Janeiro.\
+      \ As medidas são feitas de hora em hora, cada registro contendo dados destas medidas para cada estação."
+    columns:
+      - name: id_estacao
+        description: "Código único ICAO do aeródromo da estação."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário no GMT-3 no qual foi realizada a medição."
+      - name: umidade
+        description: "Umidade relativa do ar instantânea na estação em %."
+      - name: condicoes_tempo
+        description: "Condições de tempo instantâneas na estação."
+      - name: ceu
+        description: "Condições de céu instantâneas na estação."
+      - name: teto
+        description: "Condições de formação de teto instantâneas na estação."
+      - name: temperatura
+        description: "Temperatura na medição instantânea na estação em ºC."
+      - name: visibilidade
+        description: "Condições de visibilidade instantâneas na estação."
+      - name: data_particao
+        description: "Data em que foi realizada a medição"
+
+  - name: estacoes_redemet
+    description: "Dados sobre as estações meteorológicas da REDEMET (Rede de Meteorologia do Comando da Aeronáutica) na cidade do Rio de Janeiro."
+    columns:
+      - name: id_estacao
+        description: "Código da estação definido pela REDEMET."
+        tests:
+          - unique
+          - not_null
+      - name: estacao
+        description: "Nome da estação."
+      - name: latitude
+        description: "Latitude onde a estação se encontra."
+      - name: longitude
+        description: "Longitude onde a estação se encontra."
+      - name: altitude
+        description: "Altitude onde a estação se encontra em metros."
+      - name: data_atualizacao
+        description: "Última data em que os dados foram atualizados."
+
+  - name: meteorologia_alertario
+    description: "Dados meteorológicos obtidos nas estações meteorológicas do AlertaRio na cidade do Rio de Janeiro. As medidas, em geral, são feitas a cada 15 minutos e entre os dados temos horário da medição,  direção e velocidade do vento, temperatura, temperatura de orvalho, sensação térmica, pressão atmosférica e umidade."
+    columns:
+      - name: id_estacao
+        description: "ID da estação dada pelo AlertaRio."
+        tests:
+          - unique
+          - not_null
+      - name: data_medicao
+        description: "Data e horário em que foi realizada a medição no formato YYYY-MM-DD HH:MM:SS em América/São Paulo."
+      - name: direcao_vento
+        description: "Direção horária do vento na estação em º (gr)."
+      - name: velocidade_vento
+        description: "Velocidade do vento na estação em m/s."
+      - name: pressao
+        description: "Pressão atmosférica ao nível da estação em hPa."
+      - name: umidade
+        description: "Umidade relativa do ar instantânea na estação em %."
+      - name: temperatura
+        description: "Temperatura na medição instantânea na estação em ºC."
+      - name: sensacao_termica
+        description: "Sensação térmica calculada."
+      - name: temperatura_orvalho
+        description: "Temperatura de orvalho instantânea na estação ºC."
+      - name: primary_key
+        description: "Chave primária criada a partir da concatenação da coluna id_estacao e data_medicao. Serve para evitar dados duplicados."
+      - name: data_particao
+        description: "Data em que foi realizada a medição no formato YYYY-MM-DD."
+
+  - name: intensidade_vento
+    description: "Definição do Sistema de Alerta de Cheia que relaciona velocidade do vento com sua intensidade."
+    columns:
+      - name: intensidade_vento
+        description: "Intensidade do Vento segundo o Sistema de Alerta de Cheia."
+        tests:
+          - unique
+          - not_null
+      - name: velocidade_minima
+        description: "Velocidade mínima do vento para ser considerado nessa categoria de intensidade."
+      - name: velocidade_maxima
+        description: "Velocidade máxima do vento para ser considerado nessa categoria de intensidade."
+      - name: data_atualizacao
+        description: "Última data em que os dados foram atualizados."

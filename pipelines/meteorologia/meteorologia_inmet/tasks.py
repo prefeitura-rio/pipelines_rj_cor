@@ -11,10 +11,11 @@ import pandas as pd
 import pendulum
 import requests
 from prefect import task
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import parse_date_columns
-from pipelines.utils.utils import get_vault_secret, log, to_partitions
+from pipelines.utils.utils import log, to_partitions
 
 # from pipelines.rj_cor.meteorologia.meteorologia_inmet.meteorologia_utils import converte_timezone
 
@@ -79,8 +80,7 @@ def download(data_inicio: str, data_fim: str) -> pd.DataFrame:
     # no UTC, visto que ele só traria dados do novo dia e substituiria
     # no arquivo da partição do dia atual no nosso timezone
 
-    dicionario = get_vault_secret("inmet_api")
-    token = dicionario["data"]["token"]
+    token = get_secret("INMET_API")["INMET_API"]
 
     raw = []
     for id_estacao in estacoes_unicas:
