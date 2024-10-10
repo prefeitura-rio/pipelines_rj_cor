@@ -64,7 +64,7 @@ with Flow(
     skip_if_running=False,
     parallelism=100,
     # skip_if_running=True,
-) as cor_meteorologia_refletividade_radar_flow:
+) as cor_meteorologia_refletividade_radar_men_flow:
 
     # Prefect Parameters
     MODE = Parameter("mode", default="prod")
@@ -221,8 +221,8 @@ with Flow(
     # save_last_update_redis.set_upstream(upload_table)
 
 
-cor_meteorologia_refletividade_radar_flow.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_refletividade_radar_flow.run_config = KubernetesRun(
+cor_meteorologia_refletividade_radar_men_flow.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_refletividade_radar_men_flow.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
     cpu_request=1,
@@ -231,4 +231,4 @@ cor_meteorologia_refletividade_radar_flow.run_config = KubernetesRun(
     memory_limit="3Gi",
 )
 
-cor_meteorologia_refletividade_radar_flow.schedule = TIME_SCHEDULE
+cor_meteorologia_refletividade_radar_men_flow.schedule = TIME_SCHEDULE
