@@ -10,7 +10,7 @@ import os
 import zipfile
 from datetime import timedelta
 from pathlib import Path
-from time import sleep, time
+# from time import sleep, time
 from typing import Dict, List, Tuple, Union
 
 import cartopy.crs as ccrs
@@ -27,7 +27,7 @@ from google.cloud import storage
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Failed, Skipped
+from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
@@ -61,10 +61,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     """
     log("Starting geting filenames from storage")
     volumes = [
-        "mendanha/odimhdf5/vol_a/",
-        "mendanha/odimhdf5/vol_b/",
-        "mendanha/odimhdf5/vol_c/",
-        "mendanha/odimhdf5/vol_d/",
+        "mendanha/odimhdf5/vol_cor/",
     ]
 
     vol_a = volumes[0]
@@ -79,7 +76,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     # log(f"Directories inside bucket {directories}")
 
     sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
-    log(f"{len(sorted_files)} files found in vol_a")
+    log(f"{len(sorted_files)} files found in vol_cor")
     log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
 
     # Identificar o último arquivo em vol_a
@@ -101,29 +98,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     files_saved_redis.append(last_file_vol_a)
     files_to_save_redis = files_saved_redis
 
-    # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
-    for vol in volumes[1:]:
-        start_time = time()
-        elapsed_time = 0
-        next_files = []
-        while len(next_files) == 0 and elapsed_time <= 7 * 60:  # TO DO: change to 5 or 10
-            sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-            log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
-            next_files = [
-                file for file in sorted_files if extract_timestamp(file) > last_timestamp_vol_a
-            ]
-            if not next_files:
-                end_time = time()
-                elapsed_time = end_time - start_time
-                sleep(30)
-
-        if next_files:
-            selected_files.append(next_files[0])
-        else:
-            message = f"It was not possible to find {vol}. Ending run"
-            log(message)
-            raise ENDRUN(state=Failed(message))
 
     log(f"Selected files on scp: {selected_files}")
     return selected_files, files_to_save_redis

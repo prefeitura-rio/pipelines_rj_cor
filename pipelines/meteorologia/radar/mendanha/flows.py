@@ -23,7 +23,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     access_api,
     add_new_image,
     base64_to_bytes,
-    combine_radar_files,
+    # combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
     create_visualization_with_background,
@@ -105,7 +105,7 @@ with Flow(
         files_to_download=files_on_storage_list,
         destination_path="temp/",
     )
-    combined_radar = combine_radar_files(radar_files)
+    combined_radar = radar_files
     grid_shape, grid_limits = get_radar_parameters(combined_radar)
     radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
