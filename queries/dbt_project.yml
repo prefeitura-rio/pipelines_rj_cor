@@ -21,6 +21,31 @@ models:
     relation: true
     columns: true
   queries:
-    example:
-      +materialized: view
-      +schema: example
+    adm_cor_comando:
+      +materialized: table
+      +schema: adm_cor_comando
+    meio_ambiente_clima:
+      +materialized: table
+      +schema: meio_ambiente_clima
+    clima_pluviometro:
+      +materialized: table
+      +schema: clima_pluviometro
+    clima_fluviometro:
+      +materialized: table
+      +schema: clima_fluviometro
+    clima_satelite:
+      +materialized: table
+      +schema: clima_satelite
+    clima_radar:
+      +materialized: table
+      +schema: clima_radar
+    clima_estacao_meteorologica:
+      +materialized: table
+      +schema: clima_estacao_meteorologica
+    fiscalizacao_rua:
+      +materialized: table
+      +schema: fiscalizacao_rua
+    clima_rionowcast:
+      +materialized: table
+      +schema: clima_rionowcast
+
