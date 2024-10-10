@@ -375,6 +375,8 @@ def list_files_storage(
 ) -> list:
     """List files from bucket"""
     blobs = list(bucket.list_blobs(prefix=prefix))
+    files = [blob.name for blob in blobs]
+    log(f"some Files on buclet: {files[-10:]}")
     files = [blob.name for blob in blobs if blob.name.endswith(extensions)]
     sorted_files = sorted(files, key=sort_key)
     return sorted_files

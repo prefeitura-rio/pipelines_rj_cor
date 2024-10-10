@@ -75,7 +75,9 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     # directories = list_all_directories(bucket, bucket_name)
     # log(f"Directories inside bucket {directories}")
 
-    sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
+    sorted_files = list_files_storage(
+        bucket, prefix=vol_a, extensions=(".h5", ".gz"), sort_key=extract_timestamp
+    )
     log(f"{len(sorted_files)} files with prefix {vol_a}")
     log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
 
