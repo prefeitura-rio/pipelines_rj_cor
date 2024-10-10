@@ -110,7 +110,7 @@ with Flow(
     radar_2d = remap_data(radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
     # Create visualizations
-    formatted_time, filename_time = get_and_format_time(radar_files)
+    formatted_time, filename_time = get_and_format_time(radar)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
