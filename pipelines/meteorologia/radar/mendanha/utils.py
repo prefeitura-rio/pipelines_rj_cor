@@ -10,6 +10,7 @@ import os
 import re
 import shutil
 from datetime import datetime
+from pathlib import Path
 from typing import Union
 
 import matplotlib.colors as mcolors
@@ -29,7 +30,7 @@ def extract_timestamp(filename) -> datetime:
     )
 
 
-def open_radar_file(file_path) -> Union[pyart.core.Radar, None]:
+def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None]:
     """
     Open radar file with h5 extension.
 
@@ -38,7 +39,7 @@ def open_radar_file(file_path) -> Union[pyart.core.Radar, None]:
 
     Parameters
     ----------
-    file_path : str
+    file_path : Union[str, Path]
         Path to the file.
 
     Returns
@@ -46,6 +47,7 @@ def open_radar_file(file_path) -> Union[pyart.core.Radar, None]:
     radar : pyart.core.Radar
         Radar object.
     """
+    file_path = str(file_path)
     if file_path.endswith(".gz"):
         uncompressed_file_path = file_path[:-3]
         with gzip.open(file_path, "rb") as f_in:
