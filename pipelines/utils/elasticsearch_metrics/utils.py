@@ -6,8 +6,8 @@ import base64
 import json
 from typing import Any, Dict, List
 
-from elasticsearch import Elasticsearch
 import pendulum
+from elasticsearch import Elasticsearch
 
 from pipelines.utils.utils import get_vault_secret, log
 

@@ -7,10 +7,7 @@ from typing import Any, Dict, List
 
 from prefect import task
 
-from pipelines.utils.elasticsearch_metrics.utils import (
-    format_document,
-    index_document,
-)
+from pipelines.utils.elasticsearch_metrics.utils import format_document, index_document
 
 
 @task(checkpoint=False)
