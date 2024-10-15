@@ -9,6 +9,7 @@ from prefect import Parameter, case
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
 from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_cemaden.constants import (
@@ -38,9 +39,7 @@ wait_for_flow_run_with_2min_timeout = wait_for_flow_run_with_timeout(timeout=tim
 
 with Flow(
     name="COR: Meteorologia - Precipitacao CEMADEN",
-    code_owners=[
-        "paty",
-    ],
+    state_handlers=[handler_inject_bd_credentials],
     # skip_if_running=True,
 ) as cor_meteorologia_precipitacao_cemaden:
     DUMP_MODE = Parameter("dump_mode", default="append", required=True)
@@ -48,7 +47,7 @@ with Flow(
     TABLE_ID = Parameter("table_id", default="taxa_precipitacao_cemaden", required=True)
     # Materialization parameters
     MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=True, required=False)
-    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=True, required=False)
+    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="prod", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False

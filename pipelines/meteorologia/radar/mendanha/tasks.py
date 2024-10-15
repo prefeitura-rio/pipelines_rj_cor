@@ -4,16 +4,17 @@
 """
 Tasks for setting rain dashboard using radar data.
 """
-# import json
 import io
 import os
 import zipfile
 from datetime import timedelta
 from pathlib import Path
-from time import sleep, time
+
+# from time import sleep, time
 from typing import Dict, List, Tuple, Union
 
 import cartopy.crs as ccrs
+import contextily as ctx
 import matplotlib.pyplot as plt
 import numpy as np
 import pendulum
@@ -21,14 +22,12 @@ import pyart
 
 # import wradlib as wrl
 import xarray as xr
-
-# import contextily as ctx
 from google.cloud import storage
 
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 from prefect import task
 from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Failed, Skipped
+from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
@@ -62,10 +61,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     """
     log("Starting geting filenames from storage")
     volumes = [
-        "mendanha/odimhdf5/vol_a/",
-        "mendanha/odimhdf5/vol_b/",
-        "mendanha/odimhdf5/vol_c/",
-        "mendanha/odimhdf5/vol_d/",
+        "mendanha/odimhdf5/vol_cor/",
     ]
 
     vol_a = volumes[0]
@@ -79,8 +75,10 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     # directories = list_all_directories(bucket, bucket_name)
     # log(f"Directories inside bucket {directories}")
 
-    sorted_files = list_files_storage(bucket, prefix=vol_a, sort_key=extract_timestamp)
-    log(f"{len(sorted_files)} files found in vol_a")
+    sorted_files = list_files_storage(
+        bucket, prefix=vol_a, extensions=(".h5", ".gz"), sort_key=extract_timestamp
+    )
+    log(f"{len(sorted_files)} files with prefix {vol_a}")
     log(f"Last 5 files found on {vol_a}: {sorted_files[-5:]}")
 
     # Identificar o último arquivo em vol_a
@@ -102,29 +100,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
     files_saved_redis.append(last_file_vol_a)
     files_to_save_redis = files_saved_redis
 
-    # Encontrar os arquivos subsequentes em vol_b, vol_c e vol_d
     selected_files = [last_file_vol_a]
-    for vol in volumes[1:]:
-        start_time = time()
-        elapsed_time = 0
-        next_files = []
-        while len(next_files) == 0 and elapsed_time <= 4 * 60:  # TO DO: change to 5 or 10
-            sorted_files = list_files_storage(bucket, prefix=vol, sort_key=extract_timestamp)
-            log(f"Last 5 files found on {vol}: {sorted_files[-5:]}")
-            next_files = [
-                file for file in sorted_files if extract_timestamp(file) > last_timestamp_vol_a
-            ]
-            if not next_files:
-                end_time = time()
-                elapsed_time = end_time - start_time
-                sleep(30)
-
-        if next_files:
-            selected_files.append(next_files[0])
-        else:
-            message = f"It was not possible to find {vol}. Ending run"
-            log(message)
-            raise ENDRUN(state=Failed(message))
 
     log(f"Selected files on scp: {selected_files}")
     return selected_files, files_to_save_redis
@@ -133,7 +109,7 @@ def get_filenames_storage(  # pylint: disable=too-many-locals
 @task(max_retries=3, retry_delay=timedelta(seconds=10))
 def download_files_storage(
     bucket_name: str, files_to_download: list, destination_path: str
-) -> None:
+) -> List:
     """
     Realiza o download dos arquivos listados em files_to_download no bucket especificado
     """
@@ -150,6 +126,27 @@ def download_files_storage(
     log("Finished Downloading all files")
     log(files_path)
     return files_path
+
+
+@task(max_retries=3, retry_delay=timedelta(seconds=3))
+def task_open_radar_file(file_path: str) -> pyart.core.Radar:
+    """
+    Open radar file with h5 extension.
+
+    If file is compressed as a gzip file, it will be decompressed
+    before being opened.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file.
+
+    Returns
+    -------
+    radar : pyart.core.Radar
+        Radar object.
+    """
+    return open_radar_file(file_path)
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
@@ -171,16 +168,15 @@ def combine_radar_files(radar_files: list) -> pyart.core.Radar:
 
 
 @task(nout=2, max_retries=3, retry_delay=timedelta(seconds=3))
-def get_and_format_time(radar_files: list) -> Union[str, str]:
+def get_and_format_time(radar: pyart.core.Radar) -> Union[str, str]:
     """
-    Get time from first file and convert it to São Paulo timezone
+    Get time from radar file and convert it to São Paulo timezone
     """
-    radar = pyart.aux_io.read_odim_h5(radar_files[0])
     utc_time_str = radar.time["units"].split(" ")[-1]
     utc_time = pendulum.parse(utc_time_str, tz="UTC")
     br_time = utc_time.in_timezone("America/Sao_Paulo")
     formatted_time = br_time.format("ddd MMM DD HH:mm:ss YYYY")
-    filename_time = br_time.format("YYYY-MM-DD-HH-mm-ss")
+    filename_time = br_time.format("YYYY-MM-DD HH:mm:ss")
     log(f"Time of first file in São Paulo timezone: {formatted_time} {type(formatted_time)}")
     return str(formatted_time), str(filename_time)
 
@@ -268,6 +264,9 @@ def create_visualization_no_background(
     data = radar_2d[radar_product][0].max(axis=0).values
     lon = radar_2d["lon"].values
     lat = radar_2d["lat"].values
+    log(
+        f"\nImage latitude limits: {lat.min()}, {lat.max()}\nlongitude limits: {lon.min()}, {lon.max()}\n"
+    )
 
     # Plot data over base map
     contour = ax.contourf(
@@ -508,64 +507,66 @@ def get_colorbar_title(radar_product: str):
     return colorbar_title[radar_product]
 
 
-# @task
-# def create_visualization_with_background(radar_2d, radar_product: str, cbar_title: str, title: str):  # pylint: disable=line-too-long
-#     """
-#     Plot radar 2D data over Rio de Janeiro's map using the same
-#     color as they used before on colorbar
-#     """
-#     log(f"Start creating {radar_product} visualization with background")
-#     cmap, norm, ordered_values = create_colormap()
+@task
+def create_visualization_with_background(
+    radar_2d, radar_product: str, cbar_title: str, title: str
+):  # pylint: disable=line-too-long
+    """
+    Plot radar 2D data over Rio de Janeiro's map using the same
+    color as they used before on colorbar
+    """
+    log(f"Start creating {radar_product} visualization with background")
+    cmap, norm, ordered_values = create_colormap()
 
-#     proj = ccrs.PlateCarree()
+    proj = ccrs.PlateCarree()
 
-#     fig, ax = plt.subplots(
-#         figsize=(10, 10), subplot_kw={"projection": proj}
-#     )  # pylint: disable=C0103
-#     ax.set_aspect("auto")
+    fig, ax = plt.subplots(
+        figsize=(10, 10), subplot_kw={"projection": proj}
+    )  # pylint: disable=C0103
+    ax.set_aspect("auto")
 
-#     # Extract data and coordinates from Xarray
-#     data = radar_2d[radar_product][0].max(axis=0).values
-#     lon = radar_2d["lon"].values
-#     lat = radar_2d["lat"].values
+    # Extract data and coordinates from Xarray
+    data = radar_2d[radar_product][0].max(axis=0).values
+    lon = radar_2d["lon"].values
+    lat = radar_2d["lat"].values
 
-#     # Plot data over base map
-#     contour = ax.contourf(
-#         lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
-#     )
+    # Plot data over base map
+    contour = ax.contourf(
+        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
+    )
 
-#     # Adicionar o mapa de base usando contextily
-#     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+    # Adicionar o mapa de base usando contextily
+    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
 
-#     # Configure axes
-#     ax.set_title(
-#         title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
-#     )  # , fontweight='bold', loc="left"
+    # Configure axes
+    ax.set_title(
+        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+    )  # , fontweight='bold', loc="left"
 
-#     ax.set_xlabel("")
-#     ax.set_ylabel("")
-#     ax.axis("off")
-#     ax.grid(True, linestyle="--", alpha=0.5)
-#     ax.set_xlim(lon.min(), lon.max())
-#     ax.set_ylim(lat.min(), lat.max())
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.axis("off")
+    ax.grid(True, linestyle="--", alpha=0.5)
+    ax.set_xlim(lon.min(), lon.max())
+    ax.set_ylim(lat.min(), lat.max())
 
-#     # Customize colorbar to show only the specified values on the center of each box
-#     cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
-#     cbar = plt.colorbar(
-#         mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-#         ax=ax,
-#         cax=cbar_ax,
-#         orientation="vertical",
-#     )
-#     cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
-#     cbar.set_ticklabels([str(value) for value in ordered_values])
-#     cbar.ax.tick_params(size=0)
-#     cbar.ax.set_title(
-#         cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
-#     )  # left, height
+    # Customize colorbar to show only the specified values on the center of each box
+    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+    cbar = plt.colorbar(
+        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+        ax=ax,
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+    cbar.set_ticklabels([str(value) for value in ordered_values])
+    cbar.ax.tick_params(size=0)
+    cbar.ax.set_title(
+        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+    )  # left, height
 
-#     # plt.show()
-#     return fig
+    # plt.show()
+    return fig
 
 
 @task
@@ -585,12 +586,12 @@ def upload_file_to_storage(
 
 
 @task(nout=2)
-def get_storage_destination(filename: str, path: str):
+def get_storage_destination(destination_blob_path: str, source_filename: str, source_path: str):
     """
     get storage
     """
-    destination_blob_name = f"cor-clima-imagens/radar/mendanha/{filename}.png"
-    source_file_name = f"{path}/{filename}.png"
+    destination_blob_name = f"{destination_blob_path}/{source_filename}.png"
+    source_file_name = f"{source_path}/{source_filename}.png"
     log(f"File destination_blob_name {destination_blob_name}")
     log(f"File source_file_name {source_file_name}")
     return destination_blob_name, source_file_name

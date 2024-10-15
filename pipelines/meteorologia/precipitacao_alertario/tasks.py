@@ -13,6 +13,7 @@ import pendulum
 import requests
 from bs4 import BeautifulSoup
 from prefect import task
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
@@ -23,7 +24,6 @@ from pipelines.utils.utils import (
     build_redis_key,
     compare_dates_between_tables_redis,
     get_redis_output,
-    get_vault_secret,
     log,
     parse_date_columns,
     save_str_on_redis,
@@ -42,8 +42,7 @@ def download_data() -> pd.DataFrame:
     Request data from API and return each data in a different dataframe.
     """
 
-    dicionario = get_vault_secret("alertario_api")
-    url = dicionario["data"]["url"]
+    url = get_secret("ALERTARIO_API")["ALERTARIO_API"]
 
     try:
         response = requests.get(url)
@@ -121,7 +120,7 @@ def treat_pluviometer_and_meteorological_data(
             "Hora Leitura": "data_medicao",
             "Temp. (°C)": "temperatura",
             "Umi. do Ar (%)": "umidade_ar",
-            "Sen. Térmica (°C)": "sensacao_termica",
+            "Índice de Calor (°C)": "sensacao_termica",
             "P. Atm. (hPa)": "pressao_atmosferica",
             "P. de Orvalho (°C)": "temperatura_orvalho",
             "Vel. do Vento (Km/h)": "velocidade_vento",
@@ -138,8 +137,8 @@ def treat_pluviometer_and_meteorological_data(
 
     dfr["data_medicao"] = pd.to_datetime(dfr["data_medicao"], format="%d/%m/%Y - %H:%M:%S")
 
-    log(f"Dataframe before comparing with last data saved on redis {dfr.head()}")
-    log(f"Dataframe before comparing with last data saved on redis {dfr.iloc[0]}")
+    log(f"Dataframe before comparing with last data saved on redis for {table_id} {dfr.head()}")
+    log(f"Dataframe before comparing with last data saved on redis for {table_id} {dfr.iloc[0]}")
 
     dfr = save_updated_rows_on_redis(
         dfr,
@@ -155,10 +154,10 @@ def treat_pluviometer_and_meteorological_data(
 
     if not empty_data:
         see_cols = ["id_estacao", "data_medicao", "last_update"]
-        log(f"Dataframe after comparing with last data saved on redis {dfr[see_cols].head()}")
-        log(f"Dataframe first row after comparing {dfr.iloc[0]}")
+        log(f"df after comparing with last data on redis for {table_id} {dfr[see_cols].head()}")
+        log(f"Dataframe first row after comparing for {table_id} {dfr.iloc[0]}")
         dfr["data_medicao"] = dfr["data_medicao"].dt.strftime("%Y-%m-%d %H:%M:%S")
-        log(f"Dataframe after converting to string {dfr[see_cols].head()}")
+        log(f"Dataframe after converting to string for {table_id} {dfr[see_cols].head()}")
 
         # Save max date on redis to compare this with last dbt run
         max_date = str(dfr["data_medicao"].max())
@@ -174,7 +173,7 @@ def treat_pluviometer_and_meteorological_data(
         dfr = dfr[keep_cols]
     else:
         # If df is empty stop flow on flows.py
-        log("Dataframe is empty. Skipping update flow.")
+        log(f"Dataframe for {table_id} is empty. Skipping update flow.")
 
     return dfr, empty_data
 
@@ -193,12 +192,12 @@ def save_data(
     prepath.mkdir(parents=True, exist_ok=True)
 
     partition_column = "data_medicao"
-    log(f"Dataframe before partitions {dfr.iloc[0]}")
-    log(f"Dataframe before partitions {dfr.dtypes}")
+    log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
+    log(f"Dataframe for {data_name} before partitions {dfr.dtypes}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
     current_time = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
-    log(f"Dataframe after partitions {dataframe.iloc[0]}")
-    log(f"Dataframe after partitions {dataframe.dtypes}")
+    log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
+    log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
     to_partitions(
         data=dataframe,

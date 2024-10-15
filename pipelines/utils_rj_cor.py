@@ -326,18 +326,18 @@ def compare_actual_df_with_redis_df(
     return dfr_diff, updated_dfr_redis
 
 
-def bq_project(kind: str = "bigquery_prod"):
-    """Get the set BigQuery project_id
-
-    Args:
-        kind (str, optional): Which client to get the project name from.
-        Options are 'bigquery_staging', 'bigquery_prod' and 'storage_staging'
-        Defaults to 'bigquery_prod'.
-
-    Returns:
-        str: the requested project_id
-    """
-    return bd.upload.base.Base().client[kind].project
+# def bq_project(kind: str = "bigquery_prod"):
+#     """Get the set BigQuery project_id
+#
+#     Args:
+#         kind (str, optional): Which client to get the project name from.
+#         Options are 'bigquery_staging', 'bigquery_prod' and 'storage_staging'
+#         Defaults to 'bigquery_prod'.
+#
+#     Returns:
+#         str: the requested project_id
+#     """
+#     return bd.upload.base.Base().client[kind].project
 
 
 def wait_task_run(api, task_id) -> Dict:
@@ -370,10 +370,14 @@ def wait_task_run(api, task_id) -> Dict:
 ###############
 
 
-def list_files_storage(bucket, prefix: str, sort_key: str = None) -> list:
+def list_files_storage(
+    bucket, prefix: str, extensions=(".h5", ".gz"), sort_key: str = None
+) -> list:
     """List files from bucket"""
     blobs = list(bucket.list_blobs(prefix=prefix))
-    files = [blob.name for blob in blobs if blob.name.endswith(".h5")]
+    files = [blob.name for blob in blobs]
+    log(f"some Files on buclet: {files[-10:]}")
+    files = [blob.name for blob in blobs if blob.name.endswith(extensions)]
     sorted_files = sorted(files, key=sort_key)
     return sorted_files
 

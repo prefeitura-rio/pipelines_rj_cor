@@ -24,6 +24,10 @@ TIME_SCHEDULE = Schedule(
                 "mode": "prod",
                 "materialize_to_datario": False,
                 "dump_to_gcs": False,
+                "save_image_without_background": True,
+                "save_image_with_background": False,
+                "save_image_without_colorbar": True,
+                "save_image_with_colorbar": True,
             },
         ),
     ]

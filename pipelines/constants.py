@@ -20,11 +20,17 @@ class constants(Enum):
 
     RJ_COR_AGENT_LABEL = "cor"
 
+    RJ_ESCRITORIO_AGENT_LABEL = "rj-escritorio"
+    RJ_ESCRITORIO_DEV_AGENT_LABEL = "rj-escritorio-dev"
+
     ######################################
     # Other constants
     ######################################
     # Prefect
     PREFECT_DEFAULT_PROJECT = "main"
+    PREFECT_STAGING_PROJECT = "staging"
+    PREFECT_PRODUCTION_PROJECT = "production"
+
     # Prefect tasks retry policy
     TASK_MAX_RETRIES = 5
     TASK_RETRY_DELAY = 10  # seconds
