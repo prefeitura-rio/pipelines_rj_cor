@@ -606,10 +606,10 @@ def get_variable_values(dfr: pd.DataFrame, variable: str) -> xr.DataArray:
 
 # pylint: disable=dangerous-default-value
 def get_point_value(
-    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546], distance_km: float = 4
+    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546], distance_km: float = 10
 ) -> Tuple[float, tuple]:
     """
-    Find the nearest point on data_array within a 4km radius from the selected_point,
+    Find the nearest point on data_array within a 10km radius from the selected_point,
     eliminate null values, and return its value and the exact latitude and longitude.
     """
     # Convert 2 km to degrees (approximate conversion)
@@ -629,6 +629,8 @@ def get_point_value(
 
     if data_subset.size == 0:
         return float("nan"), (selected_point[0], selected_point[1])
+
+    log(f"Min and max value near selected point {data_subset.min()}, {data_subset.max()}")
 
     # Find the nearest index of latitude and longitude from selected_point
     lat_idx = (data_subset["lat"] - selected_point[0]).argmin().values
