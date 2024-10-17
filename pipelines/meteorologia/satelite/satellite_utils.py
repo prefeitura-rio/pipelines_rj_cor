@@ -622,16 +622,13 @@ def get_point_value(
     lon_max = selected_point[1] + km_to_deg
 
     # Filter the data for the lat/lon range
-    data_subset = data_array.sel(
-        lat=slice(lat_min, lat_max),
-        lon=slice(lon_min, lon_max)
-    )
+    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
 
     # Eliminate null values
     data_subset = data_subset.dropna(dim="lat", how="any").dropna(dim="lon", how="any")
 
     if data_subset.size == 0:
-        return float('nan'), (selected_point[0], selected_point[1])
+        return float("nan"), (selected_point[0], selected_point[1])
 
     # Find the nearest index of latitude and longitude from selected_point
     lat_idx = (data_subset["lat"] - selected_point[0]).argmin().values
