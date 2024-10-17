@@ -181,6 +181,7 @@ def treat_pluviometer_and_meteorological_data(
 @task(nout=2)
 def save_data(
     dfr: pd.DataFrame,
+    treatment_version: int,
     data_name: str = "temp",
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
@@ -204,7 +205,7 @@ def save_data(
         partition_columns=partitions,
         savepath=prepath,
         data_type="csv",
-        suffix=current_time,
+        suffix=str(treatment_version)+"_"+current_time,
     )
     log(f"Files saved on {prepath}, full path is {full_path}")
     return prepath, full_path

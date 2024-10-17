@@ -98,6 +98,7 @@ with Flow(
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
     project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+    treatment_version = Parameter("treatment_version", default=1, required=False)
 
     # Gypscie processor parameters
     processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
@@ -139,7 +140,7 @@ with Flow(
 
     with case(empty_data_pluviometric, False):
         path_pluviometric, full_path_pluviometric = save_data(
-            dfr_pluviometric, "pluviometric", wait=empty_data_pluviometric
+            dfr_pluviometric, treatment_version, "pluviometric", wait=empty_data_pluviometric
         )
         # Create table in BigQuery
         UPLOAD_TABLE = create_table_and_upload_to_gcs(
@@ -431,7 +432,7 @@ with Flow(
                 dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
                     api, processor_name
                 )
-
+            # TODO: converter os horarios do alertario para UTC antes de resgistrar
             dataset_response = register_dataset_on_gypscie(
                 api, filepath=full_path_pluviometric, domain_id=domain_id
             )
