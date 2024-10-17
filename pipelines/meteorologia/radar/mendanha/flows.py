@@ -131,7 +131,7 @@ with Flow(
 
     # Dataset path, if it was saved on ETL flow or it will be None
     dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
-    model_version = Parameter("model_version", default=1, required=False)
+    treatment_version = Parameter("treatment_version", default=1, required=False)
 
     ############################
     #  Start radar flow        #
@@ -282,7 +282,8 @@ with Flow(
             dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
                 api_gypscie, processor_name
             )
-        # TODO: e se o radar_files tiver mais de um arquivo?
+        # TODO: ao salvar o nome do radar_files salvar com sufixo treatment_version
+        # pq te que ser unico no gypscie
         dataset_response = register_dataset_on_gypscie(
             api_gypscie, filepath=radar_files, domain_id=domain_id
         )
@@ -306,7 +307,7 @@ with Flow(
         )
         dfr_ = path_to_dfr(dataset_path)
         # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-        dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
+        dfr = add_columns_on_dfr(dfr_, treatment_version, update_time=True)
 
         # Save pre-treated data on local file with partitions
         now_datetime = get_now_datetime()
