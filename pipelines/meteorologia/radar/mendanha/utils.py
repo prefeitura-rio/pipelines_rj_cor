@@ -4,10 +4,14 @@
 General utils for setting rain dashboard using radar data.
 """
 import base64
+import gzip
 import io
 import os
 import re
+import shutil
 from datetime import datetime
+from pathlib import Path
+from typing import Union
 
 import matplotlib.colors as mcolors
 import numpy as np
@@ -26,16 +30,37 @@ def extract_timestamp(filename) -> datetime:
     )
 
 
-def open_radar_file(file) -> pyart.core.Radar:
+def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None]:
     """
-    Print file size if it has problem opening it
+    Open radar file with h5 extension.
+
+    If file is compressed as a gzip file, it will be decompressed
+    before being opened. Print file size if it has problem opening it.
+
+    Parameters
+    ----------
+    file_path : Union[str, Path]
+        Path to the file.
+
+    Returns
+    -------
+    radar : pyart.core.Radar
+        Radar object.
     """
+    file_path = str(file_path)
+    if file_path.endswith(".gz"):
+        uncompressed_file_path = file_path[:-3]
+        with gzip.open(file_path, "rb") as f_in:
+            with open(uncompressed_file_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        file_path = uncompressed_file_path
+
     try:
-        opened_file = pyart.aux_io.read_odim_h5(file)
+        opened_file = pyart.aux_io.read_odim_h5(file_path)
         return opened_file
     except OSError as e:
         print(f"Erro ao abrir o arquivo: {e}")
-        file_size = os.path.getsize(file)
+        file_size = os.path.getsize(file_path)
         print(f"Tamanho do arquivo: {file_size} bytes")
         return None
 

@@ -16,19 +16,18 @@ from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E04
 )
 
 from pipelines.constants import constants  # pylint: disable=E0611, E0401
-from pipelines.meteorologia.radar.mendanha.constants import (  # pylint: disable=E0611, E0401
-    constants as radar_constants,
+from pipelines.meteorologia.radar.mendanha.constants import (
+    constants as radar_constants,  # pylint: disable=E0611, E0401
 )
 
 # from pipelines.tasks import task_get_redis_client
 from pipelines.meteorologia.radar.mendanha.schedules import (  # pylint: disable=E0611, E0401
     TIME_SCHEDULE,
 )
-from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401
+from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E0611, E0401; combine_radar_files,
     access_api,
     add_new_image,
     base64_to_bytes,
-    combine_radar_files,
     compress_to_zip,
     create_visualization_no_background,
     create_visualization_with_background,
@@ -44,6 +43,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     save_images_to_local,
     save_img_on_redis,
     send_zip_images_api,
+    task_open_radar_file,
     upload_file_to_storage,
 )
 
@@ -51,14 +51,17 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
 # from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_build_redis_hash,
+    task_create_partitions,
     task_get_redis_client,
     task_get_redis_output,
     task_save_on_redis,
 )
 
 # preprocessing imports
-from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
-    access_api as access_api_gypscie,
+from pipelines.utils.gypscie.tasks import (
+    access_api as access_api_gypscie,  # pylint: disable=E0611, E0401
+)
+from pipelines.utils.gypscie.tasks import (
     add_columns_on_dfr,
     download_datasets_from_gypscie,
     execute_dataset_processor,
@@ -67,10 +70,6 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     path_to_dfr,
     register_dataset_on_gypscie,
     task_wait_run,
-)
-
-from pipelines.tasks import (  # pylint: disable=E0611, E0401
-    task_create_partitions,
 )
 
 # create_visualization_with_background, prefix_to_restore, save_data,
@@ -153,12 +152,12 @@ with Flow(
         files_to_download=files_on_storage_list,
         destination_path="temp/",
     )
-    combined_radar = combine_radar_files(radar_files)
-    grid_shape, grid_limits = get_radar_parameters(combined_radar)
-    radar_2d = remap_data(combined_radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+    radar = task_open_radar_file(radar_files[0])
+    grid_shape, grid_limits = get_radar_parameters(radar)
+    radar_2d = remap_data(radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
     # Create visualizations
-    formatted_time, filename_time = get_and_format_time(radar_files)
+    formatted_time, filename_time = get_and_format_time(radar)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
