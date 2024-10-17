@@ -606,23 +606,40 @@ def get_variable_values(dfr: pd.DataFrame, variable: str) -> xr.DataArray:
 
 # pylint: disable=dangerous-default-value
 def get_point_value(
-    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546]
+    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546], distance_km: float = 2
 ) -> Tuple[float, tuple]:
     """
-    Find the nearest point on data_array from the selected_point and return its value,
-    and the exact latitude and longitude of the nearest point.
+    Find the nearest point on data_array within a 2km radius from the selected_point,
+    eliminate null values, and return its value and the exact latitude and longitude.
     """
+    # Convert 2 km to degrees (approximate conversion)
+    km_to_deg = distance_km / 111.0
+
+    # Define the latitude and longitude bounds (2km radius)
+    lat_min = selected_point[0] - km_to_deg
+    lat_max = selected_point[0] + km_to_deg
+    lon_min = selected_point[1] - km_to_deg
+    lon_max = selected_point[1] + km_to_deg
+
+    # Filter the data for the lat/lon range
+    data_subset = data_array.sel(
+        lat=slice(lat_min, lat_max),
+        lon=slice(lon_min, lon_max)
+    )
+
+    # Eliminate null values
+    data_subset = data_subset.dropna(dim="lat", how="any").dropna(dim="lon", how="any")
 
     # Find the nearest index of latitude and longitude from selected_point
-    lat_idx = (data_array["lat"] - selected_point[0]).argmin().values
-    lon_idx = (data_array["lon"] - selected_point[1]).argmin().values
+    lat_idx = (data_subset["lat"] - selected_point[0]).argmin().values
+    lon_idx = (data_subset["lon"] - selected_point[1]).argmin().values
 
     # Get the value at the nearest point
-    point_value = data_array.isel(lat=lat_idx, lon=lon_idx).values
+    point_value = data_subset.isel(lat=lat_idx, lon=lon_idx).values
 
     # Get the exact latitude and longitude at the nearest indices
-    lat_value = data_array["lat"].isel(lat=lat_idx).values
-    lon_value = data_array["lon"].isel(lon=lon_idx).values
+    lat_value = data_subset["lat"].isel(lat=lat_idx).values
+    lon_value = data_subset["lon"].isel(lon=lon_idx).values
 
     return point_value, (lat_value, lon_value)
 
