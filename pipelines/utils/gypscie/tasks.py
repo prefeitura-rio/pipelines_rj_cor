@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
+# pylint: disable= C0207
 """
 Tasks
 """
 import datetime
 import os
+import zipfile
 from pathlib import Path
+
 from time import sleep
 from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from basedosdados.upload.base import Base
+
+from basedosdados import Base
 from google.cloud import bigquery
 from prefect import task
 from prefect.engine.signals import ENDRUN
@@ -38,8 +42,8 @@ def access_api():
     # username = get_secret(secret_name="USERNAME", path="/gypscie", environment="prod")
     # password = get_secret(secret_name="PASSWORD", path="/gypscie", environment="prod")
 
-    username = get_secret(infisical_username, path="/gypscie")[infisical_username]
-    password = get_secret(infisical_password, path="/gypscie")[infisical_password]
+    username = get_secret(infisical_username, path="/gypscie_dexl")[infisical_username]
+    password = get_secret(infisical_password, path="/gypscie_dexl")[infisical_password]
     api = GypscieApi(username=username, password=password)
 
     return api
@@ -171,7 +175,7 @@ def execute_dataset_processor(
     dataset_id: list,  # como pegar os vários datasets
     environment_id: int,
     project_id: int,
-    parameters: dict
+    parameters: dict,
     # adicionar campos do dataset_processor
 ) -> List:
     """
@@ -289,14 +293,16 @@ def query_data_from_gcp(  # pylint: disable=too-many-arguments
 
 
 @task()
-def execute_prediction_on_gypscie(
+def execute_dataflow_on_gypscie(
     api,
     model_params: dict,
     # hours_to_predict,
-) -> str:
+) -> List:
     """
     Requisição de execução de um processo de Predição
-    Return task_id
+    Return
+    {'state': 'STARTED'}
+    {'result': {'output_datasets': [236]}, 'state': 'SUCCESS'}
     """
     log("Starting prediction")
     task_response = api.post(
@@ -316,10 +322,8 @@ def execute_prediction_on_gypscie(
         task_state = Failed(failed_message)
         raise ENDRUN(state=task_state)
 
-    print(f"Prediction ended. Response: {response}, {response.json()}")
-    # TODO: retorna a predição? o id da do dataset?
-
-    return response.json().get("task_id")  # response.json().get('task_id')
+    log(f"Prediction ended. Response: {response}")
+    return response["result"].get("output_datasets")
 
 
 @task
@@ -329,6 +333,86 @@ def task_wait_run(api, task_response, flow_type: str = "dataflow") -> Dict:
     flow_type: dataflow or processor
     """
     return wait_run(api, task_response, flow_type)
+
+
+@task
+def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
+    workflow_id,
+    environment_id,
+    project_id,
+    rain_gauge_data_id,
+    rain_gauge_metadata_path,
+    load_data_funtion_id,
+    parse_date_time_function_id,
+    drop_duplicates_function_id,
+    replace_inconsistent_values_function_id,
+    add_lat_lon_function_id,
+    save_data_function_id,
+) -> List:
+    """
+    Return parameters for the alertario ETL
+
+    {
+        "workflow_id": 41,
+        "environment_id": 1,
+        "parameters": [
+            {
+                "function_id":53,  # load_data
+                "params": {
+                    "rain_gauge_data_path":226,
+                    "rain_gauge_metadata_path":227
+                }
+            },
+            {
+                "function_id":54  # parse_date_time
+            },
+            {
+                "function_id":55  # drop_duplicates
+            },
+            {
+                "function_id":56  # replace_inconsistent_values
+            },
+            {
+                "function_id":57  # add_lat_lon
+            },
+            {
+                "function_id":58,  # save_data
+                "params": {"output_path":"dados_alertario_20230112_190000.parquet"}
+            }
+        ],
+        "project_id": 1
+    }
+    """
+    return {
+        "workflow_id": workflow_id,
+        "environment_id": environment_id,
+        "parameters": [
+            {
+                "function_id": load_data_funtion_id,
+                "params": {
+                    "rain_gauge_data_path": rain_gauge_data_id,
+                    "rain_gauge_metadata_path": rain_gauge_metadata_path,
+                },
+            },
+            {
+                "function_id": parse_date_time_function_id,
+            },
+            {
+                "function_id": drop_duplicates_function_id,
+            },
+            {
+                "function_id": replace_inconsistent_values_function_id,
+            },
+            {
+                "function_id": add_lat_lon_function_id,
+            },
+            {
+                "function_id": save_data_function_id,
+                "params": {"output_path": "preprocessed_data_alertario.parquet"},
+            },
+        ],
+        "project_id": project_id,
+    }
 
 
 @task
@@ -343,6 +427,7 @@ def get_dataflow_params(  # pylint: disable=too-many-arguments
     rain_gauge_data_id,
     grid_data_id,
     model_data_id,
+    output_function_id,
 ) -> List:
     """
     Return parameters for the model
@@ -382,6 +467,7 @@ def get_dataflow_params(  # pylint: disable=too-many-arguments
                 "function_id": pre_processing_function_id,
             },
             {"function_id": model_function_id, "params": {"model_path": model_data_id}},
+            {"function_id": output_function_id, "params": {"output_path": "prediction.npy"}},
         ],
         "project_id": project_id,
     }
@@ -402,27 +488,93 @@ def get_output_dataset_ids_on_gypscie(
         if err.response.status_code == 404:
             print(f"Task {task_id} not found")
             return []
+    log(f"status_workflow_run response {response}")
 
     return response.get("output_datasets")
+
+
+@task()
+def get_dataset_name_on_gypscie(
+    api,
+    dataset_ids: list,
+) -> List:
+    """
+    Get datasets name using their dataset ids
+    """
+    dataset_names = []
+    log(f"All dataset_ids to get names: {dataset_ids}")
+    for dataset_id in dataset_ids:
+        log(f"Getting name for dataset id: {dataset_id}")
+        try:
+            response = api.get(path="datasets/" + str(dataset_id))
+        except HTTPError as err:
+            if err.response.status_code == 404:
+                print(f"Dataset_id {dataset_id} not found")
+                return []
+        log(f"Get dataset name response {response}")
+        dataset_names.append(response.get("name"))
+    log(f"All dataset names {dataset_names}")
+    return dataset_names
 
 
 @task()
 def download_datasets_from_gypscie(
     api,
     dataset_names: List,
-    wait=None,
+    wait=None,  # pylint: disable=unused-argument
 ) -> List:
     """
     Get output files with predictions
     """
-    for file_name in dataset_names:
-        response = api.get(path=f"download/datasets/{file_name}.zip")
+    log(f"\n\nDataset names to be downloaded from Gypscie: {dataset_names}")
+    for dataset_name in dataset_names:
+        log(f"Downloading dataset {dataset_name} from Gypscie")
+        response = api.get(f"download/datasets/{dataset_name}.zip")
+        log(f"Download {dataset_name}'s response: {response}")
         if response.status_code == 200:
-            log(f"Dataset {file_name} downloaded")
+            dataset = response.content
+            with open(f"{dataset_name}.zip", "wb") as file:
+                file.write(dataset)
+            log(f"Dataset {dataset_name} downloaded")
         else:
-            log(f"Dataset {file_name} not found on Gypscie")
-    # TODO: verificar se o arquivo é .zip mesmo
-    return [dataset_name + ".zip" for dataset_name in dataset_names]
+            log(f"Dataset {dataset_name} not found on Gypscie")
+    return dataset_names
+
+
+@task
+def unzip_files(zip_files: List[str], destination_folder: str = "./") -> List[str]:
+    """
+    Unzip files to destination folder
+    """
+    zip_files = [
+        zip_file if zip_file.endswith(".zip") else zip_file + ".zip" for zip_file in zip_files
+    ]
+    os.makedirs(destination_folder, exist_ok=True)
+
+    unziped_files = []
+    for zip_file in zip_files:
+        with zipfile.ZipFile(zip_file, "r") as zip_ref:
+            zip_ref.extractall(destination_folder)
+            unziped_files.extend(
+                [
+                    os.path.join(destination_folder, nome_arquivo)
+                    for nome_arquivo in zip_ref.namelist()
+                ]
+            )
+
+    return unziped_files
+
+
+@task
+def read_numpy_files(file_paths: List[str]) -> List[np.ndarray]:
+    """
+    Read numpy arrays and return a list with of them
+    """
+    arrays = []
+    for file_path in file_paths:
+        array = np.load(file_path)
+        arrays.append(array)
+    return arrays
 
 
 @task
@@ -451,6 +603,7 @@ def geolocalize_data(prediction_datasets: np.ndarray, now_datetime: str) -> pd.D
     Expected columns: latitude, longitude, janela_predicao,
     valor_predicao, data_predicao (timestamp em que foi realizada a previsão)
     """
+    now_datetime = now_datetime + 1
     return prediction_datasets
 
 
@@ -523,7 +676,7 @@ def create_image(data) -> List:
         return save_image_path
     """
     save_image_path = "image.png"
-
+    data = data + 1
     return save_image_path
 
 
@@ -552,9 +705,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -577,16 +730,19 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
 
 
 def path_to_dfr(path: str) -> pd.DataFrame:
-
     """
     Reads a csv or parquet file from the given path and returns a dataframe
     """
-    if path.endswith(".csv"):
-        dfr = pd.read_csv(path)
-    elif path.endswith(".parquet"):
-        dfr = pd.read_parquet(path)
-    else:
-        raise ValueError("File extension not supported")
+    dfr = pd.DataFrame()
+    try:
+        if path.endswith(".csv"):
+            dfr = pd.read_csv(path)
+        elif path.endswith(".parquet"):
+            dfr = pd.read_parquet(path)
+        else:
+            raise ValueError("File extension not supported")
+    except AttributeError as error:
+        log(f"type(path) {type(path)} error {error}")
     return dfr
 
 
