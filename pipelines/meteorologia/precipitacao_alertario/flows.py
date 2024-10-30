@@ -27,6 +27,7 @@ from pipelines.meteorologia.precipitacao_alertario.constants import (
 from pipelines.meteorologia.precipitacao_alertario.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
+    convert_sp_timezone_to_utc,
     download_data,
     save_data,
     save_last_dbt_update,
@@ -48,12 +49,14 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_columns_on_dfr,
     download_datasets_from_gypscie,
-    execute_dataset_processor,
+    execute_dataflow_on_gypscie,
+    get_dataflow_alertario_params,
     get_dataset_info,
+    get_dataset_name_on_gypscie,
     get_dataset_processor_info,
     path_to_dfr,
     register_dataset_on_gypscie,
-    task_wait_run,
+    unzip_files,
 )
 
 wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
@@ -96,6 +99,7 @@ with Flow(
     # Preprocessing gypscie parameters
     preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
     # Gypscie parameters
+    workflow_id = Parameter("workflow_id", default=1, required=False)
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
@@ -105,6 +109,20 @@ with Flow(
     # Gypscie processor parameters
     processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
     dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
+
+    load_data_function_id = Parameter("load_data_function_id", default=53, required=False)
+    parse_date_time_function_id = Parameter(
+        "parse_date_time_function_id", default=54, required=False
+    )
+    drop_duplicates_function_id = Parameter(
+        "drop_duplicates_function_id", default=55, required=False
+    )
+    replace_inconsistent_values_function_id = Parameter(
+        "replace_inconsistent_values_function_id", default=56, required=False
+    )
+    add_lat_lon_function_id = Parameter("add_lat_lon_function_id", default=57, required=False)
+    save_data_function_id = Parameter("save_data_function_id", default=58, required=False)
+    rain_gauge_metadata_path = Parameter("rain_gauge_metadata_path", default=227, required=False)
 
     # Parameters for saving data preprocessed on GCP
     dataset_id_previsao_chuva = Parameter(
@@ -127,13 +145,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -434,29 +458,52 @@ with Flow(
                 dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
                     api, processor_name
                 )
-            # TODO: converter os horarios do alertario para UTC antes de resgistrar
-            dataset_response = register_dataset_on_gypscie(
-                api, filepath=full_path_pluviometric, domain_id=domain_id
+            dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric)
+            path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
+                dfr_pluviometric_gypscie,
+                columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
+                data_name="gypscie",
             )
-            # TODO: verifcar no codigo do augustp se são esses os parametros corretos
-            processor_parameters = {
-                "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
-                "station_type": station_type,
-            }
+            register_dataset_response = register_dataset_on_gypscie(
+                api, filepath=path_pluviometric_gypscie, domain_id=domain_id
+            )
 
-            dataset_processor_task_id = execute_dataset_processor(
-                api,
-                processor_id=dataset_processor_id,
-                dataset_id=[dataset_response["id"]],
+            model_params = get_dataflow_alertario_params(
+                workflow_id=workflow_id,
                 environment_id=environment_id,
                 project_id=project_id,
-                parameters=processor_parameters,
+                rain_gauge_data_id=register_dataset_response["id"],
+                rain_gauge_metadata_path=rain_gauge_metadata_path,
+                load_data_funtion_id=load_data_function_id,
+                parse_date_time_function_id=parse_date_time_function_id,
+                drop_duplicates_function_id=drop_duplicates_function_id,
+                replace_inconsistent_values_function_id=replace_inconsistent_values_function_id,
+                add_lat_lon_function_id=add_lat_lon_function_id,
+                save_data_function_id=save_data_function_id,
             )
-            wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
-            dataset_path = download_datasets_from_gypscie(
-                api, dataset_names=[dataset_response["id"]], wait=wait_run
+
+            # Send dataset ids to gypscie to get predictions
+            output_dataset_ids = execute_dataflow_on_gypscie(
+                api,
+                model_params,
             )
-            dfr_ = path_to_dfr(dataset_path)
+
+            # dataset_processor_task_id = execute_dataset_processor(
+            #     api,
+            #     processor_id=dataset_processor_id,
+            #     dataset_id=[dataset_response["id"]],
+            #     environment_id=environment_id,
+            #     project_id=project_id,
+            #     parameters=processor_parameters,
+            # )
+            # wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
+            # dataset_path = download_datasets_from_gypscie(
+            #     api, dataset_names=[dataset_response["id"]], wait=wait_run
+            # )
+            dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)  # new
+            ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
+            dataset_paths = unzip_files(ziped_dataset_paths)
+            dfr_ = path_to_dfr(dataset_paths)
             # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
             dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
 

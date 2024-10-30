@@ -181,7 +181,8 @@ def treat_pluviometer_and_meteorological_data(
 @task(nout=2)
 def save_data(
     dfr: pd.DataFrame,
-    treatment_version: int,
+    columns: str = None,
+    treatment_version: str = "",
     data_name: str = "temp",
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
@@ -200,12 +201,15 @@ def save_data(
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
     log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
+    if columns:
+        dataframe = dataframe[columns]
+
     full_path = to_partitions(
         data=dataframe,
         partition_columns=partitions,
         savepath=prepath,
         data_type="csv",
-        suffix=str(treatment_version)+"_"+current_time,
+        suffix=treatment_version + "_" + current_time,
     )
     log(f"Files saved on {prepath}, full path is {full_path}")
     return prepath, full_path
@@ -348,3 +352,25 @@ def save_data_old(
     )
     log(f"{data_name} files saved on {prepath}")
     return prepath
+
+
+@task
+def convert_sp_timezone_to_utc(dfr, data_column: str = "data_medicao") -> pd.DataFrame:
+    """
+    Convert a dataframe data_column from São Paulo (UTC-3) to UTC.
+
+    Parameters:
+    dfr (pd.DataFrame): DataFrame with data_column.
+
+    Returns:
+    pd.DataFrame: DataFrame with data_column converted to UTC.
+    """
+
+    if data_column not in dfr.columns:
+        raise ValueError(f"DataFrame must contain a column named {data_column}.")
+
+    dfr[data_column] = pd.to_datetime(dfr[data_column])
+    dfr[data_column] = dfr[data_column].dt.tz_localize("America/Sao_Paulo")
+    dfr[data_column] = dfr[data_column].dt.tz_convert("UTC")
+
+    return dfr
