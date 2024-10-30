@@ -47,7 +47,7 @@ from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_const
 # preprocessing imports
 from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
-    add_columns_on_dfr,
+    add_caracterization_columns_on_dfr,
     download_datasets_from_gypscie,
     execute_dataflow_on_gypscie,
     get_dataflow_alertario_params,
@@ -145,13 +145,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -499,7 +505,7 @@ with Flow(
             dataset_paths = unzip_files(ziped_dataset_paths)
             dfr_ = path_to_dfr(dataset_paths)
             # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-            dfr = add_columns_on_dfr(dfr_, model_version, update_time=True)
+            dfr = add_caracterization_columns_on_dfr(dfr_, model_version, update_time=True)
 
             # Save pre-treated data on local file with partitions
             now_datetime = get_now_datetime()
