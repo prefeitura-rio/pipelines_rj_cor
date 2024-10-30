@@ -229,7 +229,7 @@ def rearange_dataframe(output_filepath: Path) -> pd.DataFrame:
 
 
 @task()
-def generate_point_value(info: dict, dfr: pd.DataFrame) -> List:
+def generate_point_value(info: dict, dfr: pd.DataFrame) -> pd.DataFrame:
     """
     Get the value of a point on the image.
     """
@@ -252,7 +252,7 @@ def generate_point_value(info: dict, dfr: pd.DataFrame) -> List:
         log(f"DEBUG df_point_values: {df_point_values.head()}")
         log(f"DEBUG df_point_values: {df_point_values.iloc[i]}")
 
-    return df_point_values
+    return df_point_values.drop_duplicates()
 
 
 @task(nout=2)
