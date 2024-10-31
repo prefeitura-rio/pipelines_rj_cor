@@ -314,6 +314,7 @@ def task_create_partitions(
     """
     Create task for to_partitions
     """
+    log(f"Data before partition columns creation {data.iloc[0]}")
     data, partition_columns = parse_date_columns(data, partition_date_column)
     log(f"Created partition columns {partition_columns} and data first row now is {data.iloc[0]}")
     saved_files = to_partitions(

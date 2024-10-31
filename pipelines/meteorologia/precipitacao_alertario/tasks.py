@@ -217,7 +217,7 @@ def save_data(
         suffix=str(treatment_version) + "_" + current_time,
     )
     log(f"Files saved on {prepath}, full path is {full_path}")
-    return prepath, full_path
+    return prepath, full_path[0]
 
 
 @task

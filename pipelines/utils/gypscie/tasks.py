@@ -694,7 +694,7 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         dataset_info = {
             "dataset_id": "clima_pluviometro",
             "filename": "gauge_station_bq",
-            "partition_date_column": "data_medicao",
+            "partition_date_column": "datetime",
         }
         if source == "alertario":
             dataset_info["table_id"] = "taxa_precipitacao_alertario"
@@ -703,7 +703,7 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         dataset_info = {
             "dataset_id": "clima_pluviometro",
             "filename": "weather_station_bq",
-            "partition_date_column": "data_medicao",
+            "partition_date_column": "datetime",
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
