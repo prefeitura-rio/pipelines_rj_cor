@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from basedosdados import Base
 from google.cloud import bigquery
-from prefect import task, Parameter
+from prefect import Parameter, task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
 from prefeitura_rio.pipelines_utils.infisical import get_secret
