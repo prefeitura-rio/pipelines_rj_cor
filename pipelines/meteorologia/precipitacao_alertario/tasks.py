@@ -197,6 +197,8 @@ def save_data(
     prepath.mkdir(parents=True, exist_ok=True)
 
     partition_column = "data_medicao"
+    new_partition_columns = ["ano_particao", "mes_particao", "data_particao"]
+    dfr = dfr.drop(columns=[col for col in new_partition_columns if col in dfr.columns])
     log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
     log(f"Dataframe for {data_name} before partitions {dfr.dtypes}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
@@ -205,7 +207,7 @@ def save_data(
     log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
     if columns:
-        dataframe = dataframe[columns]
+        dataframe = dataframe[columns + new_partition_columns]
 
     full_path = to_partitions(
         data=dataframe,
