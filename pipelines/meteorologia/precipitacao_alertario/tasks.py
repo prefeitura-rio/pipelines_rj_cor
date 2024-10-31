@@ -378,5 +378,6 @@ def convert_sp_timezone_to_utc(dfr, data_column: str = "data_medicao") -> pd.Dat
     dfr[data_column] = pd.to_datetime(dfr[data_column])
     dfr[data_column] = dfr[data_column].dt.tz_localize("America/Sao_Paulo")
     dfr[data_column] = dfr[data_column].dt.tz_convert("UTC")
+    dfr[data_column] = dfr[data_column].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     return dfr
