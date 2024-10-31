@@ -12,13 +12,13 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from basedosdados import Base
-from google.cloud import bigquery
-from prefect import Parameter, task
-from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Failed
-from prefeitura_rio.pipelines_utils.infisical import get_secret
-from prefeitura_rio.pipelines_utils.logging import log
+from basedosdados import Base  # pylint: disable=E0611, E0401
+from google.cloud import bigquery  # pylint: disable=E0611, E0401
+from prefect import task  # pylint: disable=E0611, E0401
+from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
+from prefect.engine.state import Failed  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 from requests.exceptions import HTTPError
 
 from pipelines.constants import constants  # pylint: disable=E0611, E0401
@@ -34,15 +34,18 @@ def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
     """
+    infisical_path = constants.INFISICAL_PATH.value
+    infisical_url = constants.INFISICAL_URL.value
     infisical_username = constants.INFISICAL_USERNAME.value
     infisical_password = constants.INFISICAL_PASSWORD.value
 
     # username = get_secret(secret_name="USERNAME", path="/gypscie", environment="prod")
     # password = get_secret(secret_name="PASSWORD", path="/gypscie", environment="prod")
 
-    username = get_secret(infisical_username, path="/gypscie_dexl")[infisical_username]
-    password = get_secret(infisical_password, path="/gypscie_dexl")[infisical_password]
-    api = GypscieApi(username=username, password=password)
+    url = get_secret(infisical_url, path=infisical_path)[infisical_url]
+    username = get_secret(infisical_username, path=infisical_path)[infisical_username]
+    password = get_secret(infisical_password, path=infisical_path)[infisical_password]
+    api = GypscieApi(base_url=url, username=username, password=password)
 
     return api
 
