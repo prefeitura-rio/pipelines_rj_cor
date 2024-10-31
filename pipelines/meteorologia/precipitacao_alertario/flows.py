@@ -147,13 +147,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -464,7 +470,7 @@ with Flow(
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
             )
             register_dataset_response = register_dataset_on_gypscie(
-                api, filepath=path_pluviometric_gypscie, domain_id=domain_id
+                api, filepath=full_path_pluviometric_gypscie, domain_id=domain_id
             )
 
             model_params = get_dataflow_alertario_params(
@@ -513,6 +519,7 @@ with Flow(
                 partition_date_column=dataset_info["partition_date_column"],
                 savepath="model_prediction",
                 suffix=now_datetime,
+                wait=dfr,
             )
             ################################
             #  Save preprocessing on GCP   #
