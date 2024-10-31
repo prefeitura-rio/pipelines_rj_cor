@@ -463,6 +463,7 @@ with Flow(
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_type="parquet",
+                preffix="dados_alertario",
             )
             register_dataset_response = register_dataset_on_gypscie(
                 api, filepath=full_path_pluviometric_gypscie, domain_id=domain_id
@@ -515,7 +516,6 @@ with Flow(
                 data=dfr_gypscie,
                 partition_date_column=dataset_info["partition_date_column"],
                 savepath="model_prediction",
-                preffix="dados_alertario",
                 suffix=now_datetime,
                 wait=dfr_gypscie,
             )
