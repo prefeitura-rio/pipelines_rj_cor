@@ -147,13 +147,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -503,19 +509,23 @@ with Flow(
             dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)  # new
             ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
             dataset_paths = unzip_files(ziped_dataset_paths)
-            dfr_ = path_to_dfr(dataset_paths)
+            dfr_gypscie_ = path_to_dfr(dataset_paths)
             # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-            dfr = add_caracterization_columns_on_dfr(dfr_, model_version, update_time=True)
+            dfr_gypscie = add_caracterization_columns_on_dfr(
+                dfr_gypscie_, model_version, update_time=True
+            )
 
             # Save pre-treated data on local file with partitions
             now_datetime = get_now_datetime()
             prediction_data_path = task_create_partitions(
-                dfr,
+                data=dfr_gypscie,
                 partition_date_column=dataset_info["partition_date_column"],
                 savepath="model_prediction",
+                preffix="dados_alertario",
                 suffix=now_datetime,
-                wait=dfr,
+                wait=dfr_gypscie,
             )
+            prediction_data_path.set_upstream(dfr_gypscie)
             ################################
             #  Save preprocessing on GCP   #
             ################################

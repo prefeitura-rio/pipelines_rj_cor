@@ -13,8 +13,9 @@ import pendulum  # pylint: disable=E0611, E0401
 from google.cloud import storage  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 from prefect.triggers import all_successful  # pylint: disable=E0611, E0401
+  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,  # pylint: disable=E0611, E0401
+    get_secret,
 )
 from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
     parse_date_columns,
@@ -308,26 +309,39 @@ def task_create_partitions(
     # partition_columns: List[str],
     savepath: str = "temp",
     data_type: str = "csv",
+    preffix: str = None,
     suffix: str = None,
     build_json_dataframe: bool = False,
     dataframe_key_column: str = None,
     wait=None,  # pylint: disable=unused-argument
-) -> Path:  # sourcery skip: raise-specific-error
+) -> List[Path]:  # sourcery skip: raise-specific-error
     """
     Create task for to_partitions
     """
+    prepath = Path(f"/tmp/{savepath}")
+    prepath.mkdir(parents=True, exist_ok=True)
+
     log(f"Data before partition columns creation {data.iloc[0]}")
     data, partition_columns = parse_date_columns(data, partition_date_column)
     log(f"Created partition columns {partition_columns} and data first row now is {data.iloc[0]}")
-    saved_files = to_partitions(
+    full_paths = to_partitions(
         data=data,
         partition_columns=partition_columns,
-        savepath=savepath,
+        savepath=prepath,
         data_type=data_type,
         suffix=suffix,
         build_json_dataframe=build_json_dataframe,
         dataframe_key_column=dataframe_key_column,
     )
-    log(f"Partition saved files {saved_files}")
-    log(f"Returned path {savepath}, {type(savepath)}")
-    return Path(savepath)
+    if preffix:
+        new_paths = []
+        for full_path in full_paths:
+            new_filename = full_path.name.replace("data_", f"{preffix}_data_")
+            savepath = full_path.with_name(new_filename)
+
+            # Renomear o arquivo
+            full_path.rename(savepath)
+            new_paths.append(savepath)
+        full_paths = new_paths
+    log(f"Returned path {full_paths}, {type(full_paths)}")
+    return full_paths
