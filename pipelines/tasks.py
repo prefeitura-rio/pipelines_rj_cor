@@ -13,10 +13,9 @@ import pendulum  # pylint: disable=E0611, E0401
 from google.cloud import storage  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 from prefect.triggers import all_successful  # pylint: disable=E0611, E0401
-  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,
-)
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
     parse_date_columns,
     to_partitions,
