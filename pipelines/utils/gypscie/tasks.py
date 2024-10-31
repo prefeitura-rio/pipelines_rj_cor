@@ -754,5 +754,6 @@ def add_caracterization_columns_on_dfr(
     if update_time:
         dfr["update_time"] = pd.Timestamp.now(tz="America/Sao_Paulo")
     if model_version is not None:
-        dfr["model_version"] = model_version
+        model_version_ = str(model_version)
+        dfr["model_version"] = model_version_
     return dfr
