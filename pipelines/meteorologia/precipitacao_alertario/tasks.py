@@ -214,7 +214,7 @@ def save_data(
         partition_columns=partitions,
         savepath=prepath,
         data_type="csv",
-        suffix=treatment_version + "_" + current_time,
+        suffix=str(treatment_version) + "_" + current_time,
     )
     log(f"Files saved on {prepath}, full path is {full_path}")
     return prepath, full_path
