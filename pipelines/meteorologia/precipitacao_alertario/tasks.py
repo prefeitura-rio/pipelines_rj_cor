@@ -182,13 +182,16 @@ def treat_pluviometer_and_meteorological_data(
 def save_data(
     dfr: pd.DataFrame,
     columns: str = None,
-    treatment_version: str = "",
+    treatment_version: int = None,
     data_name: str = "temp",
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
     Salvar dfr tratados em csv para conseguir subir pro GCP
     """
+
+    if not treatment_version:
+        treatment_version = ""
 
     prepath = Path(f"/tmp/precipitacao_alertario/{data_name}")
     prepath.mkdir(parents=True, exist_ok=True)

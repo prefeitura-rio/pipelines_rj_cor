@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from basedosdados import Base
 from google.cloud import bigquery
-from prefect import task
+from prefect import task, Parameter
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
 from prefeitura_rio.pipelines_utils.infisical import get_secret
@@ -745,13 +745,16 @@ def path_to_dfr(path: str) -> pd.DataFrame:
 
 
 def add_caracterization_columns_on_dfr(
-    dfr: pd.DataFrame, model_version: int = None, update_time: bool = False
+    dfr: pd.DataFrame, model_version: None, update_time: bool = False
 ) -> pd.DataFrame:
     """
     Add a column with the update time based on Brazil timezone and model version
     """
+
     if update_time:
         dfr["update_time"] = pd.Timestamp.now(tz="America/Sao_Paulo")
     if model_version is not None:
+        if isinstance(model_version, Parameter):
+            model_version = model_version.value
         dfr["model_version"] = model_version
     return dfr
