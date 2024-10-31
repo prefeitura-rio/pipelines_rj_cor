@@ -101,7 +101,7 @@ with Flow(
     # Preprocessing gypscie parameters
     preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
     # Gypscie parameters
-    workflow_id = Parameter("workflow_id", default=1, required=False)
+    workflow_id = Parameter("workflow_id", default=41, required=False)
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
@@ -468,6 +468,7 @@ with Flow(
                 dfr_pluviometric_gypscie,
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
+                data_type="parquet",
             )
             register_dataset_response = register_dataset_on_gypscie(
                 api, filepath=full_path_pluviometric_gypscie, domain_id=domain_id

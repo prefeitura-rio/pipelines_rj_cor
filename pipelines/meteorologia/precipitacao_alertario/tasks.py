@@ -184,6 +184,7 @@ def save_data(
     data_name: str = "temp",
     columns: str = None,
     treatment_version: int = None,
+    data_type: str = "csv",
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
@@ -213,7 +214,7 @@ def save_data(
         data=dataframe,
         partition_columns=partitions,
         savepath=prepath,
-        data_type="csv",
+        data_type=data_type,
         suffix=str(treatment_version) + "_" + current_time,
     )
     log(f"Files saved on {prepath}, full path is {full_path}")

@@ -29,7 +29,7 @@ minute_schedule = Schedule(
                 "dump_to_gcs": False,
                 "maximum_bytes_processed": None,
                 "preprocessing_gypscie": True,
-                "workflow_id": 1,
+                "workflow_id": 41,
                 "environment_id": 1,
                 "domain_id": 1,
                 "project_id": 1,
