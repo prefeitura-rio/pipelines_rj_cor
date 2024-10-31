@@ -145,13 +145,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -160,7 +166,10 @@ with Flow(
 
     with case(empty_data_pluviometric, False):
         path_pluviometric, full_path_pluviometric = save_data(
-            dfr_pluviometric, treatment_version, "pluviometric", wait=empty_data_pluviometric
+            dfr_pluviometric,
+            data_name="pluviometric",
+            treatment_version=treatment_version,
+            wait=empty_data_pluviometric,
         )
         # Create table in BigQuery
         UPLOAD_TABLE = create_table_and_upload_to_gcs(
@@ -393,7 +402,7 @@ with Flow(
     # Save and materialize meteorological data
     with case(empty_data_meteorological, False):
         path_meteorological = save_data(
-            dfr_meteorological, "meteorological", wait=empty_data_meteorological
+            dfr_meteorological, data_name="meteorological", wait=empty_data_meteorological
         )
         # Create table in BigQuery
         UPLOAD_TABLE_METEOROLOGICAL = create_table_and_upload_to_gcs(
@@ -455,8 +464,8 @@ with Flow(
             dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric)
             path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
                 dfr_pluviometric_gypscie,
-                columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_name="gypscie",
+                columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
             )
             register_dataset_response = register_dataset_on_gypscie(
                 api, filepath=path_pluviometric_gypscie, domain_id=domain_id
