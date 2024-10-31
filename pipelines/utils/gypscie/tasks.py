@@ -134,7 +134,6 @@ def register_dataset_on_gypscie(api, filepath: Path, domain_id: int = 1) -> Dict
         + "_"
         + datetime.datetime.now().strftime("%Y%m%d%H%M%S"),  # pylint: disable=use-maxsplit-arg
     }
-    log(type(data), data)
     files = {
         "files": open(file=filepath, mode="rb"),  # pylint: disable=consider-using-with
     }
@@ -706,9 +705,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -726,7 +725,7 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         elif source == "macae":
             dataset_info["storage_path"] = ""
             dataset_info["destination_table_id"] = "preprocessamento_radar_macae"
-
+    log(f"Dataset info: {dataset_info}")
     return dataset_info
 
 

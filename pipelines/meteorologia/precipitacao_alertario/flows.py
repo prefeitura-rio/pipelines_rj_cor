@@ -13,6 +13,7 @@ from prefect.tasks.prefect import (  # pylint: disable=E0611,E0401
     wait_for_flow_run,
 )
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+# pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
@@ -133,7 +134,7 @@ with Flow(
     )
 
     # Dataset parameters
-    station_type = Parameter("station_type", default="pluviometro", required=False)
+    station_type = Parameter("station_type", default="rain_gauge", required=False)
     source = Parameter("source", default="alertario", required=False)
 
     # Dataset path, if it was saved on ETL flow or it will be None
@@ -145,13 +146,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -395,7 +402,7 @@ with Flow(
 
     # Save and materialize meteorological data
     with case(empty_data_meteorological, False):
-        path_meteorological = save_data(
+        path_meteorological, full_path_meteorological = save_data(
             dfr_meteorological, data_name="meteorological", wait=empty_data_meteorological
         )
         # Create table in BigQuery
