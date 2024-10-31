@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=C0103,R0914
+# pylint: disable=C0103,R0914,R0913
 """
 Tasks for precipitacao_alertario
 """
@@ -185,6 +185,7 @@ def save_data(
     columns: str = None,
     treatment_version: int = None,
     data_type: str = "csv",
+    preffix: str = None,
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
@@ -210,15 +211,26 @@ def save_data(
     if columns:
         dataframe = dataframe[columns + new_partition_columns]
 
-    full_path = to_partitions(
+    full_paths = to_partitions(
         data=dataframe,
         partition_columns=partitions,
         savepath=prepath,
         data_type=data_type,
         suffix=str(treatment_version) + "_" + current_time,
     )
-    log(f"Files saved on {prepath}, full path is {full_path}")
-    return prepath, full_path[0]
+    if preffix:
+        log(f"Adding preffix {preffix} on {full_paths}")
+        new_paths = []
+        for full_path in full_paths:
+            new_filename = full_path.name.replace("data_", f"{preffix}_data_")
+            savepath = full_path.with_name(new_filename)
+
+            # Renomear o arquivo
+            full_path.rename(savepath)
+            new_paths.append(savepath)
+        full_paths = new_paths
+    log(f"Files saved on {prepath}, full paths are {full_paths}")
+    return prepath, full_paths[0]
 
 
 @task
