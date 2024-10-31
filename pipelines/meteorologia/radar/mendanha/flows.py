@@ -62,7 +62,7 @@ from pipelines.utils.gypscie.tasks import (
     access_api as access_api_gypscie,  # pylint: disable=E0611, E0401
 )
 from pipelines.utils.gypscie.tasks import (
-    add_columns_on_dfr,
+    add_caracterization_columns_on_dfr,
     download_datasets_from_gypscie,
     execute_dataset_processor,
     get_dataset_info,
@@ -306,7 +306,7 @@ with Flow(
         )
         dfr_ = path_to_dfr(dataset_path)
         # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-        dfr = add_columns_on_dfr(dfr_, treatment_version, update_time=True)
+        dfr = add_caracterization_columns_on_dfr(dfr_, treatment_version, update_time=True)
 
         # Save pre-treated data on local file with partitions
         now_datetime = get_now_datetime()
