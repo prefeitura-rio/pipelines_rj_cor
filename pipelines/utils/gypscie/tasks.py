@@ -731,6 +731,7 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
     return dataset_info
 
 
+@task
 def path_to_dfr(path: str) -> pd.DataFrame:
     """
     Reads a csv or parquet file from the given path and returns a dataframe
@@ -748,6 +749,7 @@ def path_to_dfr(path: str) -> pd.DataFrame:
     return dfr
 
 
+@task
 def add_caracterization_columns_on_dfr(
     dfr: pd.DataFrame, model_version: None, update_time: bool = False
 ) -> pd.DataFrame:
