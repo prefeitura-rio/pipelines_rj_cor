@@ -17,10 +17,9 @@ from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
 from prefect.engine.state import Failed  # pylint: disable=E0611, E0401
+
 # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,
-)
+from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 from requests.exceptions import HTTPError
 
@@ -708,9 +707,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info["destination_table_id"] = (
-                "preprocessamento_estacao_meteorologica_alertario"
-            )
+            dataset_info[
+                "destination_table_id"
+            ] = "preprocessamento_estacao_meteorologica_alertario"
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
