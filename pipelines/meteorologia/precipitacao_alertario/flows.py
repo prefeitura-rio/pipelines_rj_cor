@@ -463,7 +463,8 @@ with Flow(
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_type="parquet",
-                preffix="dados_alertario",
+                rename="dados_alertario_raw",
+                suffix=False,
             )
             register_dataset_response = register_dataset_on_gypscie(
                 api, filepath=full_path_pluviometric_gypscie, domain_id=domain_id

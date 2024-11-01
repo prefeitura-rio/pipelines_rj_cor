@@ -186,6 +186,8 @@ def save_data(
     treatment_version: int = None,
     data_type: str = "csv",
     preffix: str = None,
+    suffix: bool = True,
+    rename: str = None,
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
@@ -194,6 +196,8 @@ def save_data(
 
     if not treatment_version:
         treatment_version = ""
+    else:
+        treatment_version = str(treatment_version) + "_"
 
     prepath = Path(f"/tmp/precipitacao_alertario/{data_name}")
     prepath.mkdir(parents=True, exist_ok=True)
@@ -204,10 +208,11 @@ def save_data(
     log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
     log(f"Dataframe for {data_name} before partitions {dfr.dtypes}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
-    current_time = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
     log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
+    if suffix:
+        suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
     if columns:
         dataframe = dataframe[columns + new_partition_columns]
 
@@ -216,13 +221,14 @@ def save_data(
         partition_columns=partitions,
         savepath=prepath,
         data_type=data_type,
-        suffix=str(treatment_version) + "_" + current_time,
+        suffix=suffix,
     )
-    if preffix:
+    if preffix or rename:
         log(f"Adding preffix {preffix} on {full_paths}")
         new_paths = []
         for full_path in full_paths:
-            new_filename = full_path.name.replace("data_", f"{preffix}_data_")
+            change_filename = f"{preffix}_data_" if preffix else rename
+            new_filename = full_path.name.replace("data_", change_filename)
             savepath = full_path.with_name(new_filename)
 
             # Renomear o arquivo
@@ -230,6 +236,7 @@ def save_data(
             new_paths.append(savepath)
         full_paths = new_paths
     log(f"Files saved on {prepath}, full paths are {full_paths}")
+    # TODO alterar funções seguintes para receberem uma lista em vez de ter o full_paths[0]
     return prepath, full_paths[0]
 
 
