@@ -50,6 +50,7 @@ from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_const
 from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_caracterization_columns_on_dfr,
+    convert_columns_type,
     download_datasets_from_gypscie,
     execute_dataflow_on_gypscie,
     get_dataflow_alertario_params,
@@ -147,13 +148,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -457,7 +464,10 @@ with Flow(
                 dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
                     api, processor_name
                 )
-            dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric)
+            dfr_pluviometric_converted = convert_columns_type(
+                dfr_pluviometric, columns=["id_estacao"], new_types=[int]
+            )
+            dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
             path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
                 dfr_pluviometric_gypscie,
                 data_name="gypscie",

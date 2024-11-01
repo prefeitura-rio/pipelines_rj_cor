@@ -17,8 +17,9 @@ from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
 from prefect.engine.state import Failed  # pylint: disable=E0611, E0401
+# pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,  # pylint: disable=E0611, E0401
+    get_secret,
 )
 from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 from requests.exceptions import HTTPError
@@ -707,9 +708,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -760,4 +761,29 @@ def add_caracterization_columns_on_dfr(
     if model_version is not None:
         model_version_ = str(model_version)
         dfr["model_version"] = model_version_
+    return dfr
+
+
+@task
+def convert_columns_type(
+    dfr: pd.DataFrame, columns: list = None, new_types: list = None
+) -> pd.DataFrame:
+    """
+    Converts specified columns in a DataFrame to the provided data types.
+
+    Parameters:
+        dfr (pd.DataFrame): The input DataFrame to modify.
+        columns (list): List of column names to be converted.
+        new_types (list): List of target data types for each column, in the same order as `columns`.
+
+    Returns:
+        pd.DataFrame: The modified DataFrame with columns converted to specified types.
+    """
+    if len(columns) != len(new_types):
+        raise ValueError("The lists `columns` and `new_types` must be of the same length.")
+
+    for col, new_type in zip(columns, new_types):
+        if col in dfr.columns:
+            dfr[col] = dfr[col].astype(new_type)
+
     return dfr
