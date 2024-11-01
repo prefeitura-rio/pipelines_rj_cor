@@ -707,9 +707,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -732,20 +732,31 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
 
 
 @task
-def path_to_dfr(path: str) -> pd.DataFrame:
+def path_to_dfr(paths: List[str]) -> pd.DataFrame:
     """
-    Reads a csv or parquet file from the given path and returns a dataframe
+    Reads csvs or parquets filess from the given paths and returns a concatenated dataframe.
     """
-    dfr = pd.DataFrame()
-    try:
-        if path.endswith(".csv"):
-            dfr = pd.read_csv(path)
-        elif path.endswith(".parquet"):
-            dfr = pd.read_parquet(path)
-        else:
-            raise ValueError("File extension not supported")
-    except AttributeError as error:
-        log(f"type(path) {type(path)} error {error}")
+    log(f"Start converting files from {paths} to a df.")
+    dataframes = []
+
+    for path in paths:
+        try:
+            if path.endswith(".csv"):
+                dfr_ = pd.read_csv(path)
+            elif path.endswith(".parquet"):
+                dfr_ = pd.read_parquet(path)
+            else:
+                raise ValueError(f"File extension not supported for file: {path}")
+            dataframes.append(dfr_)
+
+        except AttributeError as error:
+            log(f"type(path) {type(path)} error {error}")
+
+    if dataframes:
+        dfr = pd.concat(dataframes, ignore_index=True)
+    else:
+        dfr = pd.DataFrame()
+    log(f"Dataframe : {dfr.iloc[0]}")
     return dfr
 
 
@@ -762,6 +773,7 @@ def add_caracterization_columns_on_dfr(
     if model_version is not None:
         model_version_ = str(model_version)
         dfr["model_version"] = model_version_
+    log(f"Dataframe with new columns {dfr.iloc[0]}")
     return dfr
 
 
