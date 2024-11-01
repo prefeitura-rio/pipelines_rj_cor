@@ -148,13 +148,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -517,7 +523,7 @@ with Flow(
 
             # Save pre-treated data on local file with partitions
             now_datetime = get_now_datetime()
-            prediction_data_path = task_create_partitions(
+            prediction_data_path, prediction_data_full_path = task_create_partitions(
                 data=dfr_gypscie,
                 partition_date_column=dataset_info["partition_date_column"],
                 savepath="model_prediction",

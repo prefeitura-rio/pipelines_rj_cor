@@ -6,7 +6,7 @@ Common  Tasks for rj-cor
 
 import json
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import pandas as pd
 import pendulum  # pylint: disable=E0611, E0401
@@ -301,7 +301,7 @@ def save_dataframe(
     return prepath
 
 
-@task
+@task(nout=2)
 def task_create_partitions(
     data: pd.DataFrame,
     partition_date_column: str,
@@ -313,7 +313,7 @@ def task_create_partitions(
     build_json_dataframe: bool = False,
     dataframe_key_column: str = None,
     wait=None,  # pylint: disable=unused-argument
-) -> Path:  # sourcery skip: raise-specific-error
+) -> Tuple[Union[str, Path], Union[str, Path]]:  # sourcery skip: raise-specific-error
     """
     Create task for to_partitions
     """
@@ -343,4 +343,4 @@ def task_create_partitions(
             new_paths.append(savepath)
         full_paths = new_paths
     log(f"Returned path {full_paths}, {type(full_paths)}")
-    return full_paths[0]
+    return prepath, full_paths[0]
