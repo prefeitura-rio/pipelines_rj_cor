@@ -194,10 +194,7 @@ def save_data(
     Salvar dfr tratados em csv para conseguir subir pro GCP
     """
 
-    if not treatment_version:
-        treatment_version = ""
-    else:
-        treatment_version = str(treatment_version) + "_"
+    treatment_version = str(treatment_version) + "_" if treatment_version else ""
 
     prepath = Path(f"/tmp/precipitacao_alertario/{data_name}")
     prepath.mkdir(parents=True, exist_ok=True)
@@ -206,13 +203,10 @@ def save_data(
     new_partition_columns = ["ano_particao", "mes_particao", "data_particao"]
     dfr = dfr.drop(columns=[col for col in new_partition_columns if col in dfr.columns])
     log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
-    log(f"Dataframe for {data_name} before partitions {dfr.dtypes}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
-    log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
-    if suffix:
-        suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
+    suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M") if suffix else None
     if columns:
         dataframe = dataframe[columns + new_partition_columns]
 
