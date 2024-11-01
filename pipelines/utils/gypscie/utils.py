@@ -10,6 +10,7 @@ from typing import Callable, Dict, Tuple  # , List
 
 import basedosdados as bd
 import requests
+import simplejson
 from prefeitura_rio.pipelines_utils.logging import log
 
 
@@ -88,7 +89,10 @@ class GypscieApi:
         self._refresh_token_if_needed()
         response = requests.get(f"{self._base_url}{path}", headers=self._headers, timeout=timeout)
         response.raise_for_status()
-        return response.json()
+        try:
+            return response.json()
+        except simplejson.JSONDecodeError:
+            return response
 
     def put(self, path, json=None):
         """
