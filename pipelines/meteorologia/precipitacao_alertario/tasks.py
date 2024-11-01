@@ -221,8 +221,8 @@ def save_data(
         log(f"Adding preffix {preffix} on {full_paths}")
         new_paths = []
         for full_path in full_paths:
-            change_filename = f"{preffix}_data_" if preffix else rename
-            new_filename = full_path.name.replace("data_", change_filename)
+            change_filename = f"{preffix}_data" if preffix else rename
+            new_filename = full_path.name.replace("data", change_filename)
             savepath = full_path.with_name(new_filename)
 
             # Renomear o arquivo
