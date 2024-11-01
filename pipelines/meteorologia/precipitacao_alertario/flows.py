@@ -524,7 +524,7 @@ with Flow(
                 suffix=now_datetime,
                 wait=dfr_gypscie,
             )
-            prediction_data_path.set_upstream(dfr_gypscie)
+
             ################################
             #  Save preprocessing on GCP   #
             ################################

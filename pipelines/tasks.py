@@ -313,7 +313,7 @@ def task_create_partitions(
     build_json_dataframe: bool = False,
     dataframe_key_column: str = None,
     wait=None,  # pylint: disable=unused-argument
-) -> List[Path]:  # sourcery skip: raise-specific-error
+) -> Path:  # sourcery skip: raise-specific-error
     """
     Create task for to_partitions
     """
@@ -343,4 +343,4 @@ def task_create_partitions(
             new_paths.append(savepath)
         full_paths = new_paths
     log(f"Returned path {full_paths}, {type(full_paths)}")
-    return full_paths
+    return full_paths[0]
