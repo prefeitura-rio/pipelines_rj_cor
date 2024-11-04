@@ -551,6 +551,9 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
     Unzip .zip and .gz files to destination folder.
     """
     log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
+    zip_files = [
+        zip_file if zip_file.endswith((".zip", ".gz")) else zip_file + ".zip" for zip_file in zip_files
+    ]
     os.makedirs(destination_folder, exist_ok=True)
 
     extracted_files = []
