@@ -6,7 +6,7 @@ Common  Tasks for rj-cor
 
 import json
 from pathlib import Path
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import pandas as pd
 import pendulum  # pylint: disable=E0611, E0401

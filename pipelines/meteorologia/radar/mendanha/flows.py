@@ -8,7 +8,8 @@ from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
 from prefect.storage import GCS  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
-  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
