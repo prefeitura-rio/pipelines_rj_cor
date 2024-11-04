@@ -550,11 +550,13 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
     """
     Unzip .zip and .gz files to destination folder.
     """
+    log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
     os.makedirs(destination_folder, exist_ok=True)
 
     extracted_files = []
     for file in compressed_files:
         if file.endswith(".zip"):
+            log("zip file found")
             with zipfile.ZipFile(file, "r") as zip_ref:
                 zip_ref.extractall(destination_folder)
                 extracted_files.extend(
@@ -566,7 +568,7 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
                 with open(output_file, "wb") as out_file:
                     shutil.copyfileobj(gz_file, out_file)
             extracted_files.append(output_file)
-
+    log(f"Extracted files: {extracted_files}")
     return extracted_files
 
 
