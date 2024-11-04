@@ -59,6 +59,7 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     get_dataset_processor_info,
     path_to_dfr,
     register_dataset_on_gypscie,
+    rename_files,
     unzip_files,
 )
 
@@ -473,11 +474,13 @@ with Flow(
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_type="parquet",
-                rename="dados_alertario_raw",
                 suffix=False,
             )
+            full_path_pluviometric_gypscie_ = rename_files(
+                full_path_pluviometric_gypscie, rename="dados_alertario_raw"
+            )
             register_dataset_response = register_dataset_on_gypscie(
-                api, filepath=full_path_pluviometric_gypscie, domain_id=domain_id
+                api, filepath=full_path_pluviometric_gypscie_[0], domain_id=domain_id
             )
 
             model_params = get_dataflow_alertario_params(
