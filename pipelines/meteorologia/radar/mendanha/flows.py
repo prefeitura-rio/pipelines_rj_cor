@@ -366,10 +366,6 @@ cor_meteorologia_refletividade_radar_men_flow.storage = GCS(constants.GCS_FLOWS_
 cor_meteorologia_refletividade_radar_men_flow.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
-    cpu_request=1,
-    cpu_limit=1,
-    memory_request="2Gi",
-    memory_limit="3Gi",
 )
 
 cor_meteorologia_refletividade_radar_men_flow.schedule = TIME_SCHEDULE
