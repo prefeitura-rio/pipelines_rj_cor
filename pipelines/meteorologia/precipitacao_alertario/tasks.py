@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=C0103,R0914
+# pylint: disable=C0103,R0914,R0913
 """
 Tasks for precipitacao_alertario
 """
@@ -9,11 +9,11 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-import pendulum
+import pendulum  # pylint: disable=E0401
 import requests
-from bs4 import BeautifulSoup
-from prefect import task
-from prefeitura_rio.pipelines_utils.infisical import get_secret
+from bs4 import BeautifulSoup  # pylint: disable=E0401
+from prefect import task  # pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0401
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
@@ -178,36 +178,60 @@ def treat_pluviometer_and_meteorological_data(
     return dfr, empty_data
 
 
-@task
+@task(nout=2)
 def save_data(
     dfr: pd.DataFrame,
     data_name: str = "temp",
+    columns: str = None,
+    treatment_version: int = None,
+    data_type: str = "csv",
+    # preffix: str = None,
+    suffix: bool = True,
+    # rename: str = None,
     wait=None,  # pylint: disable=unused-argument
-) -> Union[str, Path]:
+) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
     Salvar dfr tratados em csv para conseguir subir pro GCP
     """
+
+    treatment_version = str(treatment_version) + "_" if treatment_version else ""
 
     prepath = Path(f"/tmp/precipitacao_alertario/{data_name}")
     prepath.mkdir(parents=True, exist_ok=True)
 
     partition_column = "data_medicao"
+    new_partition_columns = ["ano_particao", "mes_particao", "data_particao"]
+    dfr = dfr.drop(columns=[col for col in new_partition_columns if col in dfr.columns])
     log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
-    log(f"Dataframe for {data_name} before partitions {dfr.dtypes}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
-    current_time = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M")
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
-    log(f"Dataframe for {data_name} after partitions {dataframe.dtypes}")
 
-    to_partitions(
+    suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M") if suffix else None
+    if columns:
+        dataframe = dataframe[columns + new_partition_columns]
+
+    full_paths = to_partitions(
         data=dataframe,
         partition_columns=partitions,
         savepath=prepath,
-        data_type="csv",
-        suffix=current_time,
+        data_type=data_type,
+        suffix=suffix,
     )
-    log(f"Files saved on {prepath}")
-    return prepath
+    # if preffix or rename:
+    #     log(f"Adding preffix {preffix} on {full_paths}")
+    #     new_paths = []
+    #     for full_path in full_paths:
+    #         change_filename = f"{preffix}_data" if preffix else rename
+    #         new_filename = full_path.name.replace("data", change_filename)
+    #         savepath = full_path.with_name(new_filename)
+
+    #         # Renomear o arquivo
+    #         full_path.rename(savepath)
+    #         new_paths.append(savepath)
+    #     full_paths = new_paths
+    log(f"Files saved on {prepath}, full paths are {full_paths}")
+    # TODO alterar funções seguintes para receberem uma lista em vez de ter o full_paths[0]
+    return prepath, full_paths
 
 
 @task
@@ -347,3 +371,26 @@ def save_data_old(
     )
     log(f"{data_name} files saved on {prepath}")
     return prepath
+
+
+@task
+def convert_sp_timezone_to_utc(dfr, data_column: str = "data_medicao") -> pd.DataFrame:
+    """
+    Convert a dataframe data_column from São Paulo (UTC-3) to UTC.
+
+    Parameters:
+    dfr (pd.DataFrame): DataFrame with data_column.
+
+    Returns:
+    pd.DataFrame: DataFrame with data_column converted to UTC.
+    """
+
+    if data_column not in dfr.columns:
+        raise ValueError(f"DataFrame must contain a column named {data_column}.")
+
+    dfr[data_column] = pd.to_datetime(dfr[data_column])
+    dfr[data_column] = dfr[data_column].dt.tz_localize("America/Sao_Paulo")
+    dfr[data_column] = dfr[data_column].dt.tz_convert("UTC")
+    dfr[data_column] = dfr[data_column].dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    return dfr

@@ -115,6 +115,7 @@ class constants(Enum):
     }
 
     # Infisical
+    INFISICAL_PATH = "/gypscie_dexl"
     INFISICAL_URL = "URL"
     INFISICAL_USERNAME = "USERNAME"
     INFISICAL_PASSWORD = "PASSWORD"
