@@ -4,11 +4,13 @@
 Tasks
 """
 import datetime
+import gzip
 import os
+import shutil
 import zipfile
 from pathlib import Path
 from time import sleep
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -544,27 +546,28 @@ def download_datasets_from_gypscie(
 
 
 @task
-def unzip_files(zip_files: List[str], destination_folder: str = "./") -> List[str]:
+def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> List[str]:
     """
-    Unzip files to destination folder
+    Unzip .zip and .gz files to destination folder.
     """
-    zip_files = [
-        zip_file if zip_file.endswith(".zip") else zip_file + ".zip" for zip_file in zip_files
-    ]
     os.makedirs(destination_folder, exist_ok=True)
 
-    unziped_files = []
-    for zip_file in zip_files:
-        with zipfile.ZipFile(zip_file, "r") as zip_ref:
-            zip_ref.extractall(destination_folder)
-            unziped_files.extend(
-                [
-                    os.path.join(destination_folder, nome_arquivo)
-                    for nome_arquivo in zip_ref.namelist()
-                ]
-            )
+    extracted_files = []
+    for file in compressed_files:
+        if file.endswith(".zip"):
+            with zipfile.ZipFile(file, "r") as zip_ref:
+                zip_ref.extractall(destination_folder)
+                extracted_files.extend(
+                    [os.path.join(destination_folder, f) for f in zip_ref.namelist()]
+                )
+        elif file.endswith(".gz"):
+            output_file = os.path.join(destination_folder, os.path.basename(file)[:-3])
+            with gzip.open(file, "rb") as gz_file:
+                with open(output_file, "wb") as out_file:
+                    shutil.copyfileobj(gz_file, out_file)
+            extracted_files.append(output_file)
 
-    return unziped_files
+    return extracted_files
 
 
 @task
@@ -707,9 +710,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -800,3 +803,30 @@ def convert_columns_type(
             dfr[col] = dfr[col].astype(new_type)
 
     return dfr
+
+
+@task
+def rename_files(
+    files: List[Union[Path, str]],
+    original_name: str = "data",
+    preffix: str = None,
+    rename: str = None,
+) -> List[Path]:
+    """
+    Renomeia os arquivos com base em um prefixo ou novo nome.
+    """
+    new_paths = []
+    for file_path in files:
+        file_path = Path(file_path)
+        print(f"Original file path: {file_path}")
+
+        change_filename = f"{preffix}_{original_name}" if preffix else rename
+        print(f"Name to replace '{original_name}' with: {change_filename}")
+        new_filename = file_path.name.replace(original_name, change_filename)
+        savepath = file_path.with_name(new_filename)
+
+        # Rename file
+        file_path.rename(savepath)
+        new_paths.append(savepath)
+        print(f"Renamed file paths: {new_paths}")
+    return new_paths

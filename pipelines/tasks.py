@@ -342,5 +342,6 @@ def task_create_partitions(
             full_path.rename(savepath)
             new_paths.append(savepath)
         full_paths = new_paths
-    log(f"Returned path {full_paths}, {type(full_paths)}")
+    log(f"Returned path {prepath}")
+    log(f"Returned full path {full_paths}, {type(full_paths)}")
     return prepath, full_paths[0]

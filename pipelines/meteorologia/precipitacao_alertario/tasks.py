@@ -217,21 +217,21 @@ def save_data(
         data_type=data_type,
         suffix=suffix,
     )
-    if preffix or rename:
-        log(f"Adding preffix {preffix} on {full_paths}")
-        new_paths = []
-        for full_path in full_paths:
-            change_filename = f"{preffix}_data" if preffix else rename
-            new_filename = full_path.name.replace("data", change_filename)
-            savepath = full_path.with_name(new_filename)
+    # if preffix or rename:
+    #     log(f"Adding preffix {preffix} on {full_paths}")
+    #     new_paths = []
+    #     for full_path in full_paths:
+    #         change_filename = f"{preffix}_data" if preffix else rename
+    #         new_filename = full_path.name.replace("data", change_filename)
+    #         savepath = full_path.with_name(new_filename)
 
-            # Renomear o arquivo
-            full_path.rename(savepath)
-            new_paths.append(savepath)
-        full_paths = new_paths
+    #     # Renomear o arquivo
+    #     full_path.rename(savepath)
+    #     new_paths.append(savepath)
+    # full_paths = new_paths
     log(f"Files saved on {prepath}, full paths are {full_paths}")
     # TODO alterar funções seguintes para receberem uma lista em vez de ter o full_paths[0]
-    return prepath, full_paths[0]
+    return prepath, full_paths
 
 
 @task
