@@ -551,8 +551,9 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
     Unzip .zip and .gz files to destination folder.
     """
     log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
-    zip_files = [
-        zip_file if zip_file.endswith((".zip", ".gz")) else zip_file + ".zip" for zip_file in zip_files
+    compressed_files = [
+        zip_file if zip_file.endswith((".zip", ".gz")) else zip_file + ".zip"
+        for zip_file in compressed_files
     ]
     os.makedirs(destination_folder, exist_ok=True)
 
@@ -715,9 +716,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
