@@ -43,9 +43,6 @@ from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E04
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
 
-# from pipelines.utils.dump_db.constants import constants as dump_db_constants
-# from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
-
 # preprocessing imports
 from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
@@ -62,6 +59,10 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     rename_files,
     unzip_files,
 )
+
+# from pipelines.utils.dump_db.constants import constants as dump_db_constants
+# from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
+
 
 wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
 
