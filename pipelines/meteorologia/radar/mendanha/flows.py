@@ -326,12 +326,14 @@ with Flow(
             api_gypscie,
             model_params,
         )
-        dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)
+        dataset_names = get_dataset_name_on_gypscie(api_gypscie, output_dataset_ids)
         # stop_flow(dataset_names)
-        ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
+        ziped_dataset_paths = download_datasets_from_gypscie(
+            api_gypscie, dataset_names=dataset_names
+        )
         dataset_paths = unzip_files(ziped_dataset_paths)
         dfr_gypscie_ = path_to_dfr(dataset_paths)
-        # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
+        # output_datasets_id = get_output_dataset_ids_on_gypscie(api_gypscie, dataset_processor_task_id)
         dfr_gypscie = add_caracterization_columns_on_dfr(
             dfr_gypscie_, model_version, update_time=True
         )

@@ -586,6 +586,9 @@ def get_dataset_name_on_gypscie(
         for attempt in range(max_retries):
             try:
                 response = api.get(path="datasets/" + str(dataset_id))
+                if "name" in response:
+                    dataset_names.append(response.get("name"))
+                break
             except HTTPError as err:
                 if err.response.status_code == 404:
                     if attempt < max_retries - 1:
@@ -605,8 +608,6 @@ def get_dataset_name_on_gypscie(
                 # task_state = Failed(failed_message)
                 # raise ENDRUN(state=task_state) from err
 
-            if "name" in response:
-                dataset_names.append(response.get("name"))
     print(f"All dataset names {dataset_names}")
     return dataset_names
 
