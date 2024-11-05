@@ -137,7 +137,7 @@ with Flow(
         values=redis_files_updated,
         redis_key=redis_key,
         keep_last=50,
-        wait=path,
+        wait=create_table,
     )
 
     dfr = rearange_dataframe(output_filepath)

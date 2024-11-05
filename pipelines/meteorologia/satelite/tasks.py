@@ -125,10 +125,10 @@ def download(
     log(f"\n\n[DEBUG]: available files on API: {storage_files_path}")
     log(f"\n\n[DEBUG]: filenames that are already saved on redis_files: {redis_files}")
 
-    redis_files, destination_file_path, download_file = choose_file_to_download(
+    redis_files_updated, destination_file_path, download_file = choose_file_to_download(
         storage_files_path, base_path, redis_files, ref_filename
     )
-
+    log(f"/n redis_files_updated after append function: {redis_files_updated}")
     # Skip task if there is no new file
     if download_file is None:
         log("No new available files")
@@ -146,7 +146,7 @@ def download(
             mode="prod",
         )
 
-    return destination_file_path, redis_files
+    return destination_file_path, redis_files_updated
 
 
 @task

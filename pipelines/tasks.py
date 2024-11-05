@@ -198,6 +198,7 @@ def task_save_on_redis(
     if isinstance(values, list):
         values = list(set(values))
         values.sort()
+        log(f"\n\nBefore keep_last {values}\n\n")
         values = values[-keep_last:]
 
     if isinstance(values, dict):

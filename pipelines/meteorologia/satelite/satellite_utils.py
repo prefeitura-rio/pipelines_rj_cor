@@ -210,7 +210,7 @@ def get_files_from_gcp(partition_path):
 
 
 def choose_file_to_download(
-    storage_files_path: list, base_path: str, redis_files: str, ref_filename=None
+    storage_files_path: list, base_path: str, redis_files: list, ref_filename=None
 ):
     """
     We can treat only one file each run, so we will first eliminate files that were
@@ -239,7 +239,7 @@ def choose_file_to_download(
             redis_files.append(filename)
             destination_file_path = os.path.join(base_path, filename)
             download_file = path_file
-            # log(f"[DEBUG]: filename to be append on redis_files: {redis_files}")
+            log(f"\n\n[DEBUG]: filename {filename} appended on redis_files: {redis_files}\n\n")
             break
         log(f"\n{filename} is already in redis")
 
