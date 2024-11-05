@@ -130,7 +130,6 @@ with Flow(
 
     # Parameters for saving data on GCP
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
-    dump_mode = Parameter("dump_mode", default=False, required=False)
     dataset_id_previsao_chuva = Parameter(
         "dataset_id_previsao_chuva", default="clima_previsao_chuva", required=False
     )
@@ -355,7 +354,7 @@ with Flow(
             data_path=prediction_data_path,
             dataset_id=dataset_id_previsao_chuva,
             table_id=table_id_previsao_chuva,
-            dump_mode=dump_mode,
+            dump_mode=DUMP_MODE,
             biglake_table=False,
         )
 
