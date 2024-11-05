@@ -7,6 +7,7 @@ import datetime
 import gzip
 import os
 import shutil
+import time
 import zipfile
 from pathlib import Path
 from time import sleep
@@ -565,6 +566,7 @@ def get_output_dataset_ids_on_gypscie(
     return response.get("output_datasets")
 
 
+# flake8: noqa: E501
 @task(max_retries=3, retry_delay=datetime.timedelta(seconds=30))
 def get_dataset_name_on_gypscie(
     api,
@@ -574,31 +576,44 @@ def get_dataset_name_on_gypscie(
     Get datasets name using their dataset ids
     """
     dataset_names = []
+    response = {}
     log(f"All dataset_ids to get names: {dataset_ids}")
     for dataset_id in dataset_ids:
         log(f"Getting name for dataset id: {dataset_id}")
-        try:
-            response = api.get(path="datasets/" + str(dataset_id))
-        except HTTPError as err:
-            if err.response.status_code == 404:
-                failed_message = f"Dataset_id {dataset_id} not found"
-            else:
-                failed_message = f"An error occurred: {err}"
-                # log(f"Get response: {response}")
-            failed_message += " Stoping Flow."
-            log(failed_message)
-            # task_state = Failed(failed_message)
-            # raise ENDRUN(state=task_state) from err
-        log(f"Get dataset name response {response}")
-        if "name" in response:
-            dataset_names.append(response.get("name"))
-    log(f"All dataset names {dataset_names}")
+        max_retries = 4
+        wait_seconds = 5
+
+        for attempt in range(max_retries):
+            try:
+                response = api.get(path="datasets/" + str(dataset_id))
+            except HTTPError as err:
+                if err.response.status_code == 404:
+                    if attempt < max_retries - 1:
+                        log(
+                            f"Dataset_id {dataset_id} not found. Retrying in {wait_seconds} seconds. (Attempt {attempt + 1}/{max_retries})"
+                        )
+                        time.sleep(wait_seconds)
+                    else:
+                        log(
+                            f"Dataset_id {dataset_id} not found after {max_retries} attempts. Stopping Flow."
+                        )
+                        raise
+                else:
+                    failed_message = f"An error occurred: {err}. Stopping Flow."
+                    log(failed_message)
+                    raise
+                # task_state = Failed(failed_message)
+                # raise ENDRUN(state=task_state) from err
+
+            if "name" in response:
+                dataset_names.append(response.get("name"))
+    print(f"All dataset names {dataset_names}")
     return dataset_names
 
 
 @task
 def stop_flow(item):
-    """ Force flow to stop"""
+    """Force flow to stop"""
     if len(item) == 0:
         failed_message = "\n\nEmpty item. Stoping Flow.\n\n"
         log(failed_message)
