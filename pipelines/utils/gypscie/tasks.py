@@ -420,6 +420,74 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
 
 
 @task
+def get_dataflow_mendanha_params(  # pylint: disable=too-many-arguments
+    workflow_id,
+    environment_id,
+    project_id,
+    radar_data_id,
+    load_data_function_id,
+    filter_data_function_id,
+    parse_date_time_function_id,
+    agregate_data_function_id,
+    save_data_function_id,
+) -> List:
+    """
+    Return parameters for the Mendanha radar's ETL
+
+    data = {
+        "workflow_id": 40,
+        "environment_id": 1,
+        "parameters": [
+            {
+                "function_id":46,  # load_data
+                "params": {"radar_data_path":213}
+            },
+            {
+                "function_id":47  # filter_data
+            },
+            {
+                "function_id":48  # parse_date_time
+            },
+            {
+                "function_id":49  # aggregate_data
+            },
+            {
+                "function_id":50,  # save_data
+                "params": {"output_path":"9921GUA_PPIVol_20230112_190010_0000.parquet"}
+            }
+        ],
+        "project_id": 1
+    }
+    """
+    return {
+        "workflow_id": workflow_id,
+        "environment_id": environment_id,
+        "parameters": [
+            {
+                "function_id": load_data_function_id,
+                "params": {
+                    "radar_data_path": radar_data_id,
+                },
+            },
+            {
+                "function_id": filter_data_function_id,
+            },
+            {
+                "function_id": parse_date_time_function_id,
+            },
+            {
+                "function_id": agregate_data_function_id,
+            },
+            {
+                "function_id": save_data_function_id,
+                "params": {"output_path": "preprocessed_data_radar_mendanha.parquet"},
+            },
+        ],
+        "project_id": project_id,
+    }
+
+
+@task
 def get_dataflow_params(  # pylint: disable=too-many-arguments
     workflow_id,
     environment_id,
@@ -550,17 +618,11 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
     """
     Unzip .zip and .gz files to destination folder.
     """
-    log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
-    compressed_files = [
-        zip_file if zip_file.endswith((".zip", ".gz")) else zip_file + ".zip"
-        for zip_file in compressed_files
-    ]
     os.makedirs(destination_folder, exist_ok=True)
 
     extracted_files = []
     for file in compressed_files:
         if file.endswith(".zip"):
-            log("zip file found")
             with zipfile.ZipFile(file, "r") as zip_ref:
                 zip_ref.extractall(destination_folder)
                 extracted_files.extend(
@@ -572,7 +634,7 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
                 with open(output_file, "wb") as out_file:
                     shutil.copyfileobj(gz_file, out_file)
             extracted_files.append(output_file)
-    log(f"Extracted files: {extracted_files}")
+
     return extracted_files
 
 
