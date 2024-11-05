@@ -111,7 +111,7 @@ with Flow(
     treatment_version = Parameter("treatment_version", default=1, required=False)
 
     # Gypscie processor parameters
-    processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
+    processor_name = Parameter("processor_name", default="etl_alertario22", required=False)
     dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
 
     load_data_function_id = Parameter("load_data_function_id", default=53, required=False)
