@@ -886,32 +886,29 @@ def convert_columns_type(
 @task
 def rename_files(
     files: List[Union[Path, str]],
-    original_name: str = "data",
+    original_name: str,
     preffix: str = None,
     rename: str = None,
 ) -> List[Path]:
     """
     Renomeia os arquivos com base em um prefixo ou novo nome.
     """
+    original_name = Path(original_name).name
+
     new_paths = []
     for file_path in files:
         file_path = Path(file_path)
-        print(f"Original file path: {file_path}")
-
         base_name = file_path.name
 
         change_filename = f"{preffix}_{original_name}" if preffix else rename
         print(f"Name to replace '{original_name}' with: {change_filename}")
 
-        # Substitui apenas o nome do arquivo, ignorando './' no caminho
-        if original_name in base_name:
-            new_filename = base_name.replace(original_name, change_filename)
-            savepath = file_path.with_name(new_filename)
+        new_filename = base_name.replace(original_name, change_filename)
+        savepath = file_path.with_name(new_filename)
 
-            # Renomeia o arquivo
-            file_path.rename(savepath)
-            new_paths.append(savepath)
-            print(f"Renamed file path: {savepath}")
-        else:
-            print(f"Original name '{original_name}' not found in '{base_name}'.")
+        # Renomeia o arquivo
+        file_path.rename(savepath)
+        new_paths.append(savepath)
+        print(f"Renamed file path: {savepath}")
+
     return new_paths
