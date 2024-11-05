@@ -44,7 +44,7 @@ from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E04
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
 
 # from pipelines.utils.dump_db.constants import constants as dump_db_constants
-from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
+# from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
 
 # preprocessing imports
 from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
@@ -92,16 +92,16 @@ with Flow(
     PREFECT_PROJECT = Parameter("prefect_project", default="staging", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
-    DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
+    # DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
 
-    MAXIMUM_BYTES_PROCESSED = Parameter(
-        "maximum_bytes_processed",
-        required=False,
-        default=dump_to_gcs_constants.MAX_BYTES_PROCESSED_PER_TABLE.value,
-    )
+    # MAXIMUM_BYTES_PROCESSED = Parameter(
+    #     "maximum_bytes_processed",
+    #     required=False,
+    #     default=dump_to_gcs_constants.MAX_BYTES_PROCESSED_PER_TABLE.value,
+    # )
 
     # Preprocessing gypscie parameters
-    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
+    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=True, required=False)
     # Gypscie parameters
     workflow_id = Parameter("workflow_id", default=41, required=False)
     environment_id = Parameter("environment_id", default=1, required=False)
