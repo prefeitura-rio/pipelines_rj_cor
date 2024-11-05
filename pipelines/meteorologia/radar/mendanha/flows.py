@@ -302,7 +302,10 @@ with Flow(
         # when the workflow was saved on gypscie. In this case default_value = "9921GUA_PPIVol.hdf"
         # Gypscie will give a different name for zip file, but the inside file will have the name for all.
         renamed_files = rename_files(
-            uncompressed_files, original_name=uncompressed_files[0], rename="9921GUA_PPIVol.hdf"
+            uncompressed_files,
+            original_name=uncompressed_files[0],
+            rename="9921GUA_PPIVol.hdf",
+            wait=radar_file,
         )
         register_dataset_response = register_dataset_on_gypscie(
             api_gypscie, filepath=renamed_files[0], domain_id=domain_id
@@ -323,7 +326,7 @@ with Flow(
             api_gypscie,
             model_params,
         )
-        dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)  # new
+        dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)
         ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
         dataset_paths = unzip_files(ziped_dataset_paths)
         dfr_gypscie_ = path_to_dfr(dataset_paths)

@@ -565,7 +565,7 @@ def get_output_dataset_ids_on_gypscie(
     return response.get("output_datasets")
 
 
-@task()
+@task(max_retries=3, retry_delay=datetime.timedelta(seconds=30))
 def get_dataset_name_on_gypscie(
     api,
     dataset_ids: list,
@@ -581,8 +581,15 @@ def get_dataset_name_on_gypscie(
             response = api.get(path="datasets/" + str(dataset_id))
         except HTTPError as err:
             if err.response.status_code == 404:
-                print(f"Dataset_id {dataset_id} not found")
-                return []
+                failed_message = f"Dataset_id {dataset_id} not found"
+            else:
+                failed_message = f"An error occurred: {err}"
+                log(f"Get response: {response}")
+            failed_message += " Stoping Flow."
+            task_state = Failed(failed_message)
+            raise ENDRUN(
+                state=task_state
+            ) from err  # Explicitly re-raise from the original exception
         log(f"Get dataset name response {response}")
         dataset_names.append(response.get("name"))
     log(f"All dataset names {dataset_names}")
@@ -889,6 +896,7 @@ def rename_files(
     original_name: str = "data",
     preffix: str = None,
     rename: str = None,
+    wait=None,  # pylint: disable=unused-argument
 ) -> List[Path]:
     """
     Renomeia os arquivos com base em um prefixo ou novo nome.
@@ -906,9 +914,8 @@ def rename_files(
         new_filename = base_name.replace(original_name, change_filename)
         savepath = file_path.with_name(new_filename)
 
-        # Renomeia o arquivo
+        # Rename file
         file_path.rename(savepath)
         new_paths.append(savepath)
-        print(f"Renamed file path: {savepath}")
-
+        print(f"Renamed file paths: {new_paths}")
     return new_paths
