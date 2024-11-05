@@ -788,9 +788,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -899,14 +899,19 @@ def rename_files(
         print(f"Original file path: {file_path}")
 
         base_name = file_path.name
+
         change_filename = f"{preffix}_{original_name}" if preffix else rename
         print(f"Name to replace '{original_name}' with: {change_filename}")
 
-        new_filename = base_name.replace(original_name, change_filename)
-        savepath = file_path.with_name(new_filename)
+        # Substitui apenas o nome do arquivo, ignorando './' no caminho
+        if original_name in base_name:
+            new_filename = base_name.replace(original_name, change_filename)
+            savepath = file_path.with_name(new_filename)
 
-        # Rename file
-        file_path.rename(savepath)
-        new_paths.append(savepath)
-        print(f"Renamed file paths: {new_paths}")
+            # Renomeia o arquivo
+            file_path.rename(savepath)
+            new_paths.append(savepath)
+            print(f"Renamed file path: {savepath}")
+        else:
+            print(f"Original name '{original_name}' not found in '{base_name}'.")
     return new_paths
