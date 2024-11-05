@@ -623,7 +623,7 @@ def unzip_files(
     destination_folder = str(destination_folder)
     log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
     compressed_files = [
-        str(zip_file) if zip_file.endswith((".zip", ".gz")) else str(zip_file) + ".zip"
+        str(zip_file) if str(zip_file).endswith((".zip", ".gz")) else str(zip_file) + ".zip"
         for zip_file in compressed_files
     ]
     os.makedirs(destination_folder, exist_ok=True)
