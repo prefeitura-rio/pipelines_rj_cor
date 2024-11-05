@@ -6,11 +6,14 @@ Flows for emd.
 """
 from copy import deepcopy
 
-from prefect import Parameter, case
-from prefect.run_configs import KubernetesRun
-from prefect.storage import GCS
-from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
+from prefect import Parameter, case  # pylint: disable=E0611, E0401
+from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
+from prefect.storage import GCS  # pylint: disable=E0611, E0401
+
+# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
     handler_inject_bd_credentials,
@@ -63,9 +66,6 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_save_on_redis,
     upload_files_to_storage,
 )
-
-# from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
-
 
 with Flow(
     name="COR: Meteorologia - Satelite GOES 16",
@@ -137,7 +137,8 @@ with Flow(
         values=redis_files_updated,
         redis_key=redis_key,
         keep_last=50,
-        wait=path,
+        sort_key=lambda x: x.split("_s")[1].split("_")[0],
+        wait=create_table,
     )
 
     dfr = rearange_dataframe(output_filepath)
