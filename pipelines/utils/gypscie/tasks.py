@@ -886,7 +886,7 @@ def convert_columns_type(
 @task
 def rename_files(
     files: List[Union[Path, str]],
-    original_name: str,
+    original_name: str = "data",
     preffix: str = None,
     rename: str = None,
 ) -> List[Path]:
