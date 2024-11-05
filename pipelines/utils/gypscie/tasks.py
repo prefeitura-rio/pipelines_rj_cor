@@ -614,27 +614,37 @@ def download_datasets_from_gypscie(
 
 
 @task
-def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> List[str]:
+def unzip_files(
+    compressed_files: List[Union[str, Path]], destination_folder: Union[str, Path] = "./"
+) -> List[str]:
     """
     Unzip .zip and .gz files to destination folder.
     """
+    destination_folder = str(destination_folder)
+    log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
+    compressed_files = [
+        str(zip_file) if zip_file.endswith((".zip", ".gz")) else str(zip_file) + ".zip"
+        for zip_file in compressed_files
+    ]
     os.makedirs(destination_folder, exist_ok=True)
 
     extracted_files = []
     for file in compressed_files:
         if file.endswith(".zip"):
+            log("zip file found")
             with zipfile.ZipFile(file, "r") as zip_ref:
                 zip_ref.extractall(destination_folder)
                 extracted_files.extend(
                     [os.path.join(destination_folder, f) for f in zip_ref.namelist()]
                 )
         elif file.endswith(".gz"):
+            log("gz file found")
             output_file = os.path.join(destination_folder, os.path.basename(file)[:-3])
             with gzip.open(file, "rb") as gz_file:
                 with open(output_file, "wb") as out_file:
                     shutil.copyfileobj(gz_file, out_file)
             extracted_files.append(output_file)
-
+    log(f"Extracted files: {extracted_files}")
     return extracted_files
 
 
@@ -778,9 +788,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"

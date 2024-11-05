@@ -8,6 +8,7 @@ from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
 from prefect.storage import GCS  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
@@ -68,8 +69,8 @@ from pipelines.utils.gypscie.tasks import (
     execute_dataflow_on_gypscie,
     get_dataflow_mendanha_params,
     get_dataset_info,
-    get_dataset_processor_info,
     get_dataset_name_on_gypscie,
+    get_dataset_processor_info,
     path_to_dfr,
     register_dataset_on_gypscie,
     rename_files,
