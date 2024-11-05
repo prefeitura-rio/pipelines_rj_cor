@@ -191,6 +191,7 @@ def task_save_on_redis(
     redis_hash: str = None,
     redis_key: str = None,
     keep_last: int = 50,
+    sort_key: str = None,
     wait=None,
 ) -> None:
     """
@@ -199,7 +200,8 @@ def task_save_on_redis(
 
     if isinstance(values, list):
         values = list(set(values))
-        values.sort()
+        values = sorted(values, key=sort_key)
+        log(f"\n\nBefore keep_last {values}\n\n")
         values = values[-keep_last:]
 
     if isinstance(values, dict):
