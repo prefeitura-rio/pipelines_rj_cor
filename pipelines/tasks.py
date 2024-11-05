@@ -9,11 +9,11 @@ from pathlib import Path
 from typing import List, Union
 
 import pandas as pd
-import pendulum
-from google.cloud import storage
-from prefect import task
-from prefect.triggers import all_successful
-from prefeitura_rio.pipelines_utils.infisical import get_secret
+import pendulum  # pylint: disable=E0611, E0401
+from google.cloud import storage  # pylint: disable=E0611, E0401
+from prefect import task  # pylint: disable=E0611, E0401
+from prefect.triggers import all_successful  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
     parse_date_columns,
     to_partitions,
@@ -189,6 +189,7 @@ def task_save_on_redis(
     redis_hash: str = None,
     redis_key: str = None,
     keep_last: int = 50,
+    sort_key: str = None,
     wait=None,
 ) -> None:
     """
@@ -197,7 +198,7 @@ def task_save_on_redis(
 
     if isinstance(values, list):
         values = list(set(values))
-        values.sort()
+        values = sorted(values, key=sort_key)
         log(f"\n\nBefore keep_last {values}\n\n")
         values = values[-keep_last:]
 
