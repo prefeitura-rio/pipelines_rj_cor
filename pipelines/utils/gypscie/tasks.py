@@ -788,9 +788,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -898,9 +898,11 @@ def rename_files(
         file_path = Path(file_path)
         print(f"Original file path: {file_path}")
 
+        base_name = file_path.name
         change_filename = f"{preffix}_{original_name}" if preffix else rename
         print(f"Name to replace '{original_name}' with: {change_filename}")
-        new_filename = file_path.name.replace(original_name, change_filename)
+
+        new_filename = base_name.replace(original_name, change_filename)
         savepath = file_path.with_name(new_filename)
 
         # Rename file
