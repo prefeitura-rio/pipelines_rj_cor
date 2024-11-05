@@ -584,16 +584,26 @@ def get_dataset_name_on_gypscie(
                 failed_message = f"Dataset_id {dataset_id} not found"
             else:
                 failed_message = f"An error occurred: {err}"
-                log(f"Get response: {response}")
+                # log(f"Get response: {response}")
             failed_message += " Stoping Flow."
-            task_state = Failed(failed_message)
-            raise ENDRUN(
-                state=task_state
-            ) from err  # Explicitly re-raise from the original exception
+            log(failed_message)
+            # task_state = Failed(failed_message)
+            # raise ENDRUN(state=task_state) from err
         log(f"Get dataset name response {response}")
-        dataset_names.append(response.get("name"))
+        if "name" in response:
+            dataset_names.append(response.get("name"))
     log(f"All dataset names {dataset_names}")
     return dataset_names
+
+
+@task
+def stop_flow(item):
+    """ Force flow to stop"""
+    if len(item) == 0:
+        failed_message = "\n\nEmpty item. Stoping Flow.\n\n"
+        log(failed_message)
+        task_state = Failed(failed_message)
+        raise ENDRUN(state=task_state)
 
 
 @task()
@@ -795,9 +805,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
