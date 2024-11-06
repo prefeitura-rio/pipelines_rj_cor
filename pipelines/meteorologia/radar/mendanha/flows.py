@@ -108,7 +108,7 @@ with Flow(
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
-    project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+    # project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
 
     # Gypscie processor parameters
     processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
@@ -129,7 +129,7 @@ with Flow(
     source = Parameter("source", default="mendanha", required=False)
 
     # Dataset path, if it was saved on ETL flow or it will be None
-    dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
+    # dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
     treatment_version = Parameter("treatment_version", default=1, required=False)
 
     ############################

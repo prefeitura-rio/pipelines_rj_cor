@@ -346,7 +346,7 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
     project_id,
     rain_gauge_data_id,
     rain_gauge_metadata_path,
-    load_data_funtion_id,
+    load_data_function_id,
     parse_date_time_function_id,
     drop_duplicates_function_id,
     replace_inconsistent_values_function_id,
@@ -392,7 +392,7 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
         "environment_id": environment_id,
         "parameters": [
             {
-                "function_id": load_data_funtion_id,
+                "function_id": load_data_function_id,
                 "params": {
                     "rain_gauge_data_path": rain_gauge_data_id,
                     "rain_gauge_metadata_path": rain_gauge_metadata_path,

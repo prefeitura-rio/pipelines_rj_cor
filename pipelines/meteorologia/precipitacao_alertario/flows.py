@@ -78,14 +78,14 @@ with Flow(
     DUMP_MODE = "append"
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP_OLD_API = Parameter(
-        "materialize_after_dump_old_api", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
-        "materialize_to_datario_old_api", default=False, required=False
-    )
+    # MATERIALIZE_AFTER_DUMP_OLD_API = Parameter(
+    #     "materialize_after_dump_old_api", default=False, required=False
+    # )
+    # MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
+    #     "materialize_to_datario_old_api", default=False, required=False
+    # )
     MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
-    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
+    # MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
@@ -108,8 +108,8 @@ with Flow(
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
-    project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
-    treatment_version = Parameter("treatment_version", default=1, required=False)
+    # gypscie_project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+    # treatment_version = Parameter("treatment_version", default=1, required=False)
 
     # Gypscie processor parameters
     processor_name = Parameter("processor_name", default="etl_alertario22", required=False)
@@ -142,7 +142,7 @@ with Flow(
     source = Parameter("source", default="alertario", required=False)
 
     # Dataset path, if it was saved on ETL flow or it will be None
-    dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
+    # dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
     model_version = Parameter("model_version", default=1, required=False)
 
     #########################
@@ -167,7 +167,7 @@ with Flow(
         path_pluviometric, full_path_pluviometric = save_data(
             dfr_pluviometric,
             data_name="pluviometric",
-            treatment_version=treatment_version,
+            # treatment_version=treatment_version,
             wait=empty_data_pluviometric,
         )
         # Create table in BigQuery
@@ -484,7 +484,7 @@ with Flow(
                 project_id=project_id,
                 rain_gauge_data_id=register_dataset_response["id"],
                 rain_gauge_metadata_path=rain_gauge_metadata_path,
-                load_data_funtion_id=load_data_function_id,
+                load_data_function_id=load_data_function_id,
                 parse_date_time_function_id=parse_date_time_function_id,
                 drop_duplicates_function_id=drop_duplicates_function_id,
                 replace_inconsistent_values_function_id=replace_inconsistent_values_function_id,
