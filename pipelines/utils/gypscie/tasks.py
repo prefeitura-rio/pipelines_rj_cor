@@ -18,7 +18,7 @@ from basedosdados import Base  # pylint: disable=E0611, E0401
 from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
-from prefect.engine.state import Failed  # pylint: disable=E0611, E0401
+from prefect.engine.state import Failed, Skipped  # pylint: disable=E0611, E0401
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import get_secret
@@ -33,8 +33,8 @@ from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
 
 
 # noqa E302, E303
-@task()
-def access_api(timeout=300):
+@task(timeout=300)
+def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
     """
@@ -716,9 +716,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -836,3 +836,22 @@ def rename_files(
         new_paths.append(savepath)
         print(f"Renamed file paths: {new_paths}")
     return new_paths
+
+
+@task
+def timeout_flow(
+    timeout_seconds: int = 600,
+    wait=None,  # pylint: disable=unused-argument
+):
+    """
+    Stop flow if it exceeds timeout_seconds
+    """
+    start_time = datetime.datetime.utcnow()
+    while True:
+        elapsed_time = datetime.datetime.utcnow() - start_time
+        if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
+            stop_message = f"Time exceeded. Stop flow after {timeout_seconds} seconds"
+            log(stop_message)
+            task_state = Skipped(stop_message)
+            raise ENDRUN(state=task_state)
+        sleep(30)

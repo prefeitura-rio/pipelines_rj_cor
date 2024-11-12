@@ -57,6 +57,7 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     path_to_dfr,
     register_dataset_on_gypscie,
     rename_files,
+    timeout_flow,
     unzip_files,
 )
 
@@ -108,7 +109,7 @@ with Flow(
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
-    # gypscie_project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+    # gypscie_project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)  # noqa: E501
     # treatment_version = Parameter("treatment_version", default=1, required=False)
 
     # Gypscie processor parameters
@@ -150,13 +151,19 @@ with Flow(
     #########################
 
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
@@ -451,6 +458,7 @@ with Flow(
 
     with case(empty_data_pluviometric, False):
         with case(preprocessing_gypscie, True):
+            timeout_flow(timeout_seconds=600, wait=dfr_pluviometric)
             api = access_api()
 
             dataset_info = get_dataset_info(station_type, source)
