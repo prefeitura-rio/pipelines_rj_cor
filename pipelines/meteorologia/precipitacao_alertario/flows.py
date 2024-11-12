@@ -102,7 +102,7 @@ with Flow(
     # )
 
     # Preprocessing gypscie parameters
-    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=True, required=False)
+    preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
     # Gypscie parameters
     workflow_id = Parameter("workflow_id", default=41, required=False)
     environment_id = Parameter("environment_id", default=1, required=False)
