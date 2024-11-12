@@ -26,7 +26,7 @@ minute_schedule = Schedule(
                 "mode": "prod",
                 # "dump_to_gcs": False,
                 # "maximum_bytes_processed": None,
-                "preprocessing_gypscie": True,
+                "preprocessing_gypscie": False,
                 # "workflow_id": 41,
                 # "environment_id": 1,
                 # "domain_id": 1,

@@ -33,7 +33,7 @@ from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
 
 
 # noqa E302, E303
-@task(timeout_seconds=120)
+@task()
 def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
@@ -110,7 +110,7 @@ def download_data_from_bigquery(query: str, billing_project_id: str) -> pd.DataF
     return dfr
 
 
-@task(timeout_seconds=4 * 60)
+@task()
 def register_dataset_on_gypscie(api, filepath: Path, domain_id: int = 1) -> Dict:
     """
     Register dataset on gypscie and return its informations like id.
@@ -148,7 +148,7 @@ def register_dataset_on_gypscie(api, filepath: Path, domain_id: int = 1) -> Dict
     return response.json()
 
 
-@task(nout=2, timeout_seconds=2 * 60)
+@task(nout=2)
 def get_dataset_processor_info(api, processor_name: str):
     """
     Geting dataset processor information
@@ -171,7 +171,7 @@ def get_dataset_processor_info(api, processor_name: str):
     #     log(f"{processor_name} not found. Try adding it.")
 
 
-@task(timeout_seconds=7 * 60)
+@task()
 # pylint: disable=too-many-arguments
 def execute_dataset_processor(
     api,
@@ -213,7 +213,7 @@ def execute_dataset_processor(
     return task_response.json(["task_id"])
 
 
-@task(timeout_seconds=5 * 60)
+@task()
 def predict(api, model_id: int, dataset_id: int, project_id: int) -> dict:
     """
     Requisição de execução de um processo de Predição
@@ -242,7 +242,7 @@ def calculate_start_and_end_date(
     return start_date, end_date
 
 
-@task(timeout_seconds=5 * 60)
+@task()
 def query_data_from_gcp(  # pylint: disable=too-many-arguments
     dataset_id: str,
     table_id: str,
@@ -296,7 +296,7 @@ def query_data_from_gcp(  # pylint: disable=too-many-arguments
     return savepath
 
 
-@task(timeout_seconds=7 * 60)
+@task()
 def execute_dataflow_on_gypscie(
     api,
     model_params: dict,
@@ -477,7 +477,7 @@ def get_dataflow_params(  # pylint: disable=too-many-arguments
     }
 
 
-@task(timeout_seconds=5 * 60)
+@task()
 def get_output_dataset_ids_on_gypscie(
     api,
     task_id,
@@ -497,7 +497,7 @@ def get_output_dataset_ids_on_gypscie(
     return response.get("output_datasets")
 
 
-@task(timeout_seconds=3 * 60)
+@task()
 def get_dataset_name_on_gypscie(
     api,
     dataset_ids: list,
@@ -521,7 +521,7 @@ def get_dataset_name_on_gypscie(
     return dataset_names
 
 
-@task(timeout_seconds=5 * 60)
+@task()
 def download_datasets_from_gypscie(
     api,
     dataset_names: List,
