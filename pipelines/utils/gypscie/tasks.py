@@ -33,7 +33,8 @@ from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
 
 
 # noqa E302, E303
-@task(timeout=300)
+# @task(timeout=300)
+@task()
 def access_api():
     """# noqa E303
     Acess api and return it to be used in other requests
