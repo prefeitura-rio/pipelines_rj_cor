@@ -17,9 +17,9 @@ import numpy as np
 import pandas as pd
 from basedosdados import Base  # pylint: disable=E0611, E0401
 from google.cloud import bigquery  # pylint: disable=E0611, E0401
-from prefect import task  # pylint: disable=E0611, E0401
+from prefect import context, task  # pylint: disable=E0611, E0401
 from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
-from prefect.engine.state import Failed  # pylint: disable=E0611, E0401
+from prefect.engine.state import Failed, Skipped  # pylint: disable=E0611, E0401
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import get_secret
@@ -34,6 +34,7 @@ from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
 
 
 # noqa E302, E303
+# @task(timeout=300)
 @task()
 def access_api():
     """# noqa E303
@@ -347,7 +348,7 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
     project_id,
     rain_gauge_data_id,
     rain_gauge_metadata_path,
-    load_data_funtion_id,
+    load_data_function_id,
     parse_date_time_function_id,
     drop_duplicates_function_id,
     replace_inconsistent_values_function_id,
@@ -393,7 +394,7 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
         "environment_id": environment_id,
         "parameters": [
             {
-                "function_id": load_data_funtion_id,
+                "function_id": load_data_function_id,
                 "params": {
                     "rain_gauge_data_path": rain_gauge_data_id,
                     "rain_gauge_metadata_path": rain_gauge_metadata_path,
@@ -945,3 +946,42 @@ def rename_files(
         new_paths.append(savepath)
         print(f"Renamed file paths: {new_paths}")
     return new_paths
+
+
+@task
+def timeout_flow(
+    timeout_seconds: int = 600,
+    wait=None,  # pylint: disable=unused-argument
+):
+    """
+    Stop flow if it exceeds timeout_seconds
+    """
+    start_time = datetime.datetime.now(datetime.timezone.utc)
+    while True:
+        elapsed_time = datetime.datetime.now(datetime.timezone.utc) - start_time
+        if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
+            stop_message = f"Time exceeded. Stop flow after {timeout_seconds} seconds"
+            log(stop_message)
+            task_state = Skipped(stop_message)
+            raise ENDRUN(state=task_state)
+        sleep(30)
+
+
+def monitor_flow(timeout_seconds, flow_):
+    """
+    Tarefa de monitoramento paralela para interromper o fluxo
+    se o tempo total ultrapassar o limite.
+    """
+    start_time = datetime.now(datetime.timezone.utc)
+    while True:
+        elapsed_time = datetime.now(datetime.timezone.utc) - start_time
+        if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
+            log(f"elapsed_time {elapsed_time}")
+            logger = context.get("logger")
+            stop_message = (
+                f"Tempo limite de {timeout_seconds} segundos excedido. Encerrando o fluxo."
+            )
+            logger.warning(stop_message)
+            flow_.set_reference_tasks([Failed(stop_message)])  # Define o estado de falha do fluxo
+            return
+        sleep(10)  # Verifica o tempo a cada 10 segundos
