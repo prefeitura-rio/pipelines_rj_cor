@@ -108,7 +108,7 @@ with Flow(
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
-    project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
+    # project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
 
     # Gypscie processor parameters
     processor_name = Parameter("processor_name", default="etl_alertario22", required=True)

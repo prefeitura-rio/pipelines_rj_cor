@@ -4,6 +4,7 @@
 Flows for precipitacao_alertario.
 """
 from datetime import timedelta
+from threading import Thread
 
 from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
@@ -43,11 +44,8 @@ from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E04
 # from pipelines.utils.constants import constants as utils_constants
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
 
-# from pipelines.utils.dump_db.constants import constants as dump_db_constants
-from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
-
 # preprocessing imports
-from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
+from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401; timeout_flow,; monitor_flow,
     access_api,
     add_caracterization_columns_on_dfr,
     convert_columns_type,
@@ -63,6 +61,10 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     unzip_files,
 )
 
+# from pipelines.utils.dump_db.constants import constants as dump_db_constants
+# from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
+
+
 wait_for_flow_run_with_5min_timeout = wait_for_flow_run_with_timeout(timeout=timedelta(minutes=5))
 
 with Flow(
@@ -77,14 +79,14 @@ with Flow(
     DUMP_MODE = "append"
 
     # Materialization parameters
-    MATERIALIZE_AFTER_DUMP_OLD_API = Parameter(
-        "materialize_after_dump_old_api", default=False, required=False
-    )
-    MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
-        "materialize_to_datario_old_api", default=False, required=False
-    )
+    # MATERIALIZE_AFTER_DUMP_OLD_API = Parameter(
+    #     "materialize_after_dump_old_api", default=False, required=False
+    # )
+    # MATERIALIZE_TO_DATARIO_OLD_API = Parameter(
+    #     "materialize_to_datario_old_api", default=False, required=False
+    # )
     MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
-    MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
+    # MATERIALIZE_TO_DATARIO = Parameter("materialize_to_datario", default=False, required=False)
     MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
     TRIGGER_RAIN_DASHBOARD_UPDATE = Parameter(
         "trigger_rain_dashboard_update", default=False, required=False
@@ -92,13 +94,13 @@ with Flow(
     PREFECT_PROJECT = Parameter("prefect_project", default="staging", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
-    DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
+    # DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
 
-    MAXIMUM_BYTES_PROCESSED = Parameter(
-        "maximum_bytes_processed",
-        required=False,
-        default=dump_to_gcs_constants.MAX_BYTES_PROCESSED_PER_TABLE.value,
-    )
+    # MAXIMUM_BYTES_PROCESSED = Parameter(
+    #     "maximum_bytes_processed",
+    #     required=False,
+    #     default=dump_to_gcs_constants.MAX_BYTES_PROCESSED_PER_TABLE.value,
+    # )
 
     # Preprocessing gypscie parameters
     preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
@@ -107,11 +109,11 @@ with Flow(
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
-    project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
-    treatment_version = Parameter("treatment_version", default=1, required=False)
+    # gypscie_project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)  # noqa: E501
+    # treatment_version = Parameter("treatment_version", default=1, required=False)
 
     # Gypscie processor parameters
-    processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
+    processor_name = Parameter("processor_name", default="etl_alertario22", required=False)
     dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
 
     load_data_function_id = Parameter("load_data_function_id", default=53, required=False)
@@ -141,13 +143,18 @@ with Flow(
     source = Parameter("source", default="alertario", required=False)
 
     # Dataset path, if it was saved on ETL flow or it will be None
-    dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
+    # dataset_path = Parameter("dataset_path", default=None, required=False)  # dataset_path
     model_version = Parameter("model_version", default=1, required=False)
 
     #########################
     #  Start alertario flow #
     #########################
-
+    # timeout_flow(timeout_seconds=300)
+    # Inicia o monitoramento em um novo thread
+    # monitor_thread = Thread(
+    #     target=monitor_flow, args=(300, cor_meteorologia_precipitacao_alertario)
+    # )
+    # monitor_thread.start()
     dfr_pluviometric, dfr_meteorological = download_data()
     (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
@@ -166,7 +173,7 @@ with Flow(
         path_pluviometric, full_path_pluviometric = save_data(
             dfr_pluviometric,
             data_name="pluviometric",
-            treatment_version=treatment_version,
+            # treatment_version=treatment_version,
             wait=empty_data_pluviometric,
         )
         # Create table in BigQuery
@@ -447,7 +454,6 @@ with Flow(
     #####################################
     #  Start preprocessing gypscie flow #
     #####################################
-
     with case(empty_data_pluviometric, False):
         with case(preprocessing_gypscie, True):
             api = access_api()
@@ -483,7 +489,7 @@ with Flow(
                 project_id=project_id,
                 rain_gauge_data_id=register_dataset_response["id"],
                 rain_gauge_metadata_path=rain_gauge_metadata_path,
-                load_data_funtion_id=load_data_function_id,
+                load_data_function_id=load_data_function_id,
                 parse_date_time_function_id=parse_date_time_function_id,
                 drop_duplicates_function_id=drop_duplicates_function_id,
                 replace_inconsistent_values_function_id=replace_inconsistent_values_function_id,
