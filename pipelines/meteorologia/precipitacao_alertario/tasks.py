@@ -185,30 +185,29 @@ def save_data(
     columns: str = None,
     treatment_version: int = None,
     data_type: str = "csv",
-    preffix: str = None,
     suffix: bool = True,
-    rename: str = None,
     wait=None,  # pylint: disable=unused-argument
 ) -> Tuple[Union[str, Path], Union[str, Path]]:
     """
     Salvar dfr tratados em csv para conseguir subir pro GCP
     """
 
-    treatment_version = str(treatment_version) + "_" if treatment_version else ""
-
     prepath = Path(f"/tmp/precipitacao_alertario/{data_name}")
     prepath.mkdir(parents=True, exist_ok=True)
 
     partition_column = "data_medicao"
+    treatment_version = str(treatment_version) + "_" if treatment_version else ""
+    suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M") if suffix else None
+    if columns:
+        dfr = dfr[columns]
+
+    # Remove partition columns if they already exist
     new_partition_columns = ["ano_particao", "mes_particao", "data_particao"]
     dfr = dfr.drop(columns=[col for col in new_partition_columns if col in dfr.columns])
+
     log(f"Dataframe for {data_name} before partitions {dfr.iloc[0]}")
     dataframe, partitions = parse_date_columns(dfr, partition_column)
     log(f"Dataframe for {data_name} after partitions {dataframe.iloc[0]}")
-
-    suffix = pendulum.now("America/Sao_Paulo").strftime("%Y%m%d%H%M") if suffix else None
-    if columns:
-        dataframe = dataframe[columns + new_partition_columns]
 
     full_paths = to_partitions(
         data=dataframe,
