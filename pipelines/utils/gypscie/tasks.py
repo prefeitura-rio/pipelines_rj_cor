@@ -863,9 +863,9 @@ def monitor_flow(timeout_seconds, flow_):
     Tarefa de monitoramento paralela para interromper o fluxo
     se o tempo total ultrapassar o limite.
     """
-    start_time = datetime.utcnow()
+    start_time = datetime.now(datetime.timezone.utc)
     while True:
-        elapsed_time = datetime.utcnow() - start_time
+        elapsed_time = datetime.now(datetime.timezone.utc) - start_time
         if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
             log(f"elapsed_time {elapsed_time}")
             logger = context.get("logger")
