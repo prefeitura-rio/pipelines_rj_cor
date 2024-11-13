@@ -25,6 +25,7 @@ class Api:
         base_url: str = None,
         header_type: str = None,
         token_callback: Callable[[str, datetime], None] = lambda *_: None,
+        request_timeout: int = 180,
     ) -> None:
         if username is None or password is None:
             raise ValueError("Must be set refresh token or username with password")
@@ -34,6 +35,7 @@ class Api:
         self._password = password
         self._header_type = header_type
         self._token_callback = token_callback
+        self._request_timeout = request_timeout
         self._headers, self._token, self._expires_at = self._get_headers()
 
     def _get_headers(self) -> Tuple[Dict[str, str], str, datetime]:
@@ -47,8 +49,9 @@ class Api:
                 "username": self._username,
                 "password": self._password,
             },
+            timeout=self._request_timeout,
         )
-        log(f"Status code: {response.status_code}\nResponse:{response.content}")
+        log(f"Status code: {response.status_code}\nResponse: {response.content}")
         if response.status_code == 200:
             response_json = response.json()
             token_word = [i for i in response_json.keys() if "token" in i.lower()][0]
@@ -95,12 +98,24 @@ class Api:
         """
         return self._expires_at
 
-    def get(self, path: str, timeout: int = 120) -> Dict:
+    def _request(self, method: str, *args, **kwargs) -> requests.Response:
+        """
+        request
+        """
+        self._refresh_token_if_needed()
+        try:
+            fn = getattr(requests, method)
+        except AttributeError:
+            raise ValueError(f"Method {method} not found in requests module")  # noqa
+        response = fn(*args, headers=self._headers, timeout=self._request_timeout, **kwargs)
+        return response
+
+    def get(self, path: str, timeout: int = None) -> Dict:
         """
         get
         """
-        self._refresh_token_if_needed()
-        response = requests.get(f"{self._base_url}{path}", headers=self._headers, timeout=timeout)
+        timeout = timeout or self._request_timeout
+        response = self._request("get", f"{self._base_url}{path}", timeout=timeout)
         response.raise_for_status()
         try:
             return response.json()
@@ -111,21 +126,18 @@ class Api:
         """
         put
         """
-        self._refresh_token_if_needed()
-        response = requests.put(f"{self._base_url}{path}", headers=self._headers, json=json_data)
+        response = self._request("put", f"{self._base_url}{path}", json=json_data)
         return response
 
     def post(self, path, data: dict = None, json_data: dict = None, files: dict = None):
         """
         post
         """
-        self._refresh_token_if_needed()
-        response = requests.post(
+        response = self._request(
+            "post",
             url=f"{self._base_url}{path}",
-            headers=self._headers,
             data=data,
             json=json_data,
             files=files,
         )
-        # response = requests.post(f"{self._base_url}{path}", headers=self._headers, json=json_data)
         return response
