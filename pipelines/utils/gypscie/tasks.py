@@ -858,7 +858,7 @@ def timeout_flow(
         sleep(30)
 
 
-def monitor_flow(timeout_seconds, flow):
+def monitor_flow(timeout_seconds, flow_):
     """
     Tarefa de monitoramento paralela para interromper o fluxo
     se o tempo total ultrapassar o limite.
@@ -873,6 +873,6 @@ def monitor_flow(timeout_seconds, flow):
                 f"Tempo limite de {timeout_seconds} segundos excedido. Encerrando o fluxo."
             )
             logger.warning(stop_message)
-            flow.set_reference_tasks([Failed(stop_message)])  # Define o estado de falha do fluxo
+            flow_.set_reference_tasks([Failed(stop_message)])  # Define o estado de falha do fluxo
             return
         sleep(10)  # Verifica o tempo a cada 10 segundos
