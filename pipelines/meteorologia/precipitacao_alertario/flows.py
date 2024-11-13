@@ -55,7 +55,7 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401; tim
     get_dataset_info,
     get_dataset_name_on_gypscie,
     get_dataset_processor_info,
-    monitor_flow,
+    # monitor_flow,
     path_to_dfr,
     register_dataset_on_gypscie,
     rename_files,
@@ -152,10 +152,10 @@ with Flow(
     #########################
     # timeout_flow(timeout_seconds=300)
     # Inicia o monitoramento em um novo thread
-    monitor_thread = Thread(
-        target=monitor_flow, args=(300, cor_meteorologia_precipitacao_alertario)
-    )
-    monitor_thread.start()
+    # monitor_thread = Thread(
+    #     target=monitor_flow, args=(300, cor_meteorologia_precipitacao_alertario)
+    # )
+    # monitor_thread.start()
     dfr_pluviometric, dfr_meteorological = download_data()
     (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
