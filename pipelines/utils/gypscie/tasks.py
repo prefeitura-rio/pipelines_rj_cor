@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from basedosdados import Base  # pylint: disable=E0611, E0401
 from google.cloud import bigquery  # pylint: disable=E0611, E0401
-from prefect import task  # pylint: disable=E0611, E0401
+from prefect import task, context  # pylint: disable=E0611, E0401
 from prefect.engine.signals import ENDRUN  # pylint: disable=E0611, E0401
 from prefect.engine.state import Failed, Skipped  # pylint: disable=E0611, E0401
 
@@ -717,9 +717,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
@@ -847,12 +847,32 @@ def timeout_flow(
     """
     Stop flow if it exceeds timeout_seconds
     """
-    start_time = datetime.datetime.utcnow()
+    start_time = datetime.datetime.now(datetime.timezone.utc)
     while True:
-        elapsed_time = datetime.datetime.utcnow() - start_time
+        elapsed_time = datetime.datetime.now(datetime.timezone.utc) - start_time
         if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
             stop_message = f"Time exceeded. Stop flow after {timeout_seconds} seconds"
             log(stop_message)
             task_state = Skipped(stop_message)
             raise ENDRUN(state=task_state)
         sleep(30)
+
+
+def monitor_flow(timeout_seconds, flow):
+    """
+    Tarefa de monitoramento paralela para interromper o fluxo
+    se o tempo total ultrapassar o limite.
+    """
+    start_time = datetime.utcnow()
+    while True:
+        elapsed_time = datetime.utcnow() - start_time
+        if elapsed_time > datetime.timedelta(seconds=timeout_seconds):
+            log(f"elapsed_time {elapsed_time}")
+            logger = context.get("logger")
+            stop_message = (
+                f"Tempo limite de {timeout_seconds} segundos excedido. Encerrando o fluxo."
+            )
+            logger.warning(stop_message)
+            flow.set_reference_tasks([Failed(stop_message)])  # Define o estado de falha do fluxo
+            return
+        sleep(10)  # Verifica o tempo a cada 10 segundos

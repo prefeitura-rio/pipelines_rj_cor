@@ -4,6 +4,7 @@
 Flows for precipitacao_alertario.
 """
 from datetime import timedelta
+from threading import Thread
 
 from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
@@ -57,7 +58,8 @@ from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     path_to_dfr,
     register_dataset_on_gypscie,
     rename_files,
-    timeout_flow,
+    # timeout_flow,
+    monitor_flow,
     unzip_files,
 )
 
@@ -149,15 +151,26 @@ with Flow(
     #########################
     #  Start alertario flow #
     #########################
-    timeout_flow(timeout_seconds=300)
+    # timeout_flow(timeout_seconds=300)
+    # Inicia o monitoramento em um novo thread
+    monitor_thread = Thread(
+        target=monitor_flow, args=(300, cor_meteorologia_precipitacao_alertario)
+    )
+    monitor_thread.start()
     dfr_pluviometric, dfr_meteorological = download_data()
-    (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_pluviometric,
+        empty_data_pluviometric,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
         dataset_id=DATASET_ID_PLUVIOMETRIC,
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    (dfr_meteorological, empty_data_meteorological,) = treat_pluviometer_and_meteorological_data(
+    (
+        dfr_meteorological,
+        empty_data_meteorological,
+    ) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_meteorological,
         dataset_id=DATASET_ID_METEOROLOGICAL,
         table_id=TABLE_ID_METEOROLOGICAL,
