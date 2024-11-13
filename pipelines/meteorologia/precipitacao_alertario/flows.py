@@ -149,7 +149,7 @@ with Flow(
     #########################
     #  Start alertario flow #
     #########################
-
+    timeout_flow(timeout_seconds=600)
     dfr_pluviometric, dfr_meteorological = download_data()
     (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
@@ -449,10 +449,8 @@ with Flow(
     #####################################
     #  Start preprocessing gypscie flow #
     #####################################
-
     with case(empty_data_pluviometric, False):
         with case(preprocessing_gypscie, True):
-            timeout_flow(timeout_seconds=600, wait=dfr_pluviometric)
             api = access_api()
 
             dataset_info = get_dataset_info(station_type, source)
