@@ -149,7 +149,7 @@ with Flow(
     #########################
     #  Start alertario flow #
     #########################
-    timeout_flow(timeout_seconds=600)
+    timeout_flow(timeout_seconds=300)
     dfr_pluviometric, dfr_meteorological = download_data()
     (dfr_pluviometric, empty_data_pluviometric,) = treat_pluviometer_and_meteorological_data(
         dfr=dfr_pluviometric,
