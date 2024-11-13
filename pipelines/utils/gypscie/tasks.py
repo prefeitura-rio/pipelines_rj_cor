@@ -27,9 +27,10 @@ from requests.exceptions import HTTPError
 
 from pipelines.constants import constants  # pylint: disable=E0611, E0401
 from pipelines.utils.gypscie.utils import (  # pylint: disable=E0611, E0401
-    GypscieApi,
+    # GypscieApi,
     wait_run,
 )
+from pipelines.utils_api import Api
 
 
 # noqa E302, E303
@@ -50,7 +51,7 @@ def access_api():
     url = get_secret(infisical_url, path=infisical_path)[infisical_url]
     username = get_secret(infisical_username, path=infisical_path)[infisical_username]
     password = get_secret(infisical_password, path=infisical_path)[infisical_password]
-    api = GypscieApi(base_url=url, username=username, password=password)
+    api = Api(base_url=url, username=username, password=password)
 
     return api
 
@@ -717,9 +718,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
