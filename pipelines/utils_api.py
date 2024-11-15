@@ -111,12 +111,11 @@ class Api:
         response = fn(*args, headers=self._headers, timeout=self._request_timeout, **kwargs)
         return response
 
-    def get(self, path: str, timeout: int = None) -> Dict:
+    def get(self, path: str) -> Dict:
         """
         get
         """
-        timeout = timeout or self._request_timeout
-        response = self._request("get", f"{self._base_url}{path}", timeout=timeout)
+        response = self._request("get", f"{self._base_url}{path}")
         response.raise_for_status()
         try:
             return response.json()
