@@ -468,9 +468,9 @@ with Flow(
             dfr_pluviometric_converted = convert_columns_type(
                 dfr_pluviometric, columns=["id_estacao"], new_types=[int]
             )
-            dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
+            # dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
             path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
-                dfr_pluviometric_gypscie,
+                dfr_pluviometric_converted,
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_type="parquet",
