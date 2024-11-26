@@ -55,21 +55,22 @@ import shutil
 from pathlib import Path
 from typing import Tuple, Union
 
-import cartopy.crs as ccrs
-import cartopy.io.shapereader as shpreader
-import fiona
+import cartopy.crs as ccrs  # pylint: disable=E0401
+import cartopy.io.shapereader as shpreader  # pylint: disable=E0401
+import fiona  # pylint: disable=E0401
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pendulum
-import s3fs
+import pendulum  # pylint: disable=E0401
+import s3fs  # pylint: disable=E0401
 import xarray as xr
-from google.cloud import storage
+from google.cloud import storage  # pylint: disable=E0401, E0611
 from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disable=E0401
     get_credentials_from_env,
 )
+  # pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.bd import (
-    list_blobs_with_prefix,  # pylint: disable=E0401
+    list_blobs_with_prefix,
 )
 from prefeitura_rio.pipelines_utils.logging import log
 
@@ -612,10 +613,10 @@ def get_point_value(
     Find the nearest point on data_array within a 10km radius from the selected_point,
     eliminate null values, and return its value and the exact latitude and longitude.
     """
-    # Convert 2 km to degrees (approximate conversion)
+    # Convert distance_km to degrees (approximate conversion)
     km_to_deg = distance_km / 111.0
 
-    # Define the latitude and longitude bounds (2km radius)
+    # Define the latitude and longitude bounds (distance_km radius)
     lat_min = selected_point[0] - km_to_deg
     lat_max = selected_point[0] + km_to_deg
     lon_min = selected_point[1] - km_to_deg
@@ -644,6 +645,43 @@ def get_point_value(
     lon_value = data_subset["lon"].isel(lon=lon_idx).values
 
     return point_value, (lat_value, lon_value)
+
+
+def get_area_mean_value(
+    data_array: xr.DataArray, selected_point: list = [-22.89980, -43.35546], distance_km: float = 10
+) -> Tuple[float, Tuple[Tuple[float, float], Tuple[float, float]]]:
+    """
+    Calculate the mean value of data_array within a radius of `distance_km` around the
+    selected_point. If no data is found in the area, return NaN.
+
+    Parameters:
+        data_array (xr.DataArray): The input data array with latitude and longitude dimensions.
+        selected_point (list): Latitude and longitude of the center point [lat, lon].
+        distance_km (float): Radius in kilometers for the area selection.
+
+    Returns:
+        Mean value of the area and the bounds ((lat_min, lat_max), (lon_min, lon_max)).
+    """
+    # Convert distance_km to degrees (approximate conversion)
+    km_to_deg = distance_km / 111.0
+
+    # Define the latitude and longitude bounds (distance_km radius)
+    lat_min = selected_point[0] - km_to_deg
+    lat_max = selected_point[0] + km_to_deg
+    lon_min = selected_point[1] - km_to_deg
+    lon_max = selected_point[1] + km_to_deg
+
+    # Filter the data for the lat/lon range
+    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+
+    # Check if the subset is empty
+    if data_subset.size == 0:
+        return float("nan"), ((lat_min, lat_max), (lon_min, lon_max))
+
+    area_mean_value = data_subset.mean().item()
+    log(f"DEBUG: Mean value calculated for a distance of {distance_km}: {area_mean_value}")
+
+    return area_mean_value, ((lat_min, lat_max), (lon_min, lon_max))
 
 
 # pylint: disable=unused-variable
