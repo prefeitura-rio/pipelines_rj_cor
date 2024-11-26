@@ -249,7 +249,7 @@ def generate_point_value(info: dict, dfr: pd.DataFrame) -> pd.DataFrame:
         var = var.lower()
         data_array = get_variable_values(dfr, var)
         # point_value, lat_lon = get_point_value(data_array)
-        df_point_values.loc[i] = [var, formatted_time, "Ponto", point_value, lat_lon[0], lat_lon[1]]
+        # df_point_values.loc[i] = [var, formatted_time, "Ponto", point_value, lat_lon[0], lat_lon[1]]
         for distance_km in range(5, 35, 5):
             point_value, lat_lon = get_area_mean_value(data_array)
             if point_value:
