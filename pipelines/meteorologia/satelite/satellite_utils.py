@@ -68,7 +68,8 @@ from google.cloud import storage  # pylint: disable=E0401, E0611
 from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disable=E0401
     get_credentials_from_env,
 )
-  # pylint: disable=E0401
+
+# pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.bd import (
     list_blobs_with_prefix,
 )
@@ -675,10 +676,12 @@ def get_area_mean_value(
     data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
 
     # Check if the subset is empty
-    if data_subset.size == 0:
+    if data_subset.size == 0 or data_subset.isnull().all():
         return float("nan"), ((lat_min, lat_max), (lon_min, lon_max))
 
-    area_mean_value = data_subset.mean().item()
+    log(f"\n[DEBUG] max value: {np.nanmax(data_subset)} min value: {np.nanmin(data_subset)}")
+
+    area_mean_value = data_subset.mean(skipna=True).item()
     log(f"DEBUG: Mean value calculated for a distance of {distance_km}: {area_mean_value}")
 
     return area_mean_value, ((lat_min, lat_max), (lon_min, lon_max))
