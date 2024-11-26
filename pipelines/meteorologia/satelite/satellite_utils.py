@@ -70,9 +70,7 @@ from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disab
 )
 
 # pylint: disable=E0401
-from prefeitura_rio.pipelines_utils.bd import (
-    list_blobs_with_prefix,
-)
+from prefeitura_rio.pipelines_utils.bd import list_blobs_with_prefix
 from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.meteorologia.satelite.remap import remap
