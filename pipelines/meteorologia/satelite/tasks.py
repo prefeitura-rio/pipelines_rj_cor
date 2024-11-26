@@ -18,7 +18,7 @@ from prefect.engine.signals import ENDRUN  # pylint: disable=E0401
 from prefect.engine.state import Skipped  # pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0401
 
-from pipelines.meteorologia.satelite.satellite_utils import (
+from pipelines.meteorologia.satelite.satellite_utils import (  # get_point_value,
     choose_file_to_download,
     create_and_save_image,
     download_blob,
@@ -27,7 +27,6 @@ from pipelines.meteorologia.satelite.satellite_utils import (
     get_files_from_aws,
     get_files_from_gcp,
     get_info,
-    # get_point_value,
     get_variable_values,
     remap_g16,
     save_data_in_file,
