@@ -622,7 +622,7 @@ def get_point_value(
     lon_max = selected_point[1] + km_to_deg
 
     # Filter the data for the lat/lon range
-    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+    data_subset = data_array.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
     # Eliminate null values
     data_subset = data_subset.dropna(dim="lat", how="any").dropna(dim="lon", how="any")
@@ -671,7 +671,9 @@ def get_area_mean_value(
     lon_max = selected_point[1] + km_to_deg
 
     # Filter the data for the lat/lon range
-    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+    # lat max must came before lat_min because the data is ordered the same way as we
+    # see in the globe
+    data_subset = data_array.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
     # Check if the subset is empty
     if data_subset.size == 0 or data_subset.isnull().all():

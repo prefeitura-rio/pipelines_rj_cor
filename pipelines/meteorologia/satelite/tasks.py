@@ -247,15 +247,24 @@ def generate_point_value(info: dict, dfr: pd.DataFrame) -> pd.DataFrame:
         log(f"\nStart getting point value for variable {var}\n")
 
         var = var.lower()
+        selected_point = [-23.06879, -43.35591] if var == "sst" else [-22.89980, -43.35546]
+
         data_array = get_variable_values(dfr, var)
+
         # point_value, lat_lon = get_point_value(data_array)
         # df_point_values.loc[i] = [var, formatted_time,"Ponto",point_value,lat_lon[0],lat_lon[1]]
+
         log(f"\n[DEBUG] max value: {np.nanmax(data_array)} min value: {np.nanmin(data_array)}")
         for distance_km in range(5, 35, 5):
-            point_value, lat_lon = get_area_mean_value(data_array, distance_km=distance_km)
+            point_value, lat_lon = get_area_mean_value(
+                data_array, selected_point=selected_point, distance_km=distance_km
+            )
             log(f"DEBUG: Mean value calculated for a distance of {distance_km}: {point_value}")
             if not np.isnan(point_value):
+                if var == "sst":
+                    point_value -= 273.15
                 break
+
         df_point_values.loc[i] = [
             var,
             formatted_time,
