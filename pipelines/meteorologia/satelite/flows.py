@@ -18,7 +18,6 @@ from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
     handler_inject_bd_credentials,
 )
-
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
     get_now_datetime,
