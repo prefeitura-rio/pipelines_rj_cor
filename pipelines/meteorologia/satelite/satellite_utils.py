@@ -68,10 +68,9 @@ from google.cloud import storage  # pylint: disable=E0401, E0611
 from prefeitura_rio.pipelines_templates.dump_url.tasks import (  # pylint: disable=E0401
     get_credentials_from_env,
 )
-  # pylint: disable=E0401
-from prefeitura_rio.pipelines_utils.bd import (
-    list_blobs_with_prefix,
-)
+
+# pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.bd import list_blobs_with_prefix
 from prefeitura_rio.pipelines_utils.logging import log
 
 from pipelines.meteorologia.satelite.remap import remap
@@ -623,7 +622,7 @@ def get_point_value(
     lon_max = selected_point[1] + km_to_deg
 
     # Filter the data for the lat/lon range
-    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+    data_subset = data_array.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
     # Eliminate null values
     data_subset = data_subset.dropna(dim="lat", how="any").dropna(dim="lon", how="any")
@@ -672,13 +671,17 @@ def get_area_mean_value(
     lon_max = selected_point[1] + km_to_deg
 
     # Filter the data for the lat/lon range
-    data_subset = data_array.sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max))
+    # lat max must came before lat_min because the data is ordered the same way as we
+    # see in the globe
+    data_subset = data_array.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
     # Check if the subset is empty
-    if data_subset.size == 0:
+    if data_subset.size == 0 or data_subset.isnull().all():
         return float("nan"), ((lat_min, lat_max), (lon_min, lon_max))
 
-    area_mean_value = data_subset.mean().item()
+    log(f"\n[DEBUG] max value: {np.nanmax(data_subset)} min value: {np.nanmin(data_subset)}")
+
+    area_mean_value = data_subset.mean(skipna=True).item()
     log(f"DEBUG: Mean value calculated for a distance of {distance_km}: {area_mean_value}")
 
     return area_mean_value, ((lat_min, lat_max), (lon_min, lon_max))
