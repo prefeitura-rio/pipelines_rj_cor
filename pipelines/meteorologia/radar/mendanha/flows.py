@@ -8,6 +8,8 @@ from prefect import Parameter, case  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
 from prefect.storage import GCS  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
@@ -64,12 +66,15 @@ from pipelines.utils.gypscie.tasks import (
 from pipelines.utils.gypscie.tasks import (
     add_caracterization_columns_on_dfr,
     download_datasets_from_gypscie,
-    execute_dataset_processor,
+    execute_dataflow_on_gypscie,
+    get_dataflow_mendanha_params,
     get_dataset_info,
+    get_dataset_name_on_gypscie,
     get_dataset_processor_info,
     path_to_dfr,
     register_dataset_on_gypscie,
-    task_wait_run,
+    rename_files,
+    unzip_files,
 )
 
 # create_visualization_with_background, prefix_to_restore, save_data,
@@ -104,19 +109,27 @@ with Flow(
 
     # Preprocessing gypscie parameters
     preprocessing_gypscie = Parameter("preprocessing_gypscie", default=False, required=False)
+    processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
+    dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
+    workflow_id = Parameter("workflow_id", default=40, required=False)
+
+    load_data_function_id = Parameter("load_data_function_id", default=46, required=False)
+    filter_data_function_id = Parameter("filter_data_function_id", default=47, required=False)
+    parse_date_time_function_id = Parameter(
+        "parse_date_time_function_id", default=48, required=False
+    )
+    aggregate_data_function_id = Parameter("aggregate_data_function_id", default=49, required=False)
+    save_data_function_id = Parameter("save_data_function_id", default=50, required=False)
+    model_version = Parameter("model_version", default=1, required=False)
+
     # Gypscie parameters
     environment_id = Parameter("environment_id", default=1, required=False)
     domain_id = Parameter("domain_id", default=1, required=False)
     project_id = Parameter("project_id", default=1, required=False)
     # project_name = Parameter("project_name", default="rionowcast_precipitation", required=False)
 
-    # Gypscie processor parameters
-    processor_name = Parameter("processor_name", default="etl_alertario22", required=True)
-    dataset_processor_id = Parameter("dataset_processor_id", default=43, required=False)  # mudar
-
     # Parameters for saving data on GCP
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
-    dump_mode = Parameter("dump_mode", default=False, required=False)
     dataset_id_previsao_chuva = Parameter(
         "dataset_id_previsao_chuva", default="clima_previsao_chuva", required=False
     )
@@ -152,12 +165,13 @@ with Flow(
         files_to_download=files_on_storage_list,
         destination_path="temp/",
     )
-    radar = task_open_radar_file(radar_files[0])
-    grid_shape, grid_limits = get_radar_parameters(radar)
-    radar_2d = remap_data(radar, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
+    uncompressed_files = unzip_files(radar_files)
+    radar_file = task_open_radar_file(uncompressed_files[0])
+    grid_shape, grid_limits = get_radar_parameters(radar_file)
+    radar_2d = remap_data(radar_file, RADAR_PRODUCT_LIST, grid_shape, grid_limits)
 
     # Create visualizations
-    formatted_time, filename_time = get_and_format_time(radar)
+    formatted_time, filename_time = get_and_format_time(radar_file)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
     fig = create_visualization_no_background(
         radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
@@ -267,9 +281,9 @@ with Flow(
     )
     # save_last_update_redis.set_upstream(upload_table)
 
-    ####################################
-    #  Start preprocessing flow        #
-    ####################################
+    ######################################
+    #  Start gypscie preprocessing flow  #
+    ######################################
 
     with case(preprocessing_gypscie, True):
         api_gypscie = access_api_gypscie()
@@ -283,35 +297,50 @@ with Flow(
             )
         # TODO: ao salvar o nome do radar_files salvar com sufixo treatment_version
         # pq te que ser unico no gypscie
-        dataset_response = register_dataset_on_gypscie(
-            api_gypscie, filepath=radar_files, domain_id=domain_id
+        # for now, all files to be processe has to have the name defined on default_value
+        # when the workflow was saved on gypscie. In this case default_value = "9921GUA_PPIVol.hdf"
+        # Gypscie will give a different name for zip file, but the inside file will have the name for all.
+        renamed_files = rename_files(
+            uncompressed_files,
+            original_name=uncompressed_files[0],
+            rename="9921GUA_PPIVol.hdf",
+            wait=radar_file,
         )
-        # TODO: verifcar no codigo do augustp se são esses os parametros corretos
-        processor_parameters = {
-            "dataset1": str(dataset_path).rsplit("/", maxsplit=1)[-1],
-            "station_type": station_type,
-        }
-
-        dataset_processor_task_id = execute_dataset_processor(
-            api_gypscie,
-            processor_id=dataset_processor_id,
-            dataset_id=[dataset_response["id"]],
+        register_dataset_response = register_dataset_on_gypscie(
+            api_gypscie, filepath=renamed_files[0], domain_id=domain_id
+        )
+        model_params = get_dataflow_mendanha_params(
+            workflow_id=workflow_id,
             environment_id=environment_id,
             project_id=project_id,
-            parameters=processor_parameters,
+            radar_data_id=register_dataset_response["id"],
+            load_data_function_id=load_data_function_id,
+            filter_data_function_id=filter_data_function_id,
+            parse_date_time_function_id=parse_date_time_function_id,
+            agregate_data_function_id=aggregate_data_function_id,
+            save_data_function_id=save_data_function_id,
         )
-        wait_run = task_wait_run(api_gypscie, dataset_processor_task_id, flow_type="processor")
-        dataset_path = download_datasets_from_gypscie(
-            api_gypscie, dataset_names=[dataset_response["id"]], wait=wait_run
+
+        output_dataset_ids = execute_dataflow_on_gypscie(
+            api_gypscie,
+            model_params,
         )
-        dfr_ = path_to_dfr(dataset_path)
-        # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-        dfr = add_caracterization_columns_on_dfr(dfr_, treatment_version, update_time=True)
+        dataset_names = get_dataset_name_on_gypscie(api_gypscie, output_dataset_ids)
+        # stop_flow(dataset_names)
+        ziped_dataset_paths = download_datasets_from_gypscie(
+            api_gypscie, dataset_names=dataset_names
+        )
+        dataset_paths = unzip_files(ziped_dataset_paths)
+        dfr_gypscie_ = path_to_dfr(dataset_paths)
+        # output_datasets_id = get_output_dataset_ids_on_gypscie(api_gypscie, dataset_processor_task_id)
+        dfr_gypscie = add_caracterization_columns_on_dfr(
+            dfr_gypscie_, model_version, update_time=True
+        )
 
         # Save pre-treated data on local file with partitions
         now_datetime = get_now_datetime()
-        prediction_data_path = task_create_partitions(
-            dfr,
+        prediction_data_path, prediction_data_full_path = task_create_partitions(
+            dfr_gypscie,
             partition_date_column=dataset_info["partition_date_column"],
             savepath="model_prediction",
             suffix=now_datetime,
@@ -325,7 +354,7 @@ with Flow(
             data_path=prediction_data_path,
             dataset_id=dataset_id_previsao_chuva,
             table_id=table_id_previsao_chuva,
-            dump_mode=dump_mode,
+            dump_mode=DUMP_MODE,
             biglake_table=False,
         )
 

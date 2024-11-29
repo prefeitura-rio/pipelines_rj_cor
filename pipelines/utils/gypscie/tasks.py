@@ -7,6 +7,7 @@ import datetime
 import gzip
 import os
 import shutil
+import time
 import zipfile
 from pathlib import Path
 from time import sleep
@@ -421,6 +422,74 @@ def get_dataflow_alertario_params(  # pylint: disable=too-many-arguments
 
 
 @task
+def get_dataflow_mendanha_params(  # pylint: disable=too-many-arguments
+    workflow_id,
+    environment_id,
+    project_id,
+    radar_data_id,
+    load_data_function_id,
+    filter_data_function_id,
+    parse_date_time_function_id,
+    agregate_data_function_id,
+    save_data_function_id,
+) -> List:
+    """
+    Return parameters for the Mendanha radar's ETL
+
+    data = {
+        "workflow_id": 40,
+        "environment_id": 1,
+        "parameters": [
+            {
+                "function_id":46,  # load_data
+                "params": {"radar_data_path":213}
+            },
+            {
+                "function_id":47  # filter_data
+            },
+            {
+                "function_id":48  # parse_date_time
+            },
+            {
+                "function_id":49  # aggregate_data
+            },
+            {
+                "function_id":50,  # save_data
+                "params": {"output_path":"9921GUA_PPIVol_20230112_190010_0000.parquet"}
+            }
+        ],
+        "project_id": 1
+    }
+    """
+    return {
+        "workflow_id": workflow_id,
+        "environment_id": environment_id,
+        "parameters": [
+            {
+                "function_id": load_data_function_id,
+                "params": {
+                    "radar_data_path": radar_data_id,
+                },
+            },
+            {
+                "function_id": filter_data_function_id,
+            },
+            {
+                "function_id": parse_date_time_function_id,
+            },
+            {
+                "function_id": agregate_data_function_id,
+            },
+            {
+                "function_id": save_data_function_id,
+                "params": {"output_path": "preprocessed_data_radar_mendanha.parquet"},
+            },
+        ],
+        "project_id": project_id,
+    }
+
+
+@task
 def get_dataflow_params(  # pylint: disable=too-many-arguments
     workflow_id,
     environment_id,
@@ -498,7 +567,8 @@ def get_output_dataset_ids_on_gypscie(
     return response.get("output_datasets")
 
 
-@task()
+# flake8: noqa: E501
+@task(max_retries=3, retry_delay=datetime.timedelta(seconds=30))
 def get_dataset_name_on_gypscie(
     api,
     dataset_ids: list,
@@ -507,19 +577,50 @@ def get_dataset_name_on_gypscie(
     Get datasets name using their dataset ids
     """
     dataset_names = []
+    response = {}
     log(f"All dataset_ids to get names: {dataset_ids}")
     for dataset_id in dataset_ids:
         log(f"Getting name for dataset id: {dataset_id}")
-        try:
-            response = api.get(path="datasets/" + str(dataset_id))
-        except HTTPError as err:
-            if err.response.status_code == 404:
-                print(f"Dataset_id {dataset_id} not found")
-                return []
-        log(f"Get dataset name response {response}")
-        dataset_names.append(response.get("name"))
-    log(f"All dataset names {dataset_names}")
+        max_retries = 4
+        wait_seconds = 5
+
+        for attempt in range(max_retries):
+            try:
+                response = api.get(path="datasets/" + str(dataset_id))
+                if "name" in response:
+                    dataset_names.append(response.get("name"))
+                break
+            except HTTPError as err:
+                if err.response.status_code == 404:
+                    if attempt < max_retries - 1:
+                        log(
+                            f"Dataset_id {dataset_id} not found. Retrying in {wait_seconds} seconds. (Attempt {attempt + 1}/{max_retries})"
+                        )
+                        time.sleep(wait_seconds)
+                    else:
+                        log(
+                            f"Dataset_id {dataset_id} not found after {max_retries} attempts. Stopping Flow."
+                        )
+                        raise
+                else:
+                    failed_message = f"An error occurred: {err}. Stopping Flow."
+                    log(failed_message)
+                    raise
+                # task_state = Failed(failed_message)
+                # raise ENDRUN(state=task_state) from err
+
+    print(f"All dataset names {dataset_names}")
     return dataset_names
+
+
+@task
+def stop_flow(item):
+    """Force flow to stop"""
+    if len(item) == 0:
+        failed_message = "\n\nEmpty item. Stoping Flow.\n\n"
+        log(failed_message)
+        task_state = Failed(failed_message)
+        raise ENDRUN(state=task_state)
 
 
 @task()
@@ -547,13 +648,16 @@ def download_datasets_from_gypscie(
 
 
 @task
-def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> List[str]:
+def unzip_files(
+    compressed_files: List[Union[str, Path]], destination_folder: Union[str, Path] = "./"
+) -> List[str]:
     """
     Unzip .zip and .gz files to destination folder.
     """
+    destination_folder = str(destination_folder)
     log(f"Compressed files: {compressed_files} will be sent to {destination_folder}.")
     compressed_files = [
-        zip_file if zip_file.endswith((".zip", ".gz")) else zip_file + ".zip"
+        str(zip_file) if str(zip_file).endswith((".zip", ".gz")) else str(zip_file) + ".zip"
         for zip_file in compressed_files
     ]
     os.makedirs(destination_folder, exist_ok=True)
@@ -568,6 +672,7 @@ def unzip_files(compressed_files: List[str], destination_folder: str = "./") -> 
                     [os.path.join(destination_folder, f) for f in zip_ref.namelist()]
                 )
         elif file.endswith(".gz"):
+            log("gz file found")
             output_file = os.path.join(destination_folder, os.path.basename(file)[:-3])
             with gzip.open(file, "rb") as gz_file:
                 with open(output_file, "wb") as out_file:
@@ -818,18 +923,22 @@ def rename_files(
     original_name: str = "data",
     preffix: str = None,
     rename: str = None,
+    wait=None,  # pylint: disable=unused-argument
 ) -> List[Path]:
     """
     Renomeia os arquivos com base em um prefixo ou novo nome.
     """
+    original_name = Path(original_name).name
+
     new_paths = []
     for file_path in files:
         file_path = Path(file_path)
-        print(f"Original file path: {file_path}")
+        base_name = file_path.name
 
         change_filename = f"{preffix}_{original_name}" if preffix else rename
         print(f"Name to replace '{original_name}' with: {change_filename}")
-        new_filename = file_path.name.replace(original_name, change_filename)
+
+        new_filename = base_name.replace(original_name, change_filename)
         savepath = file_path.with_name(new_filename)
 
         # Rename file

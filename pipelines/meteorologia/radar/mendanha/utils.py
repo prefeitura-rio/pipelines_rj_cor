@@ -4,18 +4,16 @@
 General utils for setting rain dashboard using radar data.
 """
 import base64
-import gzip
 import io
 import os
 import re
-import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Union
 
 import matplotlib.colors as mcolors
 import numpy as np
-import pyart
+import pyart  # pylint: disable=E0611, E0401
 
 
 def extract_timestamp(filename) -> datetime:
@@ -48,12 +46,12 @@ def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None
         Radar object.
     """
     file_path = str(file_path)
-    if file_path.endswith(".gz"):
-        uncompressed_file_path = file_path[:-3]
-        with gzip.open(file_path, "rb") as f_in:
-            with open(uncompressed_file_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        file_path = uncompressed_file_path
+    # if file_path.endswith(".gz"):
+    #     uncompressed_file_path = file_path[:-3]
+    #     with gzip.open(file_path, "rb") as f_in:
+    #         with open(uncompressed_file_path, "wb") as f_out:
+    #             shutil.copyfileobj(f_in, f_out)
+    #     file_path = uncompressed_file_path
 
     try:
         opened_file = pyart.aux_io.read_odim_h5(file_path)
