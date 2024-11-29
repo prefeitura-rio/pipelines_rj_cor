@@ -11,22 +11,23 @@ import re
 from pathlib import Path
 from typing import List, Tuple, Union
 
+import numpy as np
 import pandas as pd
-import pendulum
-from prefect import task
-from prefect.engine.signals import ENDRUN
-from prefect.engine.state import Skipped
-from prefeitura_rio.pipelines_utils.logging import log
+import pendulum  # pylint: disable=E0401
+from prefect import task  # pylint: disable=E0401
+from prefect.engine.signals import ENDRUN  # pylint: disable=E0401
+from prefect.engine.state import Skipped  # pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0401
 
-from pipelines.meteorologia.satelite.satellite_utils import (
+from pipelines.meteorologia.satelite.satellite_utils import (  # get_point_value,
     choose_file_to_download,
     create_and_save_image,
     download_blob,
     extract_julian_day_and_hour_from_filename,
+    get_area_mean_value,
     get_files_from_aws,
     get_files_from_gcp,
     get_info,
-    get_point_value,
     get_variable_values,
     remap_g16,
     save_data_in_file,
@@ -246,10 +247,32 @@ def generate_point_value(info: dict, dfr: pd.DataFrame) -> pd.DataFrame:
         log(f"\nStart getting point value for variable {var}\n")
 
         var = var.lower()
+        selected_point = [-23.06879, -43.35591] if var == "sst" else [-22.89980, -43.35546]
+
         data_array = get_variable_values(dfr, var)
-        point_value, lat_lon = get_point_value(data_array)
-        df_point_values.loc[i] = [var, formatted_time, "Ponto", point_value, lat_lon[0], lat_lon[1]]
-        log(f"DEBUG df_point_values: {df_point_values.head()}")
+
+        # point_value, lat_lon = get_point_value(data_array)
+        # df_point_values.loc[i] = [var, formatted_time,"Ponto",point_value,lat_lon[0],lat_lon[1]]
+
+        log(f"\n[DEBUG] max value: {np.nanmax(data_array)} min value: {np.nanmin(data_array)}")
+        for distance_km in range(5, 35, 5):
+            point_value, lat_lon = get_area_mean_value(
+                data_array, selected_point=selected_point, distance_km=distance_km
+            )
+            log(f"DEBUG: Mean value calculated for a distance of {distance_km}: {point_value}")
+            if not np.isnan(point_value):
+                if var == "sst":
+                    point_value -= 273.15
+                break
+
+        df_point_values.loc[i] = [
+            var,
+            formatted_time,
+            f"Area {distance_km}km",
+            point_value,
+            lat_lon[0],
+            lat_lon[1],
+        ]
         log(f"DEBUG df_point_values: {df_point_values.iloc[i]}")
 
     return df_point_values.drop_duplicates()

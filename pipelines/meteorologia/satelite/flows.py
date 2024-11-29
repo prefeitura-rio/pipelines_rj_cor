@@ -18,11 +18,6 @@ from prefeitura_rio.pipelines_utils.state_handlers import (
     handler_initialize_sentry,
     handler_inject_bd_credentials,
 )
-
-# from pipelines.utils.tasks import (
-#     create_table_and_upload_to_gcs,
-#     get_current_flow_labels,
-# )
 from prefeitura_rio.pipelines_utils.tasks import (  # pylint: disable=E0611, E0401
     create_table_and_upload_to_gcs,
     get_now_datetime,
@@ -172,10 +167,9 @@ with Flow(
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
         df_point_values = generate_point_value(info, dfr)
-        point_values_path = task_create_partitions(
+        point_values_path, point_values_full_path = task_create_partitions(
             df_point_values,
             partition_date_column="data_medicao",
-            # partition_columns=["ano_particao", "mes_particao", "data_particao"],
             savepath="metricas_geoespaciais_goes16",
             suffix=now_datetime,
         )

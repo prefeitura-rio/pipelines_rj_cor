@@ -24,7 +24,7 @@ rrqpe = Schedule(
                 "table_id": "taxa_precipitacao_goes_16",
                 "product": "RRQPEF",
                 # "create_image": True,
-                "create_point_value": False,
+                "create_point_value": True,
                 "type_image_background": "both",
             },
         )
@@ -45,7 +45,7 @@ tpw = Schedule(
                 "table_id": "quantidade_agua_precipitavel_goes_16",
                 "product": "TPWF",
                 # "create_image": False,
-                "create_point_value": False,
+                "create_point_value": True,
                 "type_image_background": "both",
             },
         )

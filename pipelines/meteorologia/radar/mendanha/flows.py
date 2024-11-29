@@ -220,6 +220,7 @@ with Flow(
                 radar_product=RADAR_PRODUCT_LIST[0],
                 cbar_title=None,
                 title=None,
+                no_cbar=False,
             )
             img_base64_without_backgroud_colorbar = img_to_base64(fig_without_backgroud_colorbar)
             img_bytes_without_backgroud_colorbar = base64_to_bytes(
