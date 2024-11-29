@@ -244,7 +244,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
 def create_visualization_no_background(
-    radar_2d, radar_product: str, cbar_title: str, title: str, cbar: True
+    radar_2d, radar_product: str, cbar_title: str, title: str, cbar: bool = True
 ):  # pylint: disable=too-many-locals
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
