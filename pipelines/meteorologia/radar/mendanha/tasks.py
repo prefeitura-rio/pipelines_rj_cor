@@ -244,7 +244,7 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
 def create_visualization_no_background(
-    radar_2d, radar_product: str, cbar_title: str, title: str
+    radar_2d, radar_product: str, cbar_title: str, title: str, cbar: True
 ):  # pylint: disable=too-many-locals
     """
     Plot radar 2D data over Rio de Janeiro's map using the same
@@ -285,20 +285,24 @@ def create_visualization_no_background(
     ax.set_xlim(lon.min(), lon.max())
     ax.set_ylim(lat.min(), lat.max())
 
-    # Customize colorbar to show only the specified values on the center of each box
-    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
-    cbar = plt.colorbar(
-        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-        ax=ax,
-        cax=cbar_ax,
-        orientation="vertical",
-    )
-    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
-    cbar.set_ticklabels([str(value) for value in ordered_values])
-    cbar.ax.tick_params(size=0)
-    cbar.ax.set_title(
-        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
-    )  # left, height
+    if cbar:
+        # Customize colorbar to show only the specified values on the center of each box
+        cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+        cbar = plt.colorbar(
+            mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+            ax=ax,
+            cax=cbar_ax,
+            orientation="vertical",
+        )
+        cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+        cbar.set_ticklabels([str(value) for value in ordered_values])
+        cbar.ax.tick_params(size=0)
+        cbar.ax.set_title(
+            cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+        )  # left, height
+    else:
+        cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])
+        cbar_ax.remove()
 
     # Definir fundo transparente para a figura e os eixos
     fig.patch.set_alpha(0.0)  # Fundo da figura
