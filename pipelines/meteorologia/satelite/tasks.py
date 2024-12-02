@@ -255,7 +255,8 @@ def generate_point_value(info: dict, dfr: pd.DataFrame) -> pd.DataFrame:
         # df_point_values.loc[i] = [var, formatted_time,"Ponto",point_value,lat_lon[0],lat_lon[1]]
 
         log(f"\n[DEBUG] max value: {np.nanmax(data_array)} min value: {np.nanmin(data_array)}")
-        for distance_km in range(5, 35, 5):
+        area_range = list(range(5, 55, 5)) + list(range(60, 150, 10))
+        for distance_km in area_range:
             point_value, lat_lon = get_area_mean_value(
                 data_array, selected_point=selected_point, distance_km=distance_km
             )
