@@ -15,7 +15,6 @@ import h5py
 import matplotlib.colors as mcolors
 import numpy as np
 import pyart  # pylint: disable=E0611, E0401
-
 from prefeitura_rio.pipelines_utils.logging import log
 
 
