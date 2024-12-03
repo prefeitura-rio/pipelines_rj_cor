@@ -11,9 +11,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+import h5py
 import matplotlib.colors as mcolors
 import numpy as np
 import pyart  # pylint: disable=E0611, E0401
+
+from prefeitura_rio.pipelines_utils.logging import log
 
 
 def extract_timestamp(filename) -> datetime:
@@ -26,6 +29,75 @@ def extract_timestamp(filename) -> datetime:
     return datetime.strptime(
         match.group(), "%Y%m%dT%H%M%SZ" if "T" in match.group() else "%y%m%d%H%M%S"
     )
+
+
+def eliminate_nan_times(filename):
+    """
+    Eliminate nan times inside file and try to reopen it
+    """
+    with h5py.File(filename, "a") as hfile:  # Use "a" mode to allow updates
+        datasets = [k for k in hfile if k.startswith("dataset")]
+        datasets.sort(key=lambda x: int(x[7:]))
+
+        for dataset in datasets:
+            how_group = hfile[dataset]["how"]
+
+            # Get startazT and stopazT as numpy arrays
+            startazT = np.array(how_group.attrs["startazT"])
+            stopazT = np.array(how_group.attrs["stopazT"])
+
+            if np.isnan(startazT).any() or np.isnan(stopazT).any():
+
+                # Step 1: Remove NaN positions from stopazT based on NaNs in startazT
+                valid_start_indices = ~np.isnan(startazT)
+                startazT = startazT[valid_start_indices]
+                stopazT = stopazT[valid_start_indices]
+                # log("valid_start_ind", valid_start_indices.shape, startazT.shape, stopazT.shape)
+
+                # Step 2: Remove NaN positions from startazT based on NaNs in stopazT
+                valid_stop_indices = ~np.isnan(stopazT)
+                startazT = startazT[valid_stop_indices]
+                stopazT = stopazT[valid_stop_indices]
+                # log("valid_stop_indices", valid_stop_indices.shape, startazT.shape, stopazT.shape)
+
+                # Our array must have 360 positions, lets duplicated firsts elements considering the
+                # total amount of nans found
+                total_nans = 360 - np.isnan(startazT).shape[0]
+                startazT = np.concatenate((startazT, startazT[:total_nans]))
+                stopazT = np.concatenate((stopazT, stopazT[:total_nans]))
+
+                log("after", startazT.shape, stopazT.shape)
+
+                # Update the attributes in the file
+                how_group.attrs["startazT"] = startazT
+                how_group.attrs["stopazT"] = stopazT
+                log(f"Updated dataset {dataset}: startazT and stopazT cleaned.")
+
+
+def _read_file(file_path):
+    """
+    Abre o arquivo usando pyart e retorna o conteúdo.
+    """
+    return pyart.aux_io.read_odim_h5(file_path)
+
+
+def _handle_value_error(file_path):
+    """
+    Executa ações corretivas para ValueError.
+    """
+    print(f"Handling ValueError for: {file_path}")
+    eliminate_nan_times(file_path)
+
+
+def _handle_os_error(file_path):
+    """
+    Trata erros de OSError, como imprimir tamanho do arquivo.
+    """
+    if os.path.exists(file_path):
+        file_size = os.path.getsize(file_path)
+        print(f"File size: {file_size} bytes")
+    else:
+        print("File not found.")
 
 
 def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None]:
@@ -54,12 +126,15 @@ def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None
     #     file_path = uncompressed_file_path
 
     try:
-        opened_file = pyart.aux_io.read_odim_h5(file_path)
-        return opened_file
-    except OSError as e:
-        print(f"Erro ao abrir o arquivo: {e}")
-        file_size = os.path.getsize(file_path)
-        print(f"Tamanho do arquivo: {file_size} bytes")
+        print(f"Trying to open file: {file_path}")
+        return _read_file(file_path)
+    except ValueError as value_error:
+        print(f"Value Error when opening {file_path}: {value_error}")
+        _handle_value_error(file_path)
+        return _read_file(file_path)
+    except OSError as os_error:
+        print(f"OS Error when opening: {os_error}")
+        _handle_os_error(file_path)
         return None
 
 
