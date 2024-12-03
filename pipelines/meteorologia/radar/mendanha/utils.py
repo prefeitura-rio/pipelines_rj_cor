@@ -52,13 +52,11 @@ def eliminate_nan_times(filename):
                 valid_start_indices = ~np.isnan(startazT)
                 startazT = startazT[valid_start_indices]
                 stopazT = stopazT[valid_start_indices]
-                # log("valid_start_ind", valid_start_indices.shape, startazT.shape, stopazT.shape)
 
                 # Step 2: Remove NaN positions from startazT based on NaNs in stopazT
                 valid_stop_indices = ~np.isnan(stopazT)
                 startazT = startazT[valid_stop_indices]
                 stopazT = stopazT[valid_stop_indices]
-                # log("valid_stop_indices", valid_stop_indices.shape, startazT.shape, stopazT.shape)
 
                 # Our array must have 360 positions, lets duplicated firsts elements considering the
                 # total amount of nans found
@@ -66,7 +64,7 @@ def eliminate_nan_times(filename):
                 startazT = np.concatenate((startazT, startazT[:total_nans]))
                 stopazT = np.concatenate((stopazT, stopazT[:total_nans]))
 
-                log("after", startazT.shape, stopazT.shape)
+                # log(f"after, {startazT.shape}, {stopazT.shape}")
 
                 # Update the attributes in the file
                 how_group.attrs["startazT"] = startazT
@@ -85,7 +83,7 @@ def _handle_value_error(file_path):
     """
     Executa ações corretivas para ValueError.
     """
-    print(f"Handling ValueError for: {file_path}")
+    log(f"Handling ValueError for: {file_path}")
     eliminate_nan_times(file_path)
 
 
@@ -95,9 +93,9 @@ def _handle_os_error(file_path):
     """
     if os.path.exists(file_path):
         file_size = os.path.getsize(file_path)
-        print(f"File size: {file_size} bytes")
+        log(f"File size: {file_size} bytes")
     else:
-        print("File not found.")
+        log("File not found.")
 
 
 def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None]:
@@ -126,14 +124,14 @@ def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None
     #     file_path = uncompressed_file_path
 
     try:
-        print(f"Trying to open file: {file_path}")
+        log(f"Trying to open file: {file_path}")
         return _read_file(file_path)
     except ValueError as value_error:
-        print(f"Value Error when opening {file_path}: {value_error}")
+        log(f"Value Error when opening {file_path}: {value_error}")
         _handle_value_error(file_path)
         return _read_file(file_path)
     except OSError as os_error:
-        print(f"OS Error when opening: {os_error}")
+        log(f"OS Error when opening: {os_error}")
         _handle_os_error(file_path)
         return None
 
@@ -142,7 +140,7 @@ def create_colormap():
     """
     Create colormap to match the same color as they used before on colorbar
     """
-    print("Start creating color map")
+    log("Start creating color map")
     colors_hex = {
         "50": "#d11fcc",
         "45": "#f61c00",
@@ -171,7 +169,7 @@ def save_image_to_local(filename: str, img, path="temp") -> None:
     """
     Save image in a PNG file
     """
-    print(f"Saving image {filename} to local")
+    log(f"Saving image {filename} to local")
     if isinstance(img, str):
         img_data = base64.b64decode(img)
     elif isinstance(img, io.BytesIO):
