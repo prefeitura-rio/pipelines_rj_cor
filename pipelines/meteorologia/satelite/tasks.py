@@ -322,6 +322,9 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
 
         # Get the pixel values
         data = data_array.data[:]
+        if var == "sst":
+            data = data - 273.15
+            log("Values converted from Kelvin to Celsius")
         log(f"\n[DEBUG] {var} data \n{data}")
         log(f"\nmax value: {data.max()} min value: {data.min()}")
 

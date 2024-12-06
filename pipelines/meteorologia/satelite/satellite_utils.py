@@ -403,8 +403,8 @@ def get_info(path: str) -> dict:
     # SSTF - Sea Surface (Skin) Temperature: 'SST'
     product_caracteristics["SSTF"] = {
         "variable": ["SST"],
-        "vmin": 268,
-        "vmax": 308,
+        "vmin": -5,
+        "vmax": 35,
         "cmap": "jet",
     }
     # TPWF - Total Precipitable Water: 'TPW'
