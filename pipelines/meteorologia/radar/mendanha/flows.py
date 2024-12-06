@@ -76,7 +76,6 @@ from pipelines.utils.gypscie.tasks import (
     unzip_files,
 )
 
-
 with Flow(
     name="COR: Meteorologia - Mapa de Refletividade Radar do Mendanha",
     state_handlers=[handler_inject_bd_credentials],

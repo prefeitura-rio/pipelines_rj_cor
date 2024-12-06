@@ -31,6 +31,7 @@ from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
+
 from pipelines.constants import constants
 from pipelines.meteorologia.radar.mendanha.utils import (  # pylint: disable=E0611, E0401
     create_colormap,
