@@ -15,7 +15,7 @@ import h5py
 import matplotlib.colors as mcolors
 import numpy as np
 import pyart  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.logging import log
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 def extract_timestamp(filename) -> datetime:
@@ -135,7 +135,7 @@ def open_radar_file(file_path: Union[str, Path]) -> Union[pyart.core.Radar, None
         return None
 
 
-def create_colormap():
+def create_colormap(min_value, max_value, step):
     """
     Create colormap to match the same color as they used before on colorbar
     """
@@ -148,6 +148,8 @@ def create_colormap():
         "30": "#004803",
         "25": "#0c6b11",
         "20": "#069008",
+        "15": "#5870f6",
+        # "10": "#8f9a9a",
     }
 
     # Order colors based on its intensity
@@ -159,7 +161,9 @@ def create_colormap():
 
     # Define values limits (norm)
     norm = mcolors.BoundaryNorm(
-        boundaries=np.linspace(20, 55, len(colors_hex) + 1), ncolors=cmap.N, clip=True
+        boundaries=np.linspace(min_value, max_value + step, len(colors_hex) + 1),
+        ncolors=cmap.N,
+        clip=True,
     )
     return cmap, norm, ordered_values
 
