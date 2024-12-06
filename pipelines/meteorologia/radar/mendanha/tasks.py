@@ -13,25 +13,24 @@ from pathlib import Path
 # from time import sleep, time
 from typing import Dict, List, Tuple, Union
 
+# pylint: disable=E0611, E0401
 import cartopy.crs as ccrs
 import contextily as ctx
 import matplotlib.pyplot as plt
 import numpy as np
 import pendulum
 import pyart
-
-# import wradlib as wrl
 import xarray as xr
 from google.cloud import storage
 
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
+# pylint: disable=E0611, E0401
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Skipped
 from prefeitura_rio.pipelines_utils.gcs import get_gcs_client
 from prefeitura_rio.pipelines_utils.infisical import get_secret
 from prefeitura_rio.pipelines_utils.logging import log
-
 from pipelines.constants import constants
 from pipelines.meteorologia.radar.mendanha.utils import (  # pylint: disable=E0611, E0401
     create_colormap,
@@ -243,15 +242,33 @@ def remap_data(radar, radar_products: list, grid_shape: tuple, grid_limits: tupl
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
-def create_visualization_no_background(
-    radar_2d, radar_product: str, cbar_title: str, title: str, cbar: bool = True
-):  # pylint: disable=too-many-locals
+def create_visualization(
+    radar_2d: xr.Dataset,
+    radar_product: str,
+    cbar_title: str,
+    title: str,
+    cbar: bool = True,
+    background: bool = False,
+):  # pylint: disable=too-many-locals, too-many-arguments
     """
-    Plot radar 2D data over Rio de Janeiro's map using the same
-    color as they used before on colorbar
+    Plot Max Cappi for radar 2D data over Rio de Janeiro's map using the same
+    color as they used before on colorbar.
+    The Mendanha radar is bringing images with values below 15 dBZ as green.
+    Mendanha detects from 2 dBZ, but most of time this value represents a cloud,
+    so we will cut any value below 15 dBZ.
+
+    On Max CAPPI (Constant Altitude Plan Position Indicator) we calculate the
+    max value for each position (x,y) on z axis (altitude). Here z axis
+    represents horizontal reflectivity.
+    TODO: understand why we have a lot of negative values
     """
-    log(f"Start creating {radar_product} visualization without background")
-    cmap, norm, ordered_values = create_colormap()
+
+    log(
+        f"Start creating {radar_product} visualization. "
+        f"Background set to {background}. Color bar set to {cbar}"
+    )
+    min_value, max_value, step = 15, 50, 5
+    cmap, norm, ordered_values = create_colormap(min_value, max_value, step)
 
     proj = ccrs.PlateCarree()
 
@@ -261,17 +278,25 @@ def create_visualization_no_background(
     ax.set_aspect("auto")
 
     # Extract data and coordinates from Xarray
-    data = radar_2d[radar_product][0].max(axis=0).values
-    lon = radar_2d["lon"].values
-    lat = radar_2d["lat"].values
-    log(
-        f"\nImage latitude limits: {lat.min()}, {lat.max()}\nlongitude limits: {lon.min()}, {lon.max()}\n"
-    )
+    try:
+        data = radar_2d[radar_product][0].max(axis=0).values
+        data[data < min_value] = np.nan
+        data[data > max_value] = max_value
+        lon = radar_2d["lon"].values
+        lat = radar_2d["lat"].values
+    except:  # pylint: disable=bare-except
+        # if code stop working
+        data = radar_2d[0].fields[radar_product]["data"]
+        log(f"Shape original: {data.shape}")  # Now represents (z, y, x)
+        log(np.ma.min(data, axis=0).min())
+        data = np.ma.max(data, axis=0)
+        log(f"Shape after max: {data.shape}")  # After max (y, x)
+        lon = radar_2d[1].lon.values
+        lat = radar_2d[1].lat.values
+    log(f"\nImage limits -> lat: {lat.min()}, {lat.max()}\nlon: {lon.min()}, {lon.max()}\n")
 
     # Plot data over base map
-    contour = ax.contourf(
-        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
-    )
+    contour = ax.contourf(lon, lat, data, cmap=cmap, levels=ordered_values, transform=proj, alpha=1)
 
     # Configure axes
     ax.set_title(
@@ -304,14 +329,14 @@ def create_visualization_no_background(
         cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])
         cbar_ax.remove()
 
-    # Definir fundo transparente para a figura e os eixos
-    fig.patch.set_alpha(0.0)  # Fundo da figura
-    ax.patch.set_alpha(0.0)  # Fundo dos eixos
+    if background:
+        ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+    else:
+        # Definir fundo transparente para a figura e os eixos
+        fig.patch.set_alpha(0.0)  # Fundo da figura
+        ax.patch.set_alpha(0.0)  # Fundo dos eixos
     # image_path = Path('radar_020.png')
-    # log(f"Saving image to {image_path}")
     # plt.savefig(image_path, transparent=True, bbox_inches='tight', pad_inches=0.1)
-    # plt.savefig(image_path,  bbox_inches='tight', pad_inches=0.1)
-
     # plt.show()
     return fig
 
@@ -511,66 +536,70 @@ def get_colorbar_title(radar_product: str):
     return colorbar_title[radar_product]
 
 
-@task
-def create_visualization_with_background(
-    radar_2d, radar_product: str, cbar_title: str, title: str
-):  # pylint: disable=line-too-long
-    """
-    Plot radar 2D data over Rio de Janeiro's map using the same
-    color as they used before on colorbar
-    """
-    log(f"Start creating {radar_product} visualization with background")
-    cmap, norm, ordered_values = create_colormap()
+# @task
+# def create_visualization_with_background(
+#     radar_2d, radar_product: str, cbar_title: str, title: str
+# ):  # pylint: disable=line-too-long
+#     """
+#     Plot radar 2D data over Rio de Janeiro's map using the same
+#     color as they used before on colorbar.
+#     The Mendanha radar is bringing images with values below 20 dBZ as green. Unlike Guaratiba
+#     which detects from 2 dBZ, Mendanha detects from 20 dBZ.
+#     So we need to cut any value below 20 dBZ.
+#     """
+#     log(f"Start creating {radar_product} visualization with background")
+#     cmap, norm, ordered_values = create_colormap()
 
-    proj = ccrs.PlateCarree()
+#     proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(
-        figsize=(10, 10), subplot_kw={"projection": proj}
-    )  # pylint: disable=C0103
-    ax.set_aspect("auto")
+#     fig, ax = plt.subplots(
+#         figsize=(10, 10), subplot_kw={"projection": proj}
+#     )  # pylint: disable=C0103
+#     ax.set_aspect("auto")
 
-    # Extract data and coordinates from Xarray
-    data = radar_2d[radar_product][0].max(axis=0).values
-    lon = radar_2d["lon"].values
-    lat = radar_2d["lat"].values
+#     # Extract data and coordinates from Xarray
+#     data = radar_2d[radar_product][0].max(axis=0).values
+#     data[data < 15] = np.nan
+#     lon = radar_2d["lon"].values
+#     lat = radar_2d["lat"].values
 
-    # Plot data over base map
-    contour = ax.contourf(
-        lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
-    )
+#     # Plot data over base map
+#     contour = ax.contourf(
+#         lon, lat, data, cmap="pyart_NWSRef", levels=range(-10, 60), transform=proj, alpha=1
+#     )
 
-    # Adicionar o mapa de base usando contextily
-    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
+#     # Adicionar o mapa de base usando contextily
+#     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik, crs="EPSG:4326")
 
-    # Configure axes
-    ax.set_title(
-        title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
-    )  # , fontweight='bold', loc="left"
+#     # Configure axes
+#     ax.set_title(
+#         title, position=[0.01, 0.01], fontsize=11, color="white", backgroundcolor="black"
+#     )  # , fontweight='bold', loc="left"
 
-    ax.set_xlabel("")
-    ax.set_ylabel("")
-    ax.axis("off")
-    ax.grid(True, linestyle="--", alpha=0.5)
-    ax.set_xlim(lon.min(), lon.max())
-    ax.set_ylim(lat.min(), lat.max())
+#     ax.set_xlabel("")
+#     ax.set_ylabel("")
+#     ax.axis("off")
+#     ax.grid(True, linestyle="--", alpha=0.5)
+#     ax.set_xlim(lon.min(), lon.max())
+#     ax.set_ylim(lat.min(), lat.max())
 
-    # Customize colorbar to show only the specified values on the center of each box
-    cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
-    cbar = plt.colorbar(
-        mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-        ax=ax,
-        cax=cbar_ax,
-        orientation="vertical",
-    )
-    cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
-    cbar.set_ticklabels([str(value) for value in ordered_values])
-    cbar.ax.tick_params(size=0)
-    cbar.ax.set_title(
-        cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
-    )  # left, height
+#     # Customize colorbar to show only the specified values on the center of each box
+#     cbar_ax = fig.add_axes([0.001, 0.5, 0.03, 0.3])  # [left, bottom, width, height]
+#     cbar = plt.colorbar(
+#         mappable=plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+#         ax=ax,
+#         cax=cbar_ax,
+#         orientation="vertical",
+#     )
+#     cbar.set_ticks([int(value) + 2.5 for value in ordered_values])
+#     cbar.set_ticklabels([str(value) for value in ordered_values])
+#     cbar.ax.tick_params(size=0)
+#     cbar.ax.set_title(
+#         cbar_title, fontsize=12, fontweight="bold", pad=10, position=[2.2, 0.4]
+#     )  # left, height
 
-    # plt.show()
-    return fig
+#     # plt.show()
+#     return fig
 
 
 @task

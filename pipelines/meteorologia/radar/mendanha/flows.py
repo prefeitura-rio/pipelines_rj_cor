@@ -31,8 +31,7 @@ from pipelines.meteorologia.radar.mendanha.tasks import (  # pylint: disable=E06
     add_new_image,
     base64_to_bytes,
     compress_to_zip,
-    create_visualization_no_background,
-    create_visualization_with_background,
+    create_visualization,
     download_files_storage,
     get_and_format_time,
     get_colorbar_title,
@@ -76,12 +75,6 @@ from pipelines.utils.gypscie.tasks import (
     rename_files,
     unzip_files,
 )
-
-# create_visualization_with_background, prefix_to_restore, save_data,
-# from pipelines.utils_rj_cor import build_redis_hash  # pylint: disable=E0611, E0401
-
-
-# from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
 
 with Flow(
@@ -173,8 +166,12 @@ with Flow(
     # Create visualizations
     formatted_time, filename_time = get_and_format_time(radar_file)
     cbar_title = get_colorbar_title(RADAR_PRODUCT_LIST[0])
-    fig = create_visualization_no_background(
-        radar_2d, radar_product=RADAR_PRODUCT_LIST[0], cbar_title=cbar_title, title=formatted_time
+    fig = create_visualization(
+        radar_2d,
+        radar_product=RADAR_PRODUCT_LIST[0],
+        cbar_title=cbar_title,
+        title=formatted_time,
+        background=False,
     )
 
     img_base64 = img_to_base64(fig)
@@ -215,12 +212,13 @@ with Flow(
 
         # save images to appear on Escritório de Dados climate platform
         with case(SAVE_IMAGE_WITHOUT_COLORBAR, True):
-            fig_without_backgroud_colorbar = create_visualization_no_background(
+            fig_without_backgroud_colorbar = create_visualization(
                 radar_2d,
                 radar_product=RADAR_PRODUCT_LIST[0],
                 cbar_title=None,
                 title=None,
                 cbar=False,
+                background=False,
             )
             img_base64_without_backgroud_colorbar = img_to_base64(fig_without_backgroud_colorbar)
             img_bytes_without_backgroud_colorbar = base64_to_bytes(
@@ -246,11 +244,12 @@ with Flow(
             )
 
     with case(SAVE_IMAGE_WITH_BACKGROUND, True):
-        fig_with_backgroud = create_visualization_with_background(
+        fig_with_backgroud = create_visualization(
             radar_2d,
             radar_product=RADAR_PRODUCT_LIST[0],
             cbar_title=cbar_title,
             title=formatted_time,
+            background=True,
         )
         img_base64_with_backgroud = img_to_base64(fig_with_backgroud)
         img_bytes_with_backgroud = base64_to_bytes(img_base64_with_backgroud)
