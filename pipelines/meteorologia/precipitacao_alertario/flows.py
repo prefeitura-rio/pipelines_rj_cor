@@ -45,7 +45,7 @@ from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E04
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
 
 # preprocessing imports
-from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401; timeout_flow,; monitor_flow,
+from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_caracterization_columns_on_dfr,
     convert_columns_type,
