@@ -2,10 +2,12 @@
 """
 Utils for precipitacao_alertario
 """
-from typing import List, Tuple
 from datetime import datetime
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
+
 from pipelines.utils.utils import log
 
 
