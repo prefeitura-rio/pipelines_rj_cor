@@ -22,7 +22,7 @@ s3fs = "^2024.6.1"
 xarray = "^2024.7.0"
 matplotlib = "^3.9.2"
 cartopy = "^0.23.0"
-prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "2f6a5b9cfae4e214e694346a87c3ffbbe0954a70", branch = "feat/reimplement-templates", extras = [
+prefeitura-rio = { git = "https://github.com/prefeitura-rio/prefeitura-rio.git", rev = "07ed806b67154ff53b352e899d54cbd8e92413f7", branch = "feat/reimplement-templates", extras = [
     "pipelines",
     "pipelines-templates",
 ] }
