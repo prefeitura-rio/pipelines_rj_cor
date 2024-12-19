@@ -5,6 +5,7 @@ description = ""
 authors = ["Gabriel Gazola Milan <gabriel.gazola@poli.ufrj.br>"]
 
 [tool.poetry.dependencies]
+
 python = ">=3.9,<3.11"
 dbt-bigquery = "^1.6.1"
 google-cloud-storage = "^2.10.0"
@@ -64,15 +65,6 @@ profile = "black"
 
 [tool.taskipy.tasks]
 lint = "black . && isort . && flake8 ."
-
-[[package]]
-name = "basedosdados"
-version = "2.0.0-beta.21"
-description = "Organizar e facilitar o acesso a dados brasileiros através de tabelas públicas no BigQuery."
-optional = false
-python-versions = ">=3.8.1,<4"
-files = []
-develop = false
 
 [build-system]
 requires = ["poetry-core"]
