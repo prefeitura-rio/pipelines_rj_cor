@@ -17,10 +17,20 @@ from pipelines.rj_escritorio.rain_dashboard.tasks import (
     get_data,
     set_redis_key,
 )
-from pipelines.utils.decorators import Flow
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.state_handlers import (
+    handler_initialize_sentry,
+    handler_inject_bd_credentials,
+)
 
 with Flow(
     name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+    state_handlers=[
+        handler_initialize_sentry,
+        handler_inject_bd_credentials,
+    ],
     # skip_if_running=True,
 ) as rj_escritorio_rain_dashboard_flow:
     # Parameters
