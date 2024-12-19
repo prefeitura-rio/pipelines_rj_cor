@@ -5,6 +5,13 @@ Flows for setting rain data in Redis.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.state_handlers import (
+    handler_initialize_sentry,
+    handler_inject_bd_credentials,
+)
 
 from pipelines.constants import constants
 from pipelines.rj_escritorio.rain_dashboard.constants import (
@@ -16,13 +23,6 @@ from pipelines.rj_escritorio.rain_dashboard.tasks import (
     dataframe_to_dict,
     get_data,
     set_redis_key,
-)
-from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
-
-# pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.state_handlers import (
-    handler_initialize_sentry,
-    handler_inject_bd_credentials,
 )
 
 with Flow(
