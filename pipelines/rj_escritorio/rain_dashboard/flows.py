@@ -29,9 +29,6 @@ with Flow(
     mode = Parameter("mode", default="prod")
     redis_data_key = Parameter("redis_data_key", default="data_last_15min_rain")
     redis_update_key = Parameter("redis_update_key", default="data_last_15min_rain_update")
-    redis_host = Parameter("redis_host", default="redis.redis.svc.cluster.local")
-    redis_port = Parameter("redis_port", default=6379)
-    redis_db = Parameter("redis_db", default=1)
 
     # Tasks
     dataframe = get_data(query=query_data, mode=mode)
@@ -41,16 +38,10 @@ with Flow(
     set_redis_key(
         key=redis_data_key,
         value=dictionary,
-        host=redis_host,
-        port=redis_port,
-        db=redis_db,
     )
     set_redis_key(
         key=redis_update_key,
         value=dictionary_update,
-        host=redis_host,
-        port=redis_port,
-        db=redis_db,
     )
 
 

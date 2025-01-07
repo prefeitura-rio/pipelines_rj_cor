@@ -9,7 +9,7 @@ import pandas as pd
 from basedosdados.core.base import Base
 from prefect import task
 
-from pipelines.utils.utils import get_redis_client, log
+from pipelines.utils.utils import get_redis_client_from_infisical, log
 
 
 @task(checkpoint=False)
@@ -63,15 +63,12 @@ def dataframe_to_dict(dataframe: pd.DataFrame) -> List[Dict[str, Union[str, floa
 def set_redis_key(
     key: str,
     value: List[Dict[str, Union[str, float]]],
-    host: str = "redis.redis.svc.cluster.local",
-    port: int = 6379,
-    db: int = 0,  # pylint: disable=C0103
 ) -> None:
     """
     Set Redis key
     """
     log("Setting Redis key...")
-    redis_client = get_redis_client(host=host, port=port, db=db)
+    redis_client = get_redis_client_from_infisical(infisical_secrets_path="/redis")
     redis_client.set(key, value)
     log("Redis key set successfully.")
     log(f"key: {key} and value: {value}")
