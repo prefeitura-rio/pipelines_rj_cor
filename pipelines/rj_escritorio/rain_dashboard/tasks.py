@@ -10,6 +10,7 @@ from typing import Dict, List, Union
 import basedosdados as bd  # pylint: disable=E0611, E0401
 import pandas as pd
 from basedosdados import Base  # pylint: disable=E0611, E0401
+
 # from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
 
