@@ -2,23 +2,22 @@
 """
 Utils for rj-cor
 """
+from datetime import datetime
 import json
 from os import getenv
 from time import sleep
 from typing import Callable, Dict
 
-import basedosdados as bd
 import pandas as pd
-import pendulum
-from google.cloud import storage
-from loguru import logger
-
-# from redis_pal import RedisPal
-# import pipelines.constants
+import pendulum  # pylint: disable=E0611, E0401
+from google.cloud import storage  # pylint: disable=E0611, E0401
+from loguru import logger  # pylint: disable=E0611, E0401
+  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,  # pylint: disable=E0611, E0401
+    get_secret,
 )
-from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611, E0401
+  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.redis_pal import (
     get_redis_client,
 )
 
@@ -447,3 +446,17 @@ def download_blob(bucket_name, source_blob_name, destination_file_name) -> None:
     blob.download_to_filename(destination_file_name)
 
     print(f"Blob {source_blob_name} downloaded to file path {destination_file_name}. successfully ")
+
+
+def sort_list_by_dict_key(item, key: str = "timestamp") -> datetime.datetime:
+    """
+    Sorts a list of dictionaries based on a specified key.
+
+    Parameters:
+    item (dict): A dictionary inside a list to be sorted.
+    key (str, optional): The key to sort the list by. Defaults to "timestamp".
+
+    Returns:
+    datetime.datetime: The sorted datetime object based on the specified key.
+    """
+    return datetime.fromisoformat(item[key])

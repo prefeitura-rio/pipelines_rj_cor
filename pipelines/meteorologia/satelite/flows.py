@@ -47,6 +47,7 @@ from pipelines.meteorologia.satelite.tasks import (  # create_image,
     download,
     generate_point_value,
     get_dates,
+    prepare_data_for_redis,
     rearange_dataframe,
     save_data,
     slice_data,
@@ -61,6 +62,7 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
     task_save_on_redis,
     upload_files_to_storage,
 )
+from pipelines.utils_rj_cor import sort_list_by_dict_key
 
 with Flow(
     name="COR: Meteorologia - Satelite GOES 16",
@@ -167,6 +169,22 @@ with Flow(
     with case(create_point_value, True):
         now_datetime = get_now_datetime()
         df_point_values = generate_point_value(info, dfr)
+        products_list_ = sorted([var.lower() for var in info["variable"]])
+        point_values = task_get_redis_output.map(redis_client, redis_key=products_list_)
+        products_list, point_values_updated = prepare_data_for_redis(
+            df_point_values,
+            products_list=products_list_,
+            point_values=point_values,
+        )
+        # Save new points on redis
+        task_save_on_redis.map(
+            redis_client=redis_client,
+            values=point_values_updated,
+            redis_key=products_list,
+            keep_last=12,
+            sort_key=sort_list_by_dict_key,
+            wait=point_values_updated,
+        )
         point_values_path, point_values_full_path = task_create_partitions(
             df_point_values,
             partition_date_column="data_medicao",

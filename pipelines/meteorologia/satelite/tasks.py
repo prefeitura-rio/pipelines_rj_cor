@@ -384,3 +384,45 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
 #             log(f"Error: {response.status_code}, {response.text}")
 #         log(save_image_path)
 #         log(f"\nEnd uploading image for variable {var} on API\n")
+
+
+@task(nout=2)
+def prepare_data_for_redis(
+    dataframe: pd.DataFrame, products_list: list, point_values: List[List[dict]]
+) -> Union[List, List[dict]]:
+    """
+    Prepares data for Redis by updating point values based on the given dataframe and products list.
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe containing the data to update point values.
+        products_list (list): A list of product names to match against the dataframe.
+        point_values (List[List[dict]]): A list of lists containing dictionaries of point values.
+
+    Returns:
+        Union[List, List[dict]]: A tuple containing the updated products list and the updated
+        point values.
+    """
+
+    log(f"Products list: {products_list}, point_values:\n{point_values}")
+
+    actual_products = dataframe["produto_satelite"].unique()
+    actual_products = [i.lower() for i in actual_products]
+
+    if not point_values:
+        point_values = [[] for i in actual_products]
+
+    updated_point_values = []
+
+    for product, values in zip(products_list, point_values):
+        if product not in actual_products:
+            continue
+        updated_value = {
+            "timestamp": dataframe.loc[
+                dataframe["produto_satelite"] == product, "data_medicao"
+            ].iloc[0],
+            "value": dataframe.loc[dataframe["produto_satelite"] == product, "value"].iloc[0],
+        }
+        values.append(updated_value)
+        updated_point_values.append(values)
+    log(f"Updated point_values:\n{updated_point_values}")
+    return products_list, updated_point_values
