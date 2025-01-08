@@ -65,6 +65,7 @@ class Api:
             )
             log(f"Token {token[:10]} expires at {expires_at}")
         else:
+            log(f"Status code: {response.status_code}\nResponse:{response.content}")
             raise Exception()
 
         if self._header_type == "token":
@@ -110,26 +111,25 @@ class Api:
         response = fn(*args, headers=self._headers, timeout=self._request_timeout, **kwargs)
         return response
 
-    def get(self, path: str, timeout: int = None) -> Dict:
+    def get(self, path: str) -> Dict:
         """
         get
         """
-        timeout = timeout or self._request_timeout
-        response = self._request("get", f"{self._base_url}{path}", timeout=timeout)
+        response = self._request("get", f"{self._base_url}{path}")
         response.raise_for_status()
         try:
             return response.json()
         except simplejson.JSONDecodeError:
             return response
 
-    def put(self, path, json_data=None):
+    def put(self, path, json=None):
         """
         put
         """
-        response = self._request("put", f"{self._base_url}{path}", json=json_data)
+        response = self._request("put", f"{self._base_url}{path}", json=json)
         return response
 
-    def post(self, path, data: dict = None, json_data: dict = None, files: dict = None):
+    def post(self, path, data: dict = None, json: dict = None, files: dict = None):
         """
         post
         """
@@ -137,7 +137,7 @@ class Api:
             "post",
             url=f"{self._base_url}{path}",
             data=data,
-            json=json_data,
+            json=json,
             files=files,
         )
         return response

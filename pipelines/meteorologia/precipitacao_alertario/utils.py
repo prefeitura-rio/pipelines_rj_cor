@@ -2,10 +2,13 @@
 """
 Utils for precipitacao_alertario
 """
+from datetime import datetime
 from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+
+from pipelines.utils.utils import log
 
 
 def parse_date_columns_old_api(
@@ -81,3 +84,46 @@ def treat_date_col(row):
     if len(row) == 10:
         row = row + " 00:00:00"
     return row
+
+
+def replace_future_dates(dfr: pd.DataFrame) -> pd.DataFrame:
+    """
+    Replaces future dates in the 'data_medicao' column with the current date if they are in the
+    future. This is done to ensure that the data is not projected into the future, but rather
+    reflects the current state.
+    """
+    current_datetime_sp = datetime.now()
+    current_date_sp = datetime.now().date()
+    dfr_future = dfr[dfr["data_medicao"] > current_datetime_sp].copy()
+
+    if dfr_future.shape[0] > 0:
+        for i in range(dfr_future.shape[0]):
+            log(f"\nFuture data found on API:\n{dfr_future.iloc[i]}\n")
+
+        dfr["data_medicao"] = dfr["data_medicao"].apply(
+            lambda x: (
+                x.replace(
+                    year=current_date_sp.year, month=current_date_sp.month, day=current_date_sp.day
+                )
+                if x.date() > current_date_sp
+                else x
+            )
+        )
+    return dfr
+
+
+def remove_future_dates(dfr: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove future dates in the 'data_medicao' column with the current date if they are in the
+    future. This is done to ensure that the data is not projected into the future.
+    """
+    current_datetime_sp = datetime.now()
+    current_date_sp = datetime.now().date()
+    dfr_future = dfr[dfr["data_medicao"] > current_datetime_sp].copy()
+
+    if dfr_future.shape[0] > 0:
+        for i in range(dfr_future.shape[0]):
+            log(f"\nFuture data found on API:\n{dfr_future.iloc[i]}\n")
+
+        dfr = dfr[dfr["data_medicao"] <= current_date_sp]
+    return dfr

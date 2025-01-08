@@ -5,6 +5,13 @@ Flows for setting rain data in Redis.
 from prefect import Parameter
 from prefect.run_configs import KubernetesRun
 from prefect.storage import GCS
+from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.state_handlers import (
+    handler_initialize_sentry,
+    handler_inject_bd_credentials,
+)
 
 from pipelines.constants import constants
 from pipelines.rj_escritorio.rain_dashboard.constants import (
@@ -17,40 +24,33 @@ from pipelines.rj_escritorio.rain_dashboard.tasks import (
     get_data,
     set_redis_key,
 )
-from pipelines.utils.decorators import Flow
 
 with Flow(
     name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+    state_handlers=[
+        handler_initialize_sentry,
+        handler_inject_bd_credentials,
+    ],
     # skip_if_running=True,
 ) as rj_escritorio_rain_dashboard_flow:
     # Parameters
     query_data = Parameter("query_data")
     query_update = Parameter("query_update")
-    mode = Parameter("mode", default="prod")
     redis_data_key = Parameter("redis_data_key", default="data_last_15min_rain")
     redis_update_key = Parameter("redis_update_key", default="data_last_15min_rain_update")
-    redis_host = Parameter("redis_host", default="redis.redis.svc.cluster.local")
-    redis_port = Parameter("redis_port", default=6379)
-    redis_db = Parameter("redis_db", default=1)
 
     # Tasks
-    dataframe = get_data(query=query_data, mode=mode)
-    dataframe_update = get_data(query=query_update, mode=mode)
+    dataframe = get_data(query=query_data)
+    dataframe_update = get_data(query=query_update)
     dictionary = dataframe_to_dict(dataframe=dataframe)
     dictionary_update = dataframe_to_dict(dataframe=dataframe_update)
     set_redis_key(
         key=redis_data_key,
         value=dictionary,
-        host=redis_host,
-        port=redis_port,
-        db=redis_db,
     )
     set_redis_key(
         key=redis_update_key,
         value=dictionary_update,
-        host=redis_host,
-        port=redis_port,
-        db=redis_db,
     )
 
 
