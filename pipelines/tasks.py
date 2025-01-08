@@ -132,7 +132,7 @@ def task_get_redis_output(
     """
     Get Redis output. Use get to obtain a df from redis or hgetall if is a key value pair.
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
-    expected_output_type "list"m "dict", "df"
+    expected_output_type "list", "dict", "df"
     """
 
     if is_df or expected_output_type == "df":
@@ -153,7 +153,7 @@ def task_get_redis_output(
     else:
         output = redis_client.hgetall(redis_hash)
 
-    if not output:
+    if not output or not isinstance(output, (list, str, dict, pd.DataFrame)):
         output = [] if expected_output_type == "list" else {}
 
     log(f"Output from redis before treatment{type(output)}\n{output}")
