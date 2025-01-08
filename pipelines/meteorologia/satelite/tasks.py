@@ -427,8 +427,13 @@ def prepare_data_for_redis(
             ].iloc[0],
             "value": dataframe.loc[dataframe["produto_satelite"] == product, "value"].iloc[0],
         }
+
+        check_duplicates = [item["timestamp"] == updated_value["timestamp"] for item in values]
+        if sum(check_duplicates) > 0:
+            continue
+
         values.append(updated_value)
-        updated_point_values.append(values)
+        updated_point_values.append(list(set(values)))
     log(f"Updated point_values:\n{updated_point_values}")
     return satellite_variables_list, updated_point_values
 
