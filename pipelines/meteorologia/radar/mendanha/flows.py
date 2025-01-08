@@ -177,7 +177,7 @@ with Flow(
     img_bytes = base64_to_bytes(img_base64)
 
     # update the name of images that are already on redis and save them as png
-    img_base64_dict = rename_keys_redis(redis_hash, img_bytes)
+    img_base64_dict = rename_keys_redis(redis_client, redis_hash, img_bytes)
     all_img_base64_dict = add_new_image(img_base64_dict, img_bytes)
     saved_images_path = save_images_to_local(all_img_base64_dict, folder="images")
 

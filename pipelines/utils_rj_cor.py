@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=too-many-arguments
 """
 Utils for rj-cor
 """
@@ -262,16 +263,20 @@ def save_updated_rows_on_redis(  # pylint: disable=R0914, R0913
 
 
 def get_redis_output(
-    redis_hash: str = None, key: str = None, treat_output: bool = True, is_df: bool = False
+    redis_client,
+    redis_hash: str = None,
+    redis_key: str = None,
+    treat_output: bool = True,
+    expected_output_type: str = "list",
+    is_df: bool = False,
 ):
     """
     Get Redis output. Use get to obtain a df from redis or hgetall if is a key value pair.
     Redis output example: {b'date': b'2023-02-27 07:29:04'}
+    expected_output_type "list", "dict", "df"
     """
-    # TODO: validar mudanças em outras pipes
-    redis_client = get_redis_client_from_infisical()  # (host="127.0.0.1")
 
-    if is_df:
+    if is_df or expected_output_type == "df":
         json_data = redis_client.get(redis_hash)
         log(f"[DEGUB] json_data {json_data}")
         if json_data:
@@ -282,18 +287,60 @@ def get_redis_output(
 
         return pd.DataFrame()
 
-    if redis_hash and key:
-        output = redis_client.hget(redis_hash, key)
-    elif key:
-        output = redis_client.get(key)
-        output = [] if output is None else output
-        output = list(set(output))
-        output.sort()
+    if redis_hash and redis_key:
+        output = redis_client.hget(redis_hash, redis_key)
+    elif redis_key:
+        output = redis_client.get(redis_key)
     else:
         output = redis_client.hgetall(redis_hash)
-    if len(output) > 0 and treat_output:
+
+    log(f"Output type: {type(output)}, {isinstance(output, (list, str, dict, pd.DataFrame))}")
+
+    try:
+        no_output = len(output) > 0
+    except TypeError:
+        no_output = None
+        log("There is no output from Redis")
+
+    if not output or not isinstance(output, (list, dict, pd.DataFrame, bytes, str)):
+        output = [] if expected_output_type == "list" else {}
+
+    log(f"Output from redis before treatment{type(output)}\n{output}")
+
+    if no_output and treat_output and not isinstance(output, list):
         output = treat_redis_output(output)
+    log(f"Output from redis {type(output)}\n{output}")
     return output
+
+
+def save_on_redis(
+    redis_client,
+    values,
+    redis_hash: str = None,
+    redis_key: str = None,
+    keep_last: int = 50,
+    sort_key: str = None,
+) -> None:
+    """
+    Save values on redis. If values are a list, order ir and keep only last names.
+    """
+
+    if isinstance(values, list):
+        values = list(set(values))
+        values = sorted(values, key=sort_key)
+        log(f"\n\nBefore keep_last {values}\n\n")
+        values = values[-keep_last:]
+
+    if isinstance(values, dict):
+        values = json.dumps(values)
+
+    log(f"Saving files {values} on redis {redis_hash} {redis_key}")
+
+    if redis_hash and redis_key:
+        redis_client.hset(redis_hash, redis_key, values)
+    elif redis_key:
+        redis_client.set(redis_key, values)
+    log(f"Saved to Redis hash: {redis_hash}, key: {redis_key}, value: {values}")
 
 
 def compare_actual_df_with_redis_df(

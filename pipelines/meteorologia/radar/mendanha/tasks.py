@@ -373,7 +373,7 @@ def add_new_image(image_dict: dict, img_bytes) -> Dict:
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=3))
-def rename_keys_redis(redis_hash: str, new_image) -> Dict:
+def rename_keys_redis(redis_client, redis_hash: str, new_image) -> Dict:
     """
     Renaming redis keys so image_003
     TODO: put all redis functions that are inside pipelines/utils/utils.py
@@ -381,7 +381,7 @@ def rename_keys_redis(redis_hash: str, new_image) -> Dict:
     """
 
     log("Start renaming images on redis")
-    redis_images = get_redis_output(redis_hash)
+    redis_images = get_redis_output(redis_client=redis_client, redis_hash=redis_hash)
 
     redis_images_list = list(redis_images.keys())
     log(f"Images names that are already on redis {redis_images_list}")

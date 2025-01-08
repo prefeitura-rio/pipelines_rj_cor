@@ -6,7 +6,7 @@ Flows for emd.
 """
 from copy import deepcopy
 
-from prefect import Parameter, case  # pylint: disable=E0611, E0401
+from prefect import Parameter, case, unmapped  # pylint: disable=E0611, E0401
 from prefect.run_configs import KubernetesRun  # pylint: disable=E0611, E0401
 from prefect.storage import GCS  # pylint: disable=E0611, E0401
 
@@ -172,7 +172,9 @@ with Flow(
         df_point_values = generate_point_value(info, dfr)
         satellite_variables_list_ = get_satellite_variables_list(info)
         point_values = task_get_redis_output.map(
-            redis_client, redis_key=satellite_variables_list_, expected_output_type="list"
+            unmapped(redis_client),
+            redis_key=satellite_variables_list_,
+            expected_output_type=unmapped("list"),
         )
         satellite_variables_list, point_values_updated = prepare_data_for_redis(
             df_point_values,
@@ -181,12 +183,12 @@ with Flow(
         )
         # Save new points on redis
         task_save_on_redis.map(
-            redis_client=redis_client,
+            redis_client=unmapped(redis_client),
             values=point_values_updated,
             redis_key=satellite_variables_list,
-            keep_last=12,
-            sort_key=sort_list_by_dict_key,
-            wait=point_values_updated,
+            keep_last=unmapped(12),
+            sort_key=unmapped(sort_list_by_dict_key),
+            wait=unmapped(point_values_updated),
         )
         point_values_path, point_values_full_path = task_create_partitions(
             df_point_values,
