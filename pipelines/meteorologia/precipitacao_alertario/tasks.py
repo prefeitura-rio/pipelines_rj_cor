@@ -18,6 +18,7 @@ from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disab
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
     parse_date_columns_old_api,
+    replace_future_dates,
     treat_date_col,
 )
 from pipelines.utils.utils import (
@@ -136,8 +137,8 @@ def treat_pluviometer_and_meteorological_data(
     dfr.drop_duplicates(subset=["id_estacao", "data_medicao"], keep="first")
 
     dfr["data_medicao"] = pd.to_datetime(dfr["data_medicao"], format="%d/%m/%Y - %H:%M:%S")
+    dfr = replace_future_dates(dfr)
 
-    log(f"Dataframe before comparing with last data saved on redis for {table_id} {dfr.head()}")
     log(f"Dataframe before comparing with last data saved on redis for {table_id} {dfr.iloc[0]}")
 
     dfr = save_updated_rows_on_redis(

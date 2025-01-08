@@ -36,16 +36,10 @@ models:
     clima_satelite:
       +materialized: table
       +schema: clima_satelite
-    clima_radar:
-      +materialized: table
-      +schema: clima_radar
     clima_estacao_meteorologica:
       +materialized: table
       +schema: clima_estacao_meteorologica
     fiscalizacao_rua:
       +materialized: table
       +schema: fiscalizacao_rua
-    clima_rionowcast:
-      +materialized: table
-      +schema: clima_rionowcast
 

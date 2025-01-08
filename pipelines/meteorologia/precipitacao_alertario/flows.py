@@ -45,7 +45,7 @@ from pipelines.tasks import task_create_partitions  # pylint: disable=E0611, E04
 from pipelines.utils.custom import wait_for_flow_run_with_timeout
 
 # preprocessing imports
-from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401; timeout_flow,; monitor_flow,
+from pipelines.utils.gypscie.tasks import (  # pylint: disable=E0611, E0401
     access_api,
     add_caracterization_columns_on_dfr,
     convert_columns_type,
@@ -468,9 +468,9 @@ with Flow(
             dfr_pluviometric_converted = convert_columns_type(
                 dfr_pluviometric, columns=["id_estacao"], new_types=[int]
             )
-            dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
+            # dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
             path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
-                dfr_pluviometric_gypscie,
+                dfr_pluviometric_converted,
                 data_name="gypscie",
                 columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
                 data_type="parquet",
