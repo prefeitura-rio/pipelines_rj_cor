@@ -2,8 +2,8 @@
 """
 Utils for rj-cor
 """
-from datetime import datetime
 import json
+from datetime import datetime
 from os import getenv
 from time import sleep
 from typing import Callable, Dict
@@ -12,14 +12,12 @@ import pandas as pd
 import pendulum  # pylint: disable=E0611, E0401
 from google.cloud import storage  # pylint: disable=E0611, E0401
 from loguru import logger  # pylint: disable=E0611, E0401
-  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.infisical import (
-    get_secret,
-)
-  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.redis_pal import (
-    get_redis_client,
-)
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.infisical import get_secret
+
+# pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
 from pipelines.utils.utils import log
 
