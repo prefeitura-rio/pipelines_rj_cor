@@ -805,7 +805,9 @@ def create_and_save_image(
     if not output_image_path.exists():
         output_image_path.mkdir(parents=True, exist_ok=True)
 
-    plt.savefig(save_image_path, bbox_inches="tight", pad_inches=0, dpi=80, transparent=True)
+    plt.savefig(
+        save_image_path, bbox_inches="tight", pad_inches=0, dpi=80, transparent=True, aspect="auto"
+    )
     log(f"\n Ended saving image on {save_image_path}")
     return str(save_image_path)
 
