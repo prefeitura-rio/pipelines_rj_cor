@@ -433,7 +433,7 @@ def prepare_data_for_redis(
             continue
 
         values.append(updated_value)
-        updated_point_values.append(list(set(values)))
+        updated_point_values.append(values)
     log(f"Updated point_values:\n{updated_point_values}")
     return satellite_variables_list, updated_point_values
 
