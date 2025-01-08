@@ -425,7 +425,7 @@ def prepare_data_for_redis(
             "timestamp": dataframe.loc[
                 dataframe["produto_satelite"] == product, "data_medicao"
             ].iloc[0],
-            "value": dataframe.loc[dataframe["produto_satelite"] == product, "value"].iloc[0],
+            "valor": dataframe.loc[dataframe["produto_satelite"] == product, "valor"].iloc[0],
         }
 
         check_duplicates = [item["timestamp"] == updated_value["timestamp"] for item in values]
