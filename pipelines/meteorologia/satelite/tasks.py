@@ -392,33 +392,34 @@ def create_image(info: dict, dfr: pd.DataFrame, background: str = "without") -> 
 
 @task(nout=2)
 def prepare_data_for_redis(
-    dataframe: pd.DataFrame, products_list: list, point_values: List[List[dict]]
+    dataframe: pd.DataFrame, satellite_variables_list: list, point_values: List[List[dict]]
 ) -> Union[List, List[dict]]:
     """
-    Prepares data for Redis by updating point values based on the given dataframe and products list.
+    Prepares data for Redis by updating point values based on the given dataframe and
+    satellite_variables list.
 
     Args:
         dataframe (pd.DataFrame): The dataframe containing the data to update point values.
-        products_list (list): A list of product names to match against the dataframe.
+        satellite_variables_list (list): A list of product names to match against the dataframe.
         point_values (List[List[dict]]): A list of lists containing dictionaries of point values.
 
     Returns:
-        Union[List, List[dict]]: A tuple containing the updated products list and the updated
-        point values.
+        Union[List, List[dict]]: A tuple containing the updated satellite_variables list and the
+        updated point values.
     """
 
-    log(f"Products list: {products_list}, point_values:\n{point_values}")
+    log(f"satellite_variables list: {satellite_variables_list}, point_values:\n{point_values}")
 
-    actual_products = dataframe["produto_satelite"].unique()
-    actual_products = [i.lower() for i in actual_products]
+    actual_satellite_variables = dataframe["produto_satelite"].unique()
+    actual_satellite_variables = [i.lower() for i in actual_satellite_variables]
 
     if not point_values:
-        point_values = [[] for i in actual_products]
+        point_values = [[] for i in actual_satellite_variables]
 
     updated_point_values = []
 
-    for product, values in zip(products_list, point_values):
-        if product not in actual_products:
+    for product, values in zip(satellite_variables_list, point_values):
+        if product not in actual_satellite_variables:
             continue
         updated_value = {
             "timestamp": dataframe.loc[
@@ -429,4 +430,18 @@ def prepare_data_for_redis(
         values.append(updated_value)
         updated_point_values.append(values)
     log(f"Updated point_values:\n{updated_point_values}")
-    return products_list, updated_point_values
+    return satellite_variables_list, updated_point_values
+
+
+@task
+def get_satellite_variables_list(info: dict) -> List:
+    """
+    Extracts and returns a list of satellite variables from the given info dictionary.
+
+    Args:
+        info (dict): A dictionary containing information about the satellite data.
+
+    Returns:
+        List: A list of satellite variables extracted from the info dictionary.
+    """
+    return sorted([var.lower() for var in info["variable"]])
