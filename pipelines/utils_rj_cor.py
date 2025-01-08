@@ -326,7 +326,10 @@ def save_on_redis(
     """
 
     if isinstance(values, list):
-        values = list(set(values))
+        try:
+            values = list(set(values))
+        except TypeError:
+            log("I was not possible to use set() to filter duplicates on this list.")
         values = sorted(values, key=sort_key)
         log(f"\n\nBefore keep_last {values}\n\n")
         values = values[-keep_last:]
