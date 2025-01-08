@@ -146,6 +146,7 @@ def task_get_redis_output(
 
         return pd.DataFrame()
 
+    output = None
     if redis_hash and redis_key:
         output = redis_client.hget(redis_hash, redis_key)
     elif redis_key:
@@ -153,7 +154,8 @@ def task_get_redis_output(
     else:
         output = redis_client.hgetall(redis_hash)
 
-    if not output or not isinstance(output, (list, str, dict, pd.DataFrame)):
+    log(f"Output type: {type(output)}, {isinstance(output, (list, str, dict, pd.DataFrame))}")
+    if not output or not isinstance(output, (list, dict, pd.DataFrame)):
         output = [] if expected_output_type == "list" else {}
 
     log(f"Output from redis before treatment{type(output)}\n{output}")
