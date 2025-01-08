@@ -171,7 +171,9 @@ with Flow(
         now_datetime = get_now_datetime()
         df_point_values = generate_point_value(info, dfr)
         satellite_variables_list_ = get_satellite_variables_list(info)
-        point_values = task_get_redis_output.map(redis_client, redis_key=satellite_variables_list_)
+        point_values = task_get_redis_output.map(
+            redis_client, redis_key=satellite_variables_list_, expected_output_type="list"
+        )
         satellite_variables_list, point_values_updated = prepare_data_for_redis(
             df_point_values,
             satellite_variables_list=satellite_variables_list_,
