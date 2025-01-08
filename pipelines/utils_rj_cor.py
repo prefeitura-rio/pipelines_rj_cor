@@ -448,7 +448,7 @@ def download_blob(bucket_name, source_blob_name, destination_file_name) -> None:
     print(f"Blob {source_blob_name} downloaded to file path {destination_file_name}. successfully ")
 
 
-def sort_list_by_dict_key(item, key: str = "timestamp") -> datetime.datetime:
+def sort_list_by_dict_key(item, key: str = "timestamp") -> datetime:
     """
     Sorts a list of dictionaries based on a specified key.
 
