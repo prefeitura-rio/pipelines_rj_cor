@@ -439,7 +439,14 @@ def prepare_data_for_redis(
         values = [
             item
             for item in values
-            if pd.to_datetime(item["timestamp"]).tz_convert("America/Sao_Paulo") >= twelve_hours_ago
+            if (
+                pd.to_datetime(item["timestamp"]).tz_convert("America/Sao_Paulo")
+                if pd.to_datetime(item["timestamp"]).tzinfo
+                else pd.to_datetime(item["timestamp"])
+                .tz_localize("UTC")
+                .tz_convert("America/Sao_Paulo")
+            )
+            >= twelve_hours_ago
         ]
 
         updated_point_values.append(values)
