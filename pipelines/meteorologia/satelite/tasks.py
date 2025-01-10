@@ -433,6 +433,22 @@ def prepare_data_for_redis(
             continue
 
         values.append(updated_value)
+
+        # Drop any value that is not on last 12h
+        twelve_hours_ago = pd.Timestamp.now(tz="America/Sao_Paulo") - pd.Timedelta(hours=12)
+        values = [
+            item
+            for item in values
+            if (
+                pd.to_datetime(item["timestamp"]).tz_convert("America/Sao_Paulo")
+                if pd.to_datetime(item["timestamp"]).tzinfo
+                else pd.to_datetime(item["timestamp"])
+                .tz_localize("UTC")
+                .tz_convert("America/Sao_Paulo")
+            )
+            >= twelve_hours_ago
+        ]
+
         updated_point_values.append(values)
     log(f"Updated point_values:\n{updated_point_values}")
     return satellite_variables_list, updated_point_values
