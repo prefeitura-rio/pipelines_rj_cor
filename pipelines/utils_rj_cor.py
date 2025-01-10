@@ -287,6 +287,7 @@ def get_redis_output(
 
         return pd.DataFrame()
 
+    log(f"Getting data from redis for redis_hash: {redis_hash} and redis_key: {redis_key}")
     if redis_hash and redis_key:
         output = redis_client.hget(redis_hash, redis_key)
     elif redis_key:
