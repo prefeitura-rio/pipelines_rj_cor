@@ -6,6 +6,7 @@ Constant values for the rj_cor.meteorologia.precipitacao_alertario project
 """
 
 from enum import Enum
+
 from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0401
 
 infisical_secrets_path = "/redis_api_dados_rio"
