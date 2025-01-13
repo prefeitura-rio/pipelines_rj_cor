@@ -15,7 +15,7 @@ from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_cemaden.constants import (
     constants as cemaden_constants,
 )
-from pipelines.meteorologia.precipitacao_cemaden.schedules import minute_schedule
+# from pipelines.meteorologia.precipitacao_cemaden.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_cemaden.tasks import (
     check_for_new_stations,
     download_data,
@@ -183,4 +183,4 @@ cor_meteorologia_precipitacao_cemaden.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_precipitacao_cemaden.schedule = minute_schedule
+# cor_meteorologia_precipitacao_cemaden.schedule = minute_schedule
