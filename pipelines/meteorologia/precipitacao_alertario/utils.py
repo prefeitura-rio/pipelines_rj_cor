@@ -8,7 +8,7 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 
-from pipelines.utils.utils import log
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 def parse_date_columns_old_api(

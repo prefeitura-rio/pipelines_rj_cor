@@ -17,7 +17,8 @@ from prefeitura_rio.pipelines_utils.infisical import get_secret
 from unidecode import unidecode
 
 from pipelines.constants import constants
-from pipelines.utils.utils import log, parse_date_columns, to_partitions
+from pipelines.utils.utils import parse_date_columns, to_partitions
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 @task(nout=3)

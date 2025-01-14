@@ -20,7 +20,8 @@ from prefeitura_rio.pipelines_utils.infisical import get_secret
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
 
-from pipelines.utils.utils import log
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
+
 
 ###############
 #
@@ -105,6 +106,37 @@ def get_redis_client_from_infisical(
         db=redis_db,
         password=redis_password,
     )
+
+
+def get_redis_params_from_infisical(
+    infisical_host_env: str = "REDIS_HOST",
+    infisical_port_env: str = "REDIS_PORT",
+    infisical_db_env: str = "REDIS_DB",
+    infisical_password_env: str = "REDIS_PASSWORD",
+    infisical_secrets_path: str = "/",
+):
+    """
+    Retrieves Redis connection parameters from environment variables.
+
+    Args:
+        infisical_host_env: The environment variable for the Redis host.
+        infisical_port_env: The environment variable for the Redis port.
+        infisical_db_env: The environment variable for the Redis database.
+        infisical_password_env: The environment variable for the Redis password.
+        infisical_secrets_path: The path to the secrets file containing the environment variables.
+
+    Returns:
+        A tuple containing the Redis host, port, database, and password.
+    """
+    redis_host = get_secret(infisical_host_env, path=infisical_secrets_path)[infisical_host_env]
+    redis_port = int(
+        get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
+    )
+    redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
+    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
+        infisical_password_env
+    ]
+    return redis_host, redis_port, redis_db, redis_password
 
 
 def build_redis_key(dataset_id: str, table_id: str, name: str = None, mode: str = "prod"):

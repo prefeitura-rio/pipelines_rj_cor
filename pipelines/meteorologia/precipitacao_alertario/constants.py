@@ -6,12 +6,13 @@ Constant values for the rj_cor.meteorologia.precipitacao_alertario project
 """
 
 from enum import Enum
-from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0401
+from pipelines.utils_rj_cor import get_redis_params_from_infisical  # pylint: disable=E0401
+
 
 infisical_secrets_path = "/redis_api_dados_rio"
-redis_host = get_secret("REDIS_HOST", path=infisical_secrets_path)["REDIS_HOST"]
-redis_port = int(get_secret("REDIS_PORT", path=infisical_secrets_path)["REDIS_PORT"])
-redis_db = int(get_secret("REDIS_DB", path=infisical_secrets_path)["REDIS_DB"])
+redis_host, redis_port, redis_db, redis_pwd = get_redis_params_from_infisical(
+    infisical_secrets_path=infisical_secrets_path
+)
 
 
 class constants(Enum):  # pylint: disable=c0103

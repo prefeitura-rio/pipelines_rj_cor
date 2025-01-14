@@ -23,8 +23,9 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
     get_redis_client,
 )
 
-from pipelines.utils.utils import build_redis_key, log
+from pipelines.utils.utils import build_redis_key
 from pipelines.utils_rj_cor import get_redis_output, save_on_redis
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 # from redis_pal import RedisPal
 
