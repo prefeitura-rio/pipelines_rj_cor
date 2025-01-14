@@ -6,13 +6,14 @@ Constant values for the rj_cor.meteorologia.precipitacao_alertario project
 """
 
 from enum import Enum
-from pipelines.utils_rj_cor import get_redis_params_from_infisical  # pylint: disable=E0401
+
+# from pipelines.utils_rj_cor import get_redis_params_from_infisical  # pylint: disable=E0401
 
 
-infisical_secrets_path = "/redis_api_dados_rio"
-redis_host, redis_port, redis_db, redis_pwd = get_redis_params_from_infisical(
-    infisical_secrets_path=infisical_secrets_path
-)
+# infisical_secrets_path = "/redis_api_dados_rio"
+# redis_host, redis_port, redis_db, redis_pwd = get_redis_params_from_infisical(
+#     infisical_secrets_path=infisical_secrets_path
+# )
 
 
 class constants(Enum):  # pylint: disable=c0103
@@ -28,9 +29,6 @@ class constants(Enum):  # pylint: disable=c0103
     TABLE_ID_METEOROLOGICAL = "meteorologia_alertario"
 
     RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "query_data": """
         WITH
             alertario AS ( -- seleciona a última medição do alertario de cada estação nos últimos 30min
@@ -299,9 +297,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_30MIN_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_30min_rain",
         "redis_update_key": "data_last_30min_rain_update",
         "query_data": """
@@ -467,9 +462,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_60MIN_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_60min_rain",
         "redis_update_key": "data_last_60min_rain_update",
         "query_data": """
@@ -634,9 +626,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_2H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_120min_rain",
         "redis_update_key": "data_last_120min_rain_update",
         "query_data": """
@@ -803,9 +792,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_3H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_3h_rain",
         "redis_update_key": "data_last_3h_rain_update",
         "query_data": """
@@ -971,9 +957,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_6H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_6h_rain",
         "redis_update_key": "data_last_6h_rain_update",
         "query_data": """
@@ -1139,9 +1122,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_12H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_12h_rain",
         "redis_update_key": "data_last_12h_rain_update",
         "query_data": """
@@ -1306,9 +1286,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_24H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_24h_rain",
         "redis_update_key": "data_last_24h_rain_update",
         "query_data": """
@@ -1473,9 +1450,6 @@ class constants(Enum):  # pylint: disable=c0103
     }
 
     RAIN_DASHBOARD_LAST_96H_FLOW_SCHEDULE_PARAMETERS = {
-        "redis_host": redis_host,
-        "redis_port": redis_port,
-        "redis_db": redis_db,
         "redis_data_key": "data_last_96h_rain",
         "redis_update_key": "data_last_96h_rain_update",
         "query_data": """
