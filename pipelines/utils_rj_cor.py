@@ -94,9 +94,11 @@ def get_redis_client_from_infisical(
         get_secret(infisical_port_env, path=infisical_secrets_path)[infisical_port_env]
     )
     redis_db = int(get_secret(infisical_db_env, path=infisical_secrets_path)[infisical_db_env])
-    redis_password = get_secret(infisical_password_env, path=infisical_secrets_path)[
-        infisical_password_env
-    ]
+    redis_password = (
+        get_secret(infisical_password_env, path=infisical_secrets_path)[infisical_password_env]
+        if infisical_password_env
+        else None
+    )
     log(f"Acessing host: {redis_host} port: {redis_port} db: {redis_db} pwd: {redis_password}")
     return get_redis_client(
         host=redis_host,
