@@ -7,7 +7,6 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-
 from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 

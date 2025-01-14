@@ -16,12 +16,10 @@ from loguru import logger  # pylint: disable=E0611, E0401
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.redis_pal import get_redis_client
-
-from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
-
 
 ###############
 #
