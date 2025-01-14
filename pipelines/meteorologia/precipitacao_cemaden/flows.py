@@ -15,6 +15,7 @@ from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_cemaden.constants import (
     constants as cemaden_constants,
 )
+
 # from pipelines.meteorologia.precipitacao_cemaden.schedules import minute_schedule
 from pipelines.meteorologia.precipitacao_cemaden.tasks import (
     check_for_new_stations,
