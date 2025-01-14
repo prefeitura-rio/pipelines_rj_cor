@@ -14,11 +14,11 @@ from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 from unidecode import unidecode
 
 from pipelines.constants import constants
 from pipelines.utils.utils import parse_date_columns, to_partitions
-from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 @task(nout=3)

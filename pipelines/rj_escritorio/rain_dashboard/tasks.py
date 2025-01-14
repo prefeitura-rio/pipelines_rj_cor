@@ -13,9 +13,9 @@ from basedosdados import Base  # pylint: disable=E0611, E0401
 
 # from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import task  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 from pipelines.utils_rj_cor import get_redis_client_from_infisical
-from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 @task(checkpoint=False)

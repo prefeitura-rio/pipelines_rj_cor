@@ -12,11 +12,12 @@ import pendulum
 import requests
 from prefect import task
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import parse_date_columns
 from pipelines.utils.utils import to_partitions
-from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
+
 # from pipelines.rj_cor.meteorologia.meteorologia_inmet.meteorologia_utils import converte_timezone
 
 

@@ -10,6 +10,7 @@ import pandas as pd
 import pandas_read_xml as pdx
 import pendulum
 from prefect import task
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
@@ -17,7 +18,6 @@ from pipelines.utils.utils import (
     save_updated_rows_on_redis,
     to_partitions,
 )
-from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 
 @task(
