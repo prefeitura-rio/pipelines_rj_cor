@@ -13,10 +13,10 @@ import pendulum
 from prefect import task
 from prefect.engine.signals import ENDRUN
 from prefect.engine.state import Failed, Skipped
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 from pipelines.constants import constants
 from pipelines.utils.utils import (
-    log,
     parse_date_columns,
     save_updated_rows_on_redis,
     to_partitions,

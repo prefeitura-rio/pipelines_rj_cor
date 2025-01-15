@@ -186,6 +186,7 @@ with Flow(
             redis_client=unmapped(redis_client),
             values=point_values_updated,
             redis_key=satellite_variables_list,
+            keep_last=150,
             sort_key=unmapped(sort_list_by_dict_key),
             wait=unmapped(point_values_updated),
         )

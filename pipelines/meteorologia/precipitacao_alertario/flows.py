@@ -189,11 +189,11 @@ with Flow(
             rain_dashboard_update_flow = create_flow_run(
                 flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
                 project_name=PREFECT_PROJECT,
-                parameters=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                parameters=alertario_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
                 labels=[
                     constants.RJ_COR_AGENT_LABEL.value,
                 ],
-                run_name="Update rain dashboard data (triggered by precipitacao_alertario flow)",  # noqa
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 15min flow)",  # noqa
             )
             rain_dashboard_update_flow.set_upstream(UPLOAD_TABLE)
 

@@ -4,8 +4,9 @@
 General utilities for meteorologia.
 """
 import pandas as pd
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
-from pipelines.utils.utils import get_redis_client, log
+from pipelines.utils.utils import get_redis_client
 
 
 def save_updated_rows_on_redis(

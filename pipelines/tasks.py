@@ -15,6 +15,7 @@ from prefect.triggers import all_successful  # pylint: disable=E0611, E0401
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.infisical import get_secret
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.pandas import (  # pylint: disable=E0611, E0401
     parse_date_columns,
     to_partitions,
@@ -23,7 +24,7 @@ from prefeitura_rio.pipelines_utils.redis_pal import (  # pylint: disable=E0611,
     get_redis_client,
 )
 
-from pipelines.utils.utils import build_redis_key, log
+from pipelines.utils.utils import build_redis_key
 from pipelines.utils_rj_cor import get_redis_output, save_on_redis
 
 # from redis_pal import RedisPal

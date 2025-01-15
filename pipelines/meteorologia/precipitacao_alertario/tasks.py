@@ -14,6 +14,7 @@ import requests
 from bs4 import BeautifulSoup  # pylint: disable=E0401
 from prefect import task  # pylint: disable=E0401
 from prefeitura_rio.pipelines_utils.infisical import get_secret  # pylint: disable=E0401
+from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611, E0401
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
@@ -25,7 +26,6 @@ from pipelines.utils.utils import (
     build_redis_key,
     compare_dates_between_tables_redis,
     get_redis_output,
-    log,
     parse_date_columns,
     save_str_on_redis,
     save_updated_rows_on_redis,
