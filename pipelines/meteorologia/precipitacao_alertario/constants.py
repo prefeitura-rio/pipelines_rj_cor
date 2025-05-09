@@ -2,7 +2,7 @@
 # flake8: noqa: E501
 # pylint: disable=C0302
 """
-Constant values for the rj_cor.meteorologia.precipitacao_alertario project
+Constant values for the rj_cor.meteorologia.precipitacao_alertario project.
 """
 
 from enum import Enum
