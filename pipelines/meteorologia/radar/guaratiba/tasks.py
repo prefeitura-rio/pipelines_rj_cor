@@ -563,5 +563,3 @@ def get_storage_destination(destination_blob_path: str, source_filename: str, so
     log(f"File destination_blob_name {destination_blob_name}")
     log(f"File source_file_name {source_file_name}")
     return destination_blob_name, source_file_name
-
-

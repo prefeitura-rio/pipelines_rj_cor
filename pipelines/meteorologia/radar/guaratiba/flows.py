@@ -256,7 +256,7 @@ with Flow(
 
     # Save new filenames on redis
     save_last_update_redis = task_save_on_redis(
-        redis_client=redis_client,\
+        redis_client=redis_client,
         values=files_to_save_redis,
         redis_key=redis_hash_processed,
         keep_last=30,
