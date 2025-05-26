@@ -32,7 +32,6 @@ from pipelines.utils.utils import (
     to_partitions,
 )
 
-
 # @task
 # def printar(text=str):
 #     log(text)

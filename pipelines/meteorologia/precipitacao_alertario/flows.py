@@ -15,6 +15,7 @@ from prefect.tasks.prefect import (  # pylint: disable=E0611,E0401
     wait_for_flow_run,
 )
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
+from prefeitura_rio.pipelines_utils.logging import log
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
@@ -29,16 +30,14 @@ from pipelines.meteorologia.precipitacao_alertario.constants import (
     constants as alertario_constants,
 )
 from pipelines.meteorologia.precipitacao_alertario.schedules import minute_schedule
-from pipelines.meteorologia.precipitacao_alertario.tasks import (
+from pipelines.meteorologia.precipitacao_alertario.tasks import (  # log,
     check_to_run_dbt,
     convert_sp_timezone_to_utc,
     download_data,
-    # log,
     save_data,
     save_last_dbt_update,
     treat_pluviometer_and_meteorological_data,
 )
-from prefeitura_rio.pipelines_utils.logging import log
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )
