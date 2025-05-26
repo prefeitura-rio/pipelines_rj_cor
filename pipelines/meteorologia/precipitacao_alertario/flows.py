@@ -352,7 +352,7 @@ with Flow(
             #     stream_states=True,
             #     stream_logs=True,
             #     raise_final_state=False,
-            )
+            # )
 
     # Trigger DBT for new API
     check_2_run_dbt = check_to_run_dbt(
