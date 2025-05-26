@@ -2,7 +2,7 @@
 # pylint: disable=C0103, line-too-long, unused-import
 # flake8: noqa: E116
 """
-Flows for precipitacao_alertario
+Flows for precipitacao_alertario.
 """
 from datetime import timedelta
 from threading import Thread
@@ -33,7 +33,6 @@ from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
     convert_sp_timezone_to_utc,
     download_data,
-    # log,
     save_data,
     save_last_dbt_update,
     treat_pluviometer_and_meteorological_data,
@@ -188,175 +187,176 @@ with Flow(
             dump_mode=DUMP_MODE,
         )
         log(">>>> DEBUG: Dados pluviométricos salvos em staging")
-        # with case(TRIGGER_RAIN_DASHBOARD_UPDATE, True):
-        #     # Trigger rain dashboard update flow run
-        #     rain_dashboard_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 15min flow)",  # noqa
-        #     )
-        #     rain_dashboard_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     wait_for_rain_dashboard_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+        with case(TRIGGER_RAIN_DASHBOARD_UPDATE, True):
+            # Trigger rain dashboard update flow run
+            rain_dashboard_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 15min flow)",  # noqa
+            )
+            rain_dashboard_update_flow.set_upstream(UPLOAD_TABLE)
 
-        # # Trigger rain dashboard update last 30min flow run
-        # rain_dashboard_last_30min_update_flow = create_flow_run(
-        #     flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #     project_name=PREFECT_PROJECT,
-        #     parameters=alertario_constants.RAIN_DASHBOARD_LAST_30MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #     labels=[
-        #         constants.RJ_COR_AGENT_LABEL.value,
-        #     ],
-        #     run_name="Update rain dashboard data (triggered by precipitacao_alertario last 30min flow)",  # noqa
-        # )
-        # rain_dashboard_last_30min_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        # wait_for_rain_dashboard_last_30min_update = wait_for_flow_run(
-        #     flow_run_id=rain_dashboard_last_30min_update_flow,
-        #     stream_states=True,
-        #     stream_logs=True,
-        #     raise_final_state=False,
-        # )
+            # Trigger rain dashboard update last 30min flow run
+            rain_dashboard_last_30min_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_30MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 30min flow)",  # noqa
+            )
+            rain_dashboard_last_30min_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 60min flow run
-        #     rain_dashboard_last_60min_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_60MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 60min flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_60min_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_30min_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_30min_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_60min_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_60min_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 60min flow run
+            rain_dashboard_last_60min_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_60MIN_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 60min flow)",  # noqa
+            )
+            rain_dashboard_last_60min_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 2h flow run
-        #     rain_dashboard_last_2h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_2H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 2h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_2h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_60min_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_60min_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_2h_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_2h_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 2h flow run
+            rain_dashboard_last_2h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_2H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 2h flow)",  # noqa
+            )
+            rain_dashboard_last_2h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 3h flow run
-        #     rain_dashboard_last_3h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_3H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 3h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_3h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_2h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_2h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_3h_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_3h_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 3h flow run
+            rain_dashboard_last_3h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_3H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 3h flow)",  # noqa
+            )
+            rain_dashboard_last_3h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 6h flow run
-        #     rain_dashboard_last_6h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_6H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 6h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_6h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_3h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_3h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_6h_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_6h_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 6h flow run
+            rain_dashboard_last_6h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_6H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 6h flow)",  # noqa
+            )
+            rain_dashboard_last_6h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 12h flow run
-        #     rain_dashboard_last_12h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_12H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 12h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_12h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_6h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_6h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_12h_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_12h_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 12h flow run
+            rain_dashboard_last_12h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_12H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 12h flow)",  # noqa
+            )
+            rain_dashboard_last_12h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 24h flow run
-        #     rain_dashboard_last_24h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_24H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[
-        #             constants.RJ_COR_AGENT_LABEL.value,
-        #         ],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 24h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_24h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_12h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_12h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        #     wait_for_rain_dashboard_last_24h_update = wait_for_flow_run(
-        #         flow_run_id=rain_dashboard_last_24h_update_flow,
-        #         stream_states=True,
-        #         stream_logs=True,
-        #         raise_final_state=False,
-        #     )
+            # Trigger rain dashboard update last 24h flow run
+            rain_dashboard_last_24h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_24H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[
+                    constants.RJ_COR_AGENT_LABEL.value,
+                ],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 24h flow)",  # noqa
+            )
+            rain_dashboard_last_24h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        #     # Trigger rain dashboard update last 96h flow run
-        #     rain_dashboard_last_96h_update_flow = create_flow_run(
-        #         flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
-        #         project_name=PREFECT_PROJECT,
-        #         parameters=alertario_constants.RAIN_DASHBOARD_LAST_96H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
-        #         labels=[constants.RJ_COR_AGENT_LABEL.value],
-        #         run_name="Update rain dashboard data (triggered by precipitacao_alertario last 96h flow)",  # noqa
-        #     )
-        #     rain_dashboard_last_96h_update_flow.set_upstream(UPLOAD_TABLE)
+            wait_for_rain_dashboard_last_24h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_24h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
-        # wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
-        #     flow_run_id=rain_dashboard_last_96h_update_flow,
-        #     stream_states=True,
-        #     stream_logs=True,
-        #     raise_final_state=False,
-        # )
+            # Trigger rain dashboard update last 96h flow run
+            rain_dashboard_last_96h_update_flow = create_flow_run(
+                flow_name=rain_dashboard_constants.RAIN_DASHBOARD_FLOW_NAME.value,
+                project_name=PREFECT_PROJECT,
+                parameters=alertario_constants.RAIN_DASHBOARD_LAST_96H_FLOW_SCHEDULE_PARAMETERS.value,  # noqa
+                labels=[constants.RJ_COR_AGENT_LABEL.value],
+                run_name="Update rain dashboard data (triggered by precipitacao_alertario last 96h flow)",  # noqa
+            )
+            rain_dashboard_last_96h_update_flow.set_upstream(UPLOAD_TABLE)
+
+        wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
+            flow_run_id=rain_dashboard_last_96h_update_flow,
+            stream_states=True,
+            stream_logs=True,
+            raise_final_state=False,
+        )
 
     # Trigger DBT for new API
     check_2_run_dbt = check_to_run_dbt(
@@ -414,158 +414,158 @@ with Flow(
             #         raise_final_state=True,
             #     )
 
-    # # Save and materialize meteorological data
-    # with case(empty_data_meteorological, False):
-    #     path_meteorological, full_path_meteorological = save_data(
-    #         dfr_meteorological, data_name="meteorological", wait=empty_data_meteorological
-    #     )
-    #     # Create table in BigQuery
-    #     UPLOAD_TABLE_METEOROLOGICAL = create_table_and_upload_to_gcs(
-    #         data_path=path_meteorological,
-    #         dataset_id=DATASET_ID_METEOROLOGICAL,
-    #         table_id=TABLE_ID_METEOROLOGICAL,
-    #         dump_mode=DUMP_MODE,
-    #     )
+    # Save and materialize meteorological data
+    with case(empty_data_meteorological, False):
+        path_meteorological, full_path_meteorological = save_data(
+            dfr_meteorological, data_name="meteorological", wait=empty_data_meteorological
+        )
+        # Create table in BigQuery
+        UPLOAD_TABLE_METEOROLOGICAL = create_table_and_upload_to_gcs(
+            data_path=path_meteorological,
+            dataset_id=DATASET_ID_METEOROLOGICAL,
+            table_id=TABLE_ID_METEOROLOGICAL,
+            dump_mode=DUMP_MODE,
+        )
 
-    #     with case(MATERIALIZE_AFTER_DUMP, True):
-    #         run_dbt_meterological = task_run_dbt_model_task(
-    #             dataset_id=DATASET_ID_METEOROLOGICAL,
-    #             table_id=TABLE_ID_METEOROLOGICAL,
-    #             # mode=materialization_mode,
-    #             # materialize_to_datario=materialize_to_datario,
-    #         )
-    #         run_dbt.set_upstream(UPLOAD_TABLE_METEOROLOGICAL)
+        with case(MATERIALIZE_AFTER_DUMP, True):
+            run_dbt_meterological = task_run_dbt_model_task(
+                dataset_id=DATASET_ID_METEOROLOGICAL,
+                table_id=TABLE_ID_METEOROLOGICAL,
+                # mode=materialization_mode,
+                # materialize_to_datario=materialize_to_datario,
+            )
+            run_dbt.set_upstream(UPLOAD_TABLE_METEOROLOGICAL)
 
-    # with case(DUMP_TO_GCS, True):
-    #     # Trigger Dump to GCS flow run with project id as datario
-    #     dump_to_gcs_flow = create_flow_run(
-    #         flow_name=utils_constants.FLOW_DUMP_TO_GCS_NAME.value,
-    #         project_name=constants.PREFECT_DEFAULT_PROJECT.value,
-    #         parameters={
-    #             "project_id": "datario",
-    #             "dataset_id": DATASET_ID_METEOROLOGICAL,
-    #             "table_id": TABLE_ID_METEOROLOGICAL,
-    #             "maximum_bytes_processed": MAXIMUM_BYTES_PROCESSED,
-    #         },
-    #         labels=[
-    #             "datario",
-    #         ],
-    #         run_name=f"Dump to GCS {DATASET_ID_METEOROLOGICAL}.{TABLE_ID_METEOROLOGICAL}",
-    #     )
-    #     dump_to_gcs_flow.set_upstream(wait_for_materialization)
+            # with case(DUMP_TO_GCS, True):
+            #     # Trigger Dump to GCS flow run with project id as datario
+            #     dump_to_gcs_flow = create_flow_run(
+            #         flow_name=utils_constants.FLOW_DUMP_TO_GCS_NAME.value,
+            #         project_name=constants.PREFECT_DEFAULT_PROJECT.value,
+            #         parameters={
+            #             "project_id": "datario",
+            #             "dataset_id": DATASET_ID_METEOROLOGICAL,
+            #             "table_id": TABLE_ID_METEOROLOGICAL,
+            #             "maximum_bytes_processed": MAXIMUM_BYTES_PROCESSED,
+            #         },
+            #         labels=[
+            #             "datario",
+            #         ],
+            #         run_name=f"Dump to GCS {DATASET_ID_METEOROLOGICAL}.{TABLE_ID_METEOROLOGICAL}",
+            #     )
+            #     dump_to_gcs_flow.set_upstream(wait_for_materialization)
 
-    #     wait_for_dump_to_gcs = wait_for_flow_run_with_5min_timeout(
-    #         flow_run_id=dump_to_gcs_flow,
-    #         stream_states=True,
-    #         stream_logs=True,
-    #         raise_final_state=True,
-    #     )
+            #     wait_for_dump_to_gcs = wait_for_flow_run_with_5min_timeout(
+            #         flow_run_id=dump_to_gcs_flow,
+            #         stream_states=True,
+            #         stream_logs=True,
+            #         raise_final_state=True,
+            #     )
 
-    # #####################################
-    # #  Start preprocessing gypscie flow #
-    # #####################################
-    # with case(empty_data_pluviometric, False):
-    #     with case(preprocessing_gypscie, True):
-    #         api = access_api()
+    #####################################
+    #  Start preprocessing gypscie flow #
+    #####################################
+    with case(empty_data_pluviometric, False):
+        with case(preprocessing_gypscie, True):
+            api = access_api()
 
-    #         dataset_info = get_dataset_info(station_type, source)
+            dataset_info = get_dataset_info(station_type, source)
 
-    #         # Get processor information on gypscie
-    #         with case(dataset_processor_id, None):
-    #             dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
-    #                 api, processor_name
-    #             )
-    #         dfr_pluviometric_converted = convert_columns_type(
-    #             dfr_pluviometric, columns=["id_estacao"], new_types=[int]
-    #         )
-    #         # dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
-    #         path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
-    #             dfr_pluviometric_converted,
-    #             data_name="gypscie",
-    #             columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
-    #             data_type="parquet",
-    #             suffix=False,
-    #         )
-    #         full_path_pluviometric_gypscie_ = rename_files(
-    #             full_path_pluviometric_gypscie, rename="dados_alertario_raw"
-    #         )
-    #         register_dataset_response = register_dataset_on_gypscie(
-    #             api, filepath=full_path_pluviometric_gypscie_[0], domain_id=domain_id
-    #         )
+            # Get processor information on gypscie
+            with case(dataset_processor_id, None):
+                dataset_processor_response, dataset_processor_id = get_dataset_processor_info(
+                    api, processor_name
+                )
+            dfr_pluviometric_converted = convert_columns_type(
+                dfr_pluviometric, columns=["id_estacao"], new_types=[int]
+            )
+            # dfr_pluviometric_gypscie = convert_sp_timezone_to_utc(dfr_pluviometric_converted)
+            path_pluviometric_gypscie, full_path_pluviometric_gypscie = save_data(
+                dfr_pluviometric_converted,
+                data_name="gypscie",
+                columns=["id_estacao", "data_medicao", "acumulado_chuva_5min"],
+                data_type="parquet",
+                suffix=False,
+            )
+            full_path_pluviometric_gypscie_ = rename_files(
+                full_path_pluviometric_gypscie, rename="dados_alertario_raw"
+            )
+            register_dataset_response = register_dataset_on_gypscie(
+                api, filepath=full_path_pluviometric_gypscie_[0], domain_id=domain_id
+            )
 
-    #         model_params = get_dataflow_alertario_params(
-    #             workflow_id=workflow_id,
-    #             environment_id=environment_id,
-    #             project_id=project_id,
-    #             rain_gauge_data_id=register_dataset_response["id"],
-    #             rain_gauge_metadata_path=rain_gauge_metadata_path,
-    #             load_data_function_id=load_data_function_id,
-    #             parse_date_time_function_id=parse_date_time_function_id,
-    #             drop_duplicates_function_id=drop_duplicates_function_id,
-    #             replace_inconsistent_values_function_id=replace_inconsistent_values_function_id,
-    #             add_lat_lon_function_id=add_lat_lon_function_id,
-    #             save_data_function_id=save_data_function_id,
-    #         )
+            model_params = get_dataflow_alertario_params(
+                workflow_id=workflow_id,
+                environment_id=environment_id,
+                project_id=project_id,
+                rain_gauge_data_id=register_dataset_response["id"],
+                rain_gauge_metadata_path=rain_gauge_metadata_path,
+                load_data_function_id=load_data_function_id,
+                parse_date_time_function_id=parse_date_time_function_id,
+                drop_duplicates_function_id=drop_duplicates_function_id,
+                replace_inconsistent_values_function_id=replace_inconsistent_values_function_id,
+                add_lat_lon_function_id=add_lat_lon_function_id,
+                save_data_function_id=save_data_function_id,
+            )
 
-    #         # Send dataset ids to gypscie to get predictions
-    #         output_dataset_ids = execute_dataflow_on_gypscie(
-    #             api,
-    #             model_params,
-    #         )
+            # Send dataset ids to gypscie to get predictions
+            output_dataset_ids = execute_dataflow_on_gypscie(
+                api,
+                model_params,
+            )
 
-    #         # dataset_processor_task_id = execute_dataset_processor(
-    #         #     api,
-    #         #     processor_id=dataset_processor_id,
-    #         #     dataset_id=[dataset_response["id"]],
-    #         #     environment_id=environment_id,
-    #         #     project_id=project_id,
-    #         #     parameters=processor_parameters,
-    #         # )
-    #         # wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
-    #         # dataset_path = download_datasets_from_gypscie(
-    #         #     api, dataset_names=[dataset_response["id"]], wait=wait_run
-    #         # )
-    #         dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)  # new
-    #         ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
-    #         dataset_paths = unzip_files(ziped_dataset_paths)
-    #         dfr_gypscie_ = path_to_dfr(dataset_paths)
-    #         # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
-    #         dfr_gypscie = add_caracterization_columns_on_dfr(
-    #             dfr_gypscie_, model_version, update_time=True
-    #         )
+            # dataset_processor_task_id = execute_dataset_processor(
+            #     api,
+            #     processor_id=dataset_processor_id,
+            #     dataset_id=[dataset_response["id"]],
+            #     environment_id=environment_id,
+            #     project_id=project_id,
+            #     parameters=processor_parameters,
+            # )
+            # wait_run = task_wait_run(api, dataset_processor_task_id, flow_type="processor")
+            # dataset_path = download_datasets_from_gypscie(
+            #     api, dataset_names=[dataset_response["id"]], wait=wait_run
+            # )
+            dataset_names = get_dataset_name_on_gypscie(api, output_dataset_ids)  # new
+            ziped_dataset_paths = download_datasets_from_gypscie(api, dataset_names=dataset_names)
+            dataset_paths = unzip_files(ziped_dataset_paths)
+            dfr_gypscie_ = path_to_dfr(dataset_paths)
+            # output_datasets_id = get_output_dataset_ids_on_gypscie(api, dataset_processor_task_id)
+            dfr_gypscie = add_caracterization_columns_on_dfr(
+                dfr_gypscie_, model_version, update_time=True
+            )
 
-    #         # Save pre-treated data on local file with partitions
-    #         now_datetime = get_now_datetime()
-    #         prediction_data_path, prediction_data_full_path = task_create_partitions(
-    #             data=dfr_gypscie,
-    #             partition_date_column=dataset_info["partition_date_column"],
-    #             savepath="model_prediction",
-    #             suffix=now_datetime,
-    #             wait=dfr_gypscie,
-    #         )
+            # Save pre-treated data on local file with partitions
+            now_datetime = get_now_datetime()
+            prediction_data_path, prediction_data_full_path = task_create_partitions(
+                data=dfr_gypscie,
+                partition_date_column=dataset_info["partition_date_column"],
+                savepath="model_prediction",
+                suffix=now_datetime,
+                wait=dfr_gypscie,
+            )
 
-    #         ################################
-    #         #  Save preprocessing on GCP   #
-    #         ################################
+            ################################
+            #  Save preprocessing on GCP   #
+            ################################
 
-    #         # Upload data to BigQuery
-    #         create_table = create_table_and_upload_to_gcs(
-    #             data_path=prediction_data_path,
-    #             dataset_id=dataset_id_previsao_chuva,
-    #             table_id=table_id_previsao_chuva,
-    #             dump_mode=DUMP_MODE,
-    #             biglake_table=False,
-    #         )
+            # Upload data to BigQuery
+            create_table = create_table_and_upload_to_gcs(
+                data_path=prediction_data_path,
+                dataset_id=dataset_id_previsao_chuva,
+                table_id=table_id_previsao_chuva,
+                dump_mode=DUMP_MODE,
+                biglake_table=False,
+            )
 
-    #         # Trigger DBT flow run
-    #         with case(MATERIALIZE_AFTER_DUMP, True):
-    #             run_dbt = task_run_dbt_model_task(
-    #                 dataset_id=dataset_id_previsao_chuva,
-    #                 table_id=table_id_previsao_chuva,
-    #                 # mode=materialization_mode,
-    #                 # materialize_to_datario=materialize_to_datario,
-    #             )
-    #             run_dbt.set_upstream(create_table)
+            # Trigger DBT flow run
+            with case(MATERIALIZE_AFTER_DUMP, True):
+                run_dbt = task_run_dbt_model_task(
+                    dataset_id=dataset_id_previsao_chuva,
+                    table_id=table_id_previsao_chuva,
+                    # mode=materialization_mode,
+                    # materialize_to_datario=materialize_to_datario,
+                )
+                run_dbt.set_upstream(create_table)
 
 # para rodar na cloud
 cor_meteorologia_precipitacao_alertario.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
