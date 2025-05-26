@@ -424,7 +424,7 @@ with Flow(
                 # mode=materialization_mode,
                 # materialize_to_datario=materialize_to_datario,
             )
-            run_dbt.set_upstream(UPLOAD_TABLE_METEOROLOGICAL)
+            run_dbt_meterological.set_upstream(UPLOAD_TABLE_METEOROLOGICAL)
 
             # with case(DUMP_TO_GCS, True):
             #     # Trigger Dump to GCS flow run with project id as datario
