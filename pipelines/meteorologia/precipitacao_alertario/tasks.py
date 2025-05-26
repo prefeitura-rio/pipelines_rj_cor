@@ -33,6 +33,11 @@ from pipelines.utils.utils import (
 )
 
 
+@task
+def printar(text=str):
+    log(text)
+
+
 @task(
     nout=2,
     max_retries=constants.TASK_MAX_RETRIES.value,
