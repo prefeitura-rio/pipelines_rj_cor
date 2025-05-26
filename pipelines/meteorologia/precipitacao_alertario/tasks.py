@@ -33,9 +33,9 @@ from pipelines.utils.utils import (
 )
 
 
-@task
-def printar(text=str):
-    log(text)
+# @task
+# def printar(text=str):
+#     log(text)
 
 
 @task(

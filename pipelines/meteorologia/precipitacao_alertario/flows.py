@@ -33,11 +33,12 @@ from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
     convert_sp_timezone_to_utc,
     download_data,
-    printar,
+    # log,
     save_data,
     save_last_dbt_update,
     treat_pluviometer_and_meteorological_data,
 )
+from prefeitura_rio.pipelines_utils.logging import log
 from pipelines.rj_escritorio.rain_dashboard.constants import (
     constants as rain_dashboard_constants,
 )
@@ -172,7 +173,7 @@ with Flow(
     )
 
     with case(empty_data_pluviometric, False):
-        printar(">>>> DEBUG: Temos dados pluviométricos")
+        log(">>>> DEBUG: Temos dados pluviométricos")
         path_pluviometric, full_path_pluviometric = save_data(
             dfr_pluviometric,
             data_name="pluviometric",
@@ -186,7 +187,7 @@ with Flow(
             table_id=TABLE_ID_PLUVIOMETRIC,
             dump_mode=DUMP_MODE,
         )
-        printar(">>>> DEBUG: Dados pluviométricos salvos em staging")
+        log(">>>> DEBUG: Dados pluviométricos salvos em staging")
         # with case(TRIGGER_RAIN_DASHBOARD_UPDATE, True):
         #     # Trigger rain dashboard update flow run
         #     rain_dashboard_update_flow = create_flow_run(
@@ -363,14 +364,14 @@ with Flow(
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    printar(f">>> DEBUG: variável check_to_run_dbt: {check_2_run_dbt}")
+    log(f">>> DEBUG: variável check_to_run_dbt: {check_2_run_dbt}")
     check_2_run_dbt.set_upstream(UPLOAD_TABLE)
 
     with case(check_2_run_dbt, True):
-        printar(f">>> DEBUG: variável check_to_run_dbt entrou no case when: {check_2_run_dbt}")
+        log(f">>> DEBUG: variável check_to_run_dbt entrou no case when: {check_2_run_dbt}")
         # Trigger DBT flow run
         with case(MATERIALIZE_AFTER_DUMP, True):
-            printar(
+            log(
                 f">>>> DEBUG: Variável materialize_avter dumb {MATERIALIZE_AFTER_DUMP} entrou no case when"
             )
             run_dbt = task_run_dbt_model_task(
@@ -379,7 +380,7 @@ with Flow(
                 # mode=materialization_mode,
                 # materialize_to_datario=materialize_to_datario,
             )
-            printar(">>>> DEBUG: Dados pluviométricos salvos em prod")
+            log(">>>> DEBUG: Dados pluviométricos salvos em prod")
             run_dbt.set_upstream(check_2_run_dbt)
             last_dbt_update = save_last_dbt_update(
                 dataset_id=DATASET_ID_PLUVIOMETRIC,
