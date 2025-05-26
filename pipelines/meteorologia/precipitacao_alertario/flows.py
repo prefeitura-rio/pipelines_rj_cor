@@ -351,12 +351,12 @@ with Flow(
             )
             rain_dashboard_last_96h_update_flow.set_upstream(UPLOAD_TABLE)
 
-        wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
-            flow_run_id=rain_dashboard_last_96h_update_flow,
-            stream_states=True,
-            stream_logs=True,
-            raise_final_state=False,
-        )
+            wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
+                flow_run_id=rain_dashboard_last_96h_update_flow,
+                stream_states=True,
+                stream_logs=True,
+                raise_final_state=False,
+            )
 
     # Trigger DBT for new API
     check_2_run_dbt = check_to_run_dbt(
