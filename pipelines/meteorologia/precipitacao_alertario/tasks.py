@@ -50,6 +50,8 @@ def download_data() -> pd.DataFrame:
 
     url = get_secret("ALERTARIO_API")["ALERTARIO_API"]
 
+    log(f"Requesting data from {url}")
+
     try:
         response = requests.get(url)
 

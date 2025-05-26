@@ -2,7 +2,7 @@
 # pylint: disable=C0103, line-too-long, unused-import
 # flake8: noqa: E116
 """
-Flows for precipitacao_alertario.
+Flows for precipitacao_alertario
 """
 from datetime import timedelta
 from threading import Thread
