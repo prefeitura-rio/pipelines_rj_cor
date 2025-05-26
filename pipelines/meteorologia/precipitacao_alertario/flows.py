@@ -549,13 +549,13 @@ with Flow(
 
             # Trigger DBT flow run
             with case(MATERIALIZE_AFTER_DUMP, True):
-                run_dbt = task_run_dbt_model_task(
+                run_dbt_gypscie = task_run_dbt_model_task(
                     dataset_id=dataset_id_previsao_chuva,
                     table_id=table_id_previsao_chuva,
                     # mode=materialization_mode,
                     # materialize_to_datario=materialize_to_datario,
                 )
-                run_dbt.set_upstream(create_table)
+                run_dbt_gypscie.set_upstream(create_table)
 
 # para rodar na cloud
 cor_meteorologia_precipitacao_alertario.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
