@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=C0103, line-too-long, unused-import
-# flake8: noqa: E116
+# pylint: disable=C0103, line-too-long
 """
 Flows for precipitacao_alertario.
 """
@@ -15,7 +14,6 @@ from prefect.tasks.prefect import (  # pylint: disable=E0611,E0401
     wait_for_flow_run,
 )
 from prefeitura_rio.pipelines_utils.custom import Flow  # pylint: disable=E0611, E0401
-from prefeitura_rio.pipelines_utils.logging import log
 
 # pylint: disable=E0611, E0401
 from prefeitura_rio.pipelines_utils.state_handlers import handler_inject_bd_credentials
@@ -30,7 +28,7 @@ from pipelines.meteorologia.precipitacao_alertario.constants import (
     constants as alertario_constants,
 )
 from pipelines.meteorologia.precipitacao_alertario.schedules import minute_schedule
-from pipelines.meteorologia.precipitacao_alertario.tasks import (  # log,
+from pipelines.meteorologia.precipitacao_alertario.tasks import (
     check_to_run_dbt,
     convert_sp_timezone_to_utc,
     download_data,
@@ -172,7 +170,6 @@ with Flow(
     )
 
     with case(empty_data_pluviometric, False):
-        log(">>>> DEBUG: Temos dados pluviométricos")
         path_pluviometric, full_path_pluviometric = save_data(
             dfr_pluviometric,
             data_name="pluviometric",
@@ -186,7 +183,6 @@ with Flow(
             table_id=TABLE_ID_PLUVIOMETRIC,
             dump_mode=DUMP_MODE,
         )
-        log(">>>> DEBUG: Dados pluviométricos salvos em staging")
 
         with case(TRIGGER_RAIN_DASHBOARD_UPDATE, True):
             # Trigger rain dashboard update flow run
@@ -351,12 +347,12 @@ with Flow(
             )
             rain_dashboard_last_96h_update_flow.set_upstream(UPLOAD_TABLE)
 
-            wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
-                flow_run_id=rain_dashboard_last_96h_update_flow,
-                stream_states=True,
-                stream_logs=True,
-                raise_final_state=False,
-            )
+        wait_for_rain_dashboard_last_96h_update = wait_for_flow_run(
+            flow_run_id=rain_dashboard_last_96h_update_flow,
+            stream_states=True,
+            stream_logs=True,
+            raise_final_state=False,
+        )
 
     # Trigger DBT for new API
     check_2_run_dbt = check_to_run_dbt(
@@ -364,23 +360,17 @@ with Flow(
         table_id=TABLE_ID_PLUVIOMETRIC,
         mode=MATERIALIZATION_MODE,
     )
-    log(f">>> DEBUG: variável check_to_run_dbt: {check_2_run_dbt}")
     check_2_run_dbt.set_upstream(UPLOAD_TABLE)
 
     with case(check_2_run_dbt, True):
-        log(f">>> DEBUG: variável check_to_run_dbt entrou no case when: {check_2_run_dbt}")
         # Trigger DBT flow run
         with case(MATERIALIZE_AFTER_DUMP, True):
-            log(
-                f">>>> DEBUG: Variável materialize_avter dumb {MATERIALIZE_AFTER_DUMP} entrou no case when"
-            )
             run_dbt = task_run_dbt_model_task(
                 dataset_id=DATASET_ID_PLUVIOMETRIC,
                 table_id=TABLE_ID_PLUVIOMETRIC,
                 # mode=materialization_mode,
                 # materialize_to_datario=materialize_to_datario,
             )
-            log(">>>> DEBUG: Dados pluviométricos salvos em prod")
             run_dbt.set_upstream(check_2_run_dbt)
             last_dbt_update = save_last_dbt_update(
                 dataset_id=DATASET_ID_PLUVIOMETRIC,
