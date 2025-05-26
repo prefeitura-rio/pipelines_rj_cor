@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103, line-too-long
 """
-Flows for precipitacao_alertario.
+Flows for precipitacao_alertario..
 """
 from datetime import timedelta
 from threading import Thread

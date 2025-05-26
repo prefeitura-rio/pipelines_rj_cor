@@ -34,6 +34,7 @@ contextily = "^1.6.2"
 dbt-client = "^0.1.3"
 elasticsearch = "^8.15.1"
 gdal = { url = "https://prefeitura-rio.github.io/storage/GDAL-3.4.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl" }
+marshmallow = "^3.22.0"
 
 
 [tool.poetry.group.dev]
