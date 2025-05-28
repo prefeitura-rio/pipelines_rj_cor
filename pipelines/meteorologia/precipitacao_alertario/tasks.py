@@ -18,6 +18,7 @@ from prefeitura_rio.pipelines_utils.logging import log  # pylint: disable=E0611,
 
 from pipelines.constants import constants
 from pipelines.meteorologia.precipitacao_alertario.utils import (
+    fill_col_if_dropped_on_source,
     parse_date_columns_old_api,
     replace_future_dates,
     treat_date_col,
@@ -170,6 +171,9 @@ def treat_pluviometer_and_meteorological_data(
             # Changin values "ND" and "-" to "None"
             dfr.replace(["ND", "-"], [None, None], inplace=True)
 
+        dfr = fill_col_if_dropped_on_source(dfr, keep_cols)
+        # TODO: seria interessante ter uma função para analisar se há colunas novas
+        # e gerar um alerta pois teve caso de alterarem o nome da coluna sensação térmica
         # Fix columns order
         dfr = dfr[keep_cols]
     else:
