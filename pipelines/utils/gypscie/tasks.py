@@ -6,6 +6,7 @@ Tasks
 import datetime
 import gzip
 import os
+import requests
 import shutil
 import time
 import zipfile
@@ -320,7 +321,11 @@ def execute_dataflow_on_gypscie(
     #             "dataset_id": dataset_id,
     #             "project_id": project_id,
     #         },
-    response = wait_run(api, task_response.json())
+    try:
+        response = wait_run(api, task_response.json())
+    except requests.exceptions.JSONDecodeError:
+        log(f"Error decoding JSON response. Got {task_response.text}. Using raw response instead.")
+        response = wait_run(api, task_response)
 
     if response["state"] != "SUCCESS":
         failed_message = "Error processing this dataset. Stop flow or restart this task"
@@ -822,9 +827,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info[
-                "destination_table_id"
-            ] = "preprocessamento_estacao_meteorologica_alertario"
+            dataset_info["destination_table_id"] = (
+                "preprocessamento_estacao_meteorologica_alertario"
+            )
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
