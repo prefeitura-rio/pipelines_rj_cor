@@ -126,3 +126,15 @@ def remove_future_dates(dfr: pd.DataFrame) -> pd.DataFrame:
 
         dfr = dfr[dfr["data_medicao"] <= current_date_sp]
     return dfr
+
+
+def fill_col_if_dropped_on_source(dfr: pd.DataFrame, expected_cols: list) -> pd.DataFrame:
+    """
+    If expected columns were missing add it with None
+    """
+    missing_cols = [col for col in expected_cols if col not in dfr.columns]
+    if missing_cols:
+        log(f"Missing columns: {missing_cols}. Filling with None.")
+        for col in missing_cols:
+            dfr[col] = None
+    return dfr
