@@ -6,7 +6,6 @@ Tasks
 import datetime
 import gzip
 import os
-import requests
 import shutil
 import time
 import zipfile
@@ -16,6 +15,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import requests
 from basedosdados import Base  # pylint: disable=E0611, E0401
 from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import context, task  # pylint: disable=E0611, E0401
@@ -827,9 +827,9 @@ def get_dataset_info(station_type: str, source: str) -> Dict:
         }
         if source == "alertario":
             dataset_info["table_id"] = "meteorologia_alertario"
-            dataset_info["destination_table_id"] = (
-                "preprocessamento_estacao_meteorologica_alertario"
-            )
+            dataset_info[
+                "destination_table_id"
+            ] = "preprocessamento_estacao_meteorologica_alertario"
         elif source == "inmet":
             dataset_info["table_id"] = "meteorologia_inmet"
             dataset_info["destination_table_id"] = "preprocessamento_estacao_meteorologica_inmet"
