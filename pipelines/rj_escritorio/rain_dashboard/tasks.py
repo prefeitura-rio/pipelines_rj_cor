@@ -97,4 +97,4 @@ def set_redis_key(
     redis_client = get_redis_client_from_infisical(infisical_secrets_path="/redis")
     redis_client.set(key, value)
     log("Redis key set successfully.")
-    log(f"key: {key} and value: {value}")
+    # log(f"key: {key} and value: {value}")
