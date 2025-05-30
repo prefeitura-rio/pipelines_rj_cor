@@ -15,6 +15,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import requests
 from basedosdados import Base  # pylint: disable=E0611, E0401
 from google.cloud import bigquery  # pylint: disable=E0611, E0401
 from prefect import context, task  # pylint: disable=E0611, E0401
@@ -320,7 +321,11 @@ def execute_dataflow_on_gypscie(
     #             "dataset_id": dataset_id,
     #             "project_id": project_id,
     #         },
-    response = wait_run(api, task_response.json())
+    try:
+        response = wait_run(api, task_response.json())
+    except requests.exceptions.JSONDecodeError:
+        log(f"Error decoding JSON response. Got {task_response.text}. Using raw response instead.")
+        response = wait_run(api, task_response)
 
     if response["state"] != "SUCCESS":
         failed_message = "Error processing this dataset. Stop flow or restart this task"
