@@ -190,7 +190,7 @@ def get_files_from_aws(partition_path):
     s3_fs = s3fs.S3FileSystem(anon=True)
 
     # Get all files of GOES-16 data (multiband format) at this hour
-    storage_files_path = np.sort(np.array(s3_fs.find(f"noaa-goes16/{partition_path}")))
+    storage_files_path = np.sort(np.array(s3_fs.find(f"noaa-goes19/{partition_path}")))
     storage_origin = "aws"
 
     return storage_files_path, storage_origin, s3_fs
@@ -201,7 +201,7 @@ def get_files_from_gcp(partition_path):
     Get all available files from gcp that is inside the partition path
     """
     log("Acessing GCP to get files")
-    bucket_name = "gcp-public-data-goes-16"
+    bucket_name = "gcp-public-data-goes-19"
     storage_files_path = get_blob_with_prefix(
         bucket_name=bucket_name, prefix=partition_path, mode="prod"
     )
