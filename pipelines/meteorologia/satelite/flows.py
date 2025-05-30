@@ -66,14 +66,14 @@ from pipelines.tasks import (  # pylint: disable=E0611, E0401
 from pipelines.utils_rj_cor import sort_list_by_dict_key
 
 with Flow(
-    name="COR: Meteorologia - Satelite GOES 16",
+    name="COR: Meteorologia - Satelite GOES 19",
     state_handlers=[
         handler_initialize_sentry,
         handler_inject_bd_credentials,
     ],
     parallelism=10,
     skip_if_running=False,
-) as cor_meteorologia_goes16:
+) as cor_meteorologia_goes19:
 
     # Materialization parameters
     materialize_after_dump = Parameter("materialize_after_dump", default=False, required=False)
@@ -193,13 +193,13 @@ with Flow(
         point_values_path, point_values_full_path = task_create_partitions(
             df_point_values,
             partition_date_column="data_medicao",
-            savepath="metricas_geoespaciais_goes16",
+            savepath="metricas_geoespaciais_goes19",
             suffix=now_datetime,
         )
         create_table_point_value = create_table_and_upload_to_gcs(
             data_path=point_values_path,
             dataset_id=dataset_id,
-            table_id="metricas_geoespaciais_goes16",
+            table_id="metricas_geoespaciais_goes19",
             dump_mode=dump_mode,
             biglake_table=False,
         )
@@ -216,7 +216,7 @@ with Flow(
 
         run_dbt_point_value = task_run_dbt_model_task(
             dataset_id=dataset_id,
-            table_id="metricas_geoespaciais_goes16",
+            table_id="metricas_geoespaciais_goes19",
             # mode=materialization_mode,
             # materialize_to_datario=materialize_to_datario,
         )
@@ -248,139 +248,139 @@ with Flow(
 
 
 # para rodar na cloud
-# cor_meteorologia_goes16.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-# cor_meteorologia_goes16.run_config = KubernetesRun(
+# cor_meteorologia_goes19.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+# cor_meteorologia_goes19.run_config = KubernetesRun(
 #     image=constants.DOCKER_IMAGE.value,
 #     labels=[constants.RJ_COR_AGENT_LABEL.value],
 # )
-cor_meteorologia_goes16_rrqpe = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_rrqpe.name = (
-    "COR: Meteorologia - Satelite GOES 16 - RRQPE - Taxa de precipitação"
+cor_meteorologia_goes19_rrqpe = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_rrqpe.name = (
+    "COR: Meteorologia - Satelite GOES 19 - RRQPE - Taxa de precipitação"
 )
-cor_meteorologia_goes16_rrqpe.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_rrqpe.run_config = KubernetesRun(
+cor_meteorologia_goes19_rrqpe.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_rrqpe.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_rrqpe.schedule = rrqpe
+cor_meteorologia_goes19_rrqpe.schedule = rrqpe
 
-cor_meteorologia_goes16_tpw = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_tpw.name = (
-    "COR: Meteorologia - Satelite GOES 16 - TPW - Quantidade de água precipitável"
+cor_meteorologia_goes19_tpw = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_tpw.name = (
+    "COR: Meteorologia - Satelite GOES 19 - TPW - Quantidade de água precipitável"
 )
-cor_meteorologia_goes16_tpw.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_tpw.run_config = KubernetesRun(
+cor_meteorologia_goes19_tpw.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_tpw.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_tpw.schedule = tpw
+cor_meteorologia_goes19_tpw.schedule = tpw
 
-cor_meteorologia_goes16_cmip = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_cmip.name = (
-    "COR: Meteorologia - Satelite GOES 16 - CMIP - Infravermelho longo banda 13"
+cor_meteorologia_goes19_cmip = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_cmip.name = (
+    "COR: Meteorologia - Satelite GOES 19 - CMIP - Infravermelho longo banda 13"
 )
-cor_meteorologia_goes16_cmip.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_cmip.run_config = KubernetesRun(
+cor_meteorologia_goes19_cmip.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_cmip.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip.schedule = cmip13
+cor_meteorologia_goes19_cmip.schedule = cmip13
 
-cor_meteorologia_goes16_mcmip = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_mcmip.name = (
-    "COR: Meteorologia - Satelite GOES 16 - MCMIP - Nuvem e umidade"
+cor_meteorologia_goes19_mcmip = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_mcmip.name = (
+    "COR: Meteorologia - Satelite GOES 19 - MCMIP - Nuvem e umidade"
 )
-cor_meteorologia_goes16_mcmip.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_mcmip.run_config = KubernetesRun(
+cor_meteorologia_goes19_mcmip.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_mcmip.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_mcmip.schedule = mcmip
+cor_meteorologia_goes19_mcmip.schedule = mcmip
 
-cor_meteorologia_goes16_dsi = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_dsi.name = (
-    "COR: Meteorologia - Satelite GOES 16 - DSI - Índices de estabilidade da atmosfera"
+cor_meteorologia_goes19_dsi = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_dsi.name = (
+    "COR: Meteorologia - Satelite GOES 19 - DSI - Índices de estabilidade da atmosfera"
 )
-cor_meteorologia_goes16_dsi.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_dsi.run_config = KubernetesRun(
+cor_meteorologia_goes19_dsi.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_dsi.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_dsi.schedule = dsi
+cor_meteorologia_goes19_dsi.schedule = dsi
 
-cor_meteorologia_goes16_lst = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_lst.name = (
-    "COR: Meteorologia - Satelite GOES 16 - LST - Temperatura da superfície da terra"
+cor_meteorologia_goes19_lst = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_lst.name = (
+    "COR: Meteorologia - Satelite GOES 19 - LST - Temperatura da superfície da terra"
 )
-cor_meteorologia_goes16_lst.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_lst.run_config = KubernetesRun(
+cor_meteorologia_goes19_lst.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_lst.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_lst.schedule = lst
+cor_meteorologia_goes19_lst.schedule = lst
 
-cor_meteorologia_goes16_sst = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_sst.name = (
-    "COR: Meteorologia - Satelite GOES 16 - SST - Temperatura da superfície do oceano"
+cor_meteorologia_goes19_sst = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_sst.name = (
+    "COR: Meteorologia - Satelite GOES 19 - SST - Temperatura da superfície do oceano"
 )
-cor_meteorologia_goes16_sst.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_sst.run_config = KubernetesRun(
+cor_meteorologia_goes19_sst.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_sst.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_sst.schedule = sst
+cor_meteorologia_goes19_sst.schedule = sst
 
-cor_meteorologia_goes16_aod = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_aod.name = (
-    "COR: Meteorologia - Satelite GOES 16 - AOD - Profundidade óptica aerossol"
+cor_meteorologia_goes19_aod = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_aod.name = (
+    "COR: Meteorologia - Satelite GOES 19 - AOD - Profundidade óptica aerossol"
 )
-cor_meteorologia_goes16_aod.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_aod.run_config = KubernetesRun(
+cor_meteorologia_goes19_aod.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_aod.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_aod.schedule = aod
+cor_meteorologia_goes19_aod.schedule = aod
 
-cor_meteorologia_goes16_cmip7 = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_cmip7.name = (
-    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas curtas banda 7"
+cor_meteorologia_goes19_cmip7 = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_cmip7.name = (
+    "COR: Meteorologia - Satelite GOES 19 - CMIP - Janela de ondas curtas banda 7"
 )
-cor_meteorologia_goes16_cmip7.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_cmip7.run_config = KubernetesRun(
+cor_meteorologia_goes19_cmip7.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_cmip7.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip7.schedule = cmip7
+cor_meteorologia_goes19_cmip7.schedule = cmip7
 
-cor_meteorologia_goes16_cmip9 = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_cmip9.name = (
-    "COR: Meteorologia - Satelite GOES 16 - CMIP - Vapor d'água em níveis médios banda 9"
+cor_meteorologia_goes19_cmip9 = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_cmip9.name = (
+    "COR: Meteorologia - Satelite GOES 19 - CMIP - Vapor d'água em níveis médios banda 9"
 )
-cor_meteorologia_goes16_cmip9.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_cmip9.run_config = KubernetesRun(
+cor_meteorologia_goes19_cmip9.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_cmip9.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip9.schedule = cmip9
+cor_meteorologia_goes19_cmip9.schedule = cmip9
 
-cor_meteorologia_goes16_cmip11 = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_cmip11.name = (
-    "COR: Meteorologia - Satelite GOES 16 - CMIP - Fase do topo da nuvem banda 11"
+cor_meteorologia_goes19_cmip11 = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_cmip11.name = (
+    "COR: Meteorologia - Satelite GOES 19 - CMIP - Fase do topo da nuvem banda 11"
 )
-cor_meteorologia_goes16_cmip11.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_cmip11.run_config = KubernetesRun(
+cor_meteorologia_goes19_cmip11.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_cmip11.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip11.schedule = cmip11
+cor_meteorologia_goes19_cmip11.schedule = cmip11
 
-cor_meteorologia_goes16_cmip15 = deepcopy(cor_meteorologia_goes16)
-cor_meteorologia_goes16_cmip15.name = (
-    "COR: Meteorologia - Satelite GOES 16 - CMIP - Janela de ondas longas contaminada banda 15"
+cor_meteorologia_goes19_cmip15 = deepcopy(cor_meteorologia_goes19)
+cor_meteorologia_goes19_cmip15.name = (
+    "COR: Meteorologia - Satelite GOES 19 - CMIP - Janela de ondas longas contaminada banda 15"
 )
-cor_meteorologia_goes16_cmip15.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
-cor_meteorologia_goes16_cmip15.run_config = KubernetesRun(
+cor_meteorologia_goes19_cmip15.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
+cor_meteorologia_goes19_cmip15.run_config = KubernetesRun(
     image=constants.DOCKER_IMAGE.value,
     labels=[constants.RJ_COR_AGENT_LABEL.value],
 )
-cor_meteorologia_goes16_cmip15.schedule = cmip15
+cor_meteorologia_goes19_cmip15.schedule = cmip15

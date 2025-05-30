@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103
 """
-Flows for precipitacao_cemaden.
+Flows for precipitacao_cemaden..
 """
 from datetime import timedelta
 
