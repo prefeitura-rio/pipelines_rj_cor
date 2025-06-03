@@ -40,7 +40,6 @@ with Flow(
 
     # Materialization parameters
     MATERIALIZE_AFTER_DUMP = Parameter("materialize_after_dump", default=False, required=False)
-    MATERIALIZATION_MODE = Parameter("mode", default="dev", required=False)
 
     # Dump to GCS after? Should only dump to GCS if materializing to datario
     DUMP_TO_GCS = Parameter("dump_to_gcs", default=False, required=False)
@@ -70,7 +69,6 @@ with Flow(
         run_dbt = task_run_dbt_model_task(
             dataset_id=DATASET_ID,
             table_id=TABLE_ID,
-            mode=MATERIALIZATION_MODE,
         )
 
 # para rodar na cloud

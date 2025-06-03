@@ -20,7 +20,6 @@ hour_schedule = Schedule(
             ],
             parameter_defaults={
                 "materialize_after_dump": True,
-                "mode": "prod",
             },
         ),
     ]
