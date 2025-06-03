@@ -22,9 +22,7 @@ from pipelines.meteorologia.meteorologia_inmet.tasks import (  # slice_data,
 )
 from pipelines.utils.decorators import Flow
 from pipelines.utils.dump_to_gcs.constants import constants as dump_to_gcs_constants
-from pipelines.utils.tasks import (
-    create_table_and_upload_to_gcs,
-)
+from pipelines.utils.tasks import create_table_and_upload_to_gcs
 
 with Flow(
     name="COR: Meteorologia - Meteorologia INMET",
