@@ -68,6 +68,7 @@ with Flow(
             dataset_id=DATASET_ID,
             table_id=TABLE_ID,
         )
+        run_dbt.set_upstream(UPLOAD_TABLE)
 
 # para rodar na cloud
 cor_meteorologia_meteorologia_inmet.storage = GCS(constants.GCS_FLOWS_BUCKET.value)
