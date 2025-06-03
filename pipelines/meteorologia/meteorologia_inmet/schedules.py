@@ -18,6 +18,10 @@ hour_schedule = Schedule(
             labels=[
                 constants.RJ_COR_AGENT_LABEL.value,
             ],
+            parameter_defaults={
+                "materialize_after_dump": True,
+                "mode": "prod",
+            },
         ),
     ]
 )
