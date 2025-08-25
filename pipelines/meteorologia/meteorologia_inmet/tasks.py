@@ -99,6 +99,7 @@ def download(data_inicio: str, data_fim: str) -> pd.DataFrame:
 
     # converte para dados
     dados = pd.DataFrame(raw)
+    log(f"Found {dados.shape[0]} rows for dates {data_inicio} to {data_fim}")
 
     return dados
 
@@ -135,6 +136,7 @@ def tratar_dados(dados: pd.DataFrame, backfill: bool = 0) -> pd.DataFrame:
 
     # Remove colunas que já temos os dados em outras tabelas
     dados = dados.drop(drop_cols, axis=1)
+    log(f"Raw first row: {dados.iloc[0]}")
 
     # Adequando nome das variáveis
     rename_cols = {
@@ -165,6 +167,7 @@ def tratar_dados(dados: pd.DataFrame, backfill: bool = 0) -> pd.DataFrame:
     }
 
     dados = dados.rename(columns=rename_cols)
+    log(f"Renamed columns first row: {dados.iloc[0]}")
 
     # Converte coluna de horas de 2300 para 23:00:00
     dados["horario"] = pd.to_datetime(dados.horario, format="%H%M")
