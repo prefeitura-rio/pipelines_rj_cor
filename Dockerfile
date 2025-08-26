@@ -1,5 +1,5 @@
 # Build arguments
-ARG PYTHON_VERSION=3.9-slim-bookworm
+ARG PYTHON_VERSION=3.9-slim-bullseye
 
 # Start Python image
 FROM python:${PYTHON_VERSION} AS base
