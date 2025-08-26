@@ -1,5 +1,5 @@
 # Build arguments
-ARG PYTHON_VERSION=3.9-slim-buster
+ARG PYTHON_VERSION=3.9-slim-bullseye
 
 # Start Python image
 FROM python:${PYTHON_VERSION} AS base
@@ -9,10 +9,10 @@ FROM python:${PYTHON_VERSION} AS base
 # Install git and other dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    ffmpeg=7:4.1.11-0+deb10u1 \
-    git=1:2.20.1-2+deb10u9 \
-    libsm6=2:1.2.3-1 \
-    libxext6=2:1.3.3-1+b2 && \
+    ffmpeg \
+    git \
+    libsm6 \
+    libxext6 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
